@@ -44,6 +44,8 @@ Copy `.env.example`; never commit `.env` or provider secrets.
 - `STAFF_ROBLOX_MIN_RANK`, `ADMIN_ROBLOX_MIN_RANK`, comma-separated `OWNER_ROBLOX_USER_IDS`, `STAFF_DISCORD_ROLE_IDS`, and `ADMIN_DISCORD_ROLE_IDS`.
 - Optional `WELCOME_BONUS_MILES`; `COOKIE_SECURE=true` is required in production. Local password login remains disabled by default.
 
+The checked-in public community defaults target Roblox group `6661826`, Discord guild `1538738611988467782`, staff rank `241`, admin rank `255`, and a 150-mile welcome bonus. Replace the `example.onrender.com` callback hostname in both Render and the provider dashboard with the service's real Render hostname before deployment. Provider client IDs, client secrets, session secrets, and database credentials must still be supplied only through Render's Environment page.
+
 ## Roblox OAuth and community verification
 
 Create an OAuth 2.0 application in Roblox Creator Hub. Configure the exact callback `https://YOUR_HOST/auth/roblox/callback` and request only `openid profile`. Add its client ID/secret and the numeric community/group ID to Render. The application uses authorization code + PKCE, validates one-time server-session state, exchanges the code server-side at Roblox's OAuth endpoint, and obtains identity from `userinfo`. It then checks the OAuth-derived permanent user ID against Roblox's group roles API and records the server-returned group role/rank. A browser-provided user ID is never accepted.
