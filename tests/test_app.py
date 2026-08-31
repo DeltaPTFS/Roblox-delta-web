@@ -2,6 +2,12 @@ import os
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
 from fastapi.testclient import TestClient
 from website.app.main import app
+from website.app.database import normalize_database_url
+
+
+def test_render_postgres_url_uses_psycopg3():
+    assert normalize_database_url("postgresql://user:pass@host/db") == "postgresql+psycopg://user:pass@host/db"
+    assert normalize_database_url("postgres://user:pass@host/db") == "postgresql+psycopg://user:pass@host/db"
 
 def test_health():
     with TestClient(app) as client:

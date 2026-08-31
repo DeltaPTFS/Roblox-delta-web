@@ -2,11 +2,11 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from website.app.config import get_settings
-from website.app.database import Base
+from website.app.database import Base, normalize_database_url
 from website.app import models
 
 config=context.config
-config.set_main_option("sqlalchemy.url",get_settings().database_url.replace("%","%%"))
+config.set_main_option("sqlalchemy.url", normalize_database_url(get_settings().database_url).replace("%","%%"))
 if config.config_file_name: fileConfig(config.config_file_name)
 target_metadata=Base.metadata
 def run_migrations_offline():

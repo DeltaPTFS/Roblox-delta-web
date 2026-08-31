@@ -30,7 +30,7 @@ Visit `http://localhost:8000`. The health check is `GET /health`. Run tests with
 
 ## Database and migrations
 
-Create a PostgreSQL database and set `DATABASE_URL` to its SQLAlchemy psycopg URL (a Render `postgres://` URL is normalized automatically). Run `alembic upgrade head` during each deployment. The schema enforces unique permanent Roblox IDs, Discord IDs, and SkyMiles numbers. Miles, MQP, segment requirements, descriptions, and tier benefits live in `tier_config`, rather than being scattered through application code. Atomic row locks protect miles adjustments and redemptions.
+Create a PostgreSQL database and set `DATABASE_URL` to its Render or SQLAlchemy PostgreSQL URL. Both Render-style `postgres://` and `postgresql://` URLs are normalized to SQLAlchemy's `postgresql+psycopg://` dialect so the installed psycopg 3 driver is always used. Run `alembic upgrade head` during each deployment. The schema enforces unique permanent Roblox IDs, Discord IDs, and SkyMiles numbers. Miles, MQP, segment requirements, descriptions, and tier benefits live in `tier_config`, rather than being scattered through application code. Atomic row locks protect miles adjustments and redemptions.
 
 Generate later migrations with `alembic revision --autogenerate -m "description"`; inspect generated SQL before applying it. The Discord bot may eventually read these same tables using a separate least-privilege database user.
 
