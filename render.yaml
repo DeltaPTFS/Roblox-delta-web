@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: delta-skymiles-roblox
+    runtime: python
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
+    startCommand: uvicorn website.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: skymiles-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: true
+      - key: ROBLOX_REDIRECT_URI
+        value: https://example.onrender.com/auth/roblox/callback
+      - key: ROBLOX_GROUP_ID
+        value: "6661826"
+      - key: ROBLOX_GROUP_URL
+        value: https://www.roblox.com/communities/6661826/Delta-Air-Lines-RBLX#!/about
+      - key: DISCORD_GUILD_ID
+        value: "1538738611988467782"
+      - key: STAFF_ROBLOX_MIN_RANK
+        value: "241"
+      - key: ADMIN_ROBLOX_MIN_RANK
+        value: "255"
+      - key: WELCOME_BONUS_MILES
+        value: "150"
+databases:
+  - name: skymiles-db
+    plan: basic-256mb
