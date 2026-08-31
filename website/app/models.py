@@ -30,6 +30,8 @@ class User(Base):
     password_hash: Mapped[str | None] = mapped_column(String(255))
     miles_balance: Mapped[int] = mapped_column(BigInteger, default=0)
     lifetime_miles: Mapped[int] = mapped_column(BigInteger, default=0)
+    medallion_qualifying_points: Mapped[int] = mapped_column(BigInteger, default=0)
+    segments_flown: Mapped[int] = mapped_column(Integer, default=0)
     tier: Mapped[Tier] = mapped_column(Enum(Tier), default=Tier.MEMBER)
     account_status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE)
     roblox_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
@@ -42,7 +44,11 @@ class TierConfig(Base):
     __tablename__ = "tier_config"
     id: Mapped[int] = mapped_column(primary_key=True)
     tier: Mapped[Tier] = mapped_column(Enum(Tier), unique=True)
-    threshold: Mapped[int] = mapped_column(BigInteger)
+    miles_threshold: Mapped[int] = mapped_column(BigInteger)
+    mqp_threshold: Mapped[int] = mapped_column(BigInteger, default=0)
+    segments_threshold: Mapped[int] = mapped_column(Integer, default=0)
+    description: Mapped[str] = mapped_column(Text, default="")
+    benefits: Mapped[list] = mapped_column(JSON, default=list)
 
 
 class Transaction(Base):

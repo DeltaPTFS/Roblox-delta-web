@@ -29,7 +29,15 @@ async def lifespan(app):
     Base.metadata.create_all(engine)
     with Session(engine) as db:
         if not db.scalar(select(TierConfig.id).limit(1)):
-            for tier, value in [(Tier.MEMBER,0),(Tier.SILVER,10000),(Tier.GOLD,25000),(Tier.PLATINUM,50000),(Tier.DIAMOND,100000)]: db.add(TierConfig(tier=tier, threshold=value))
+            tier_defaults = [
+                (Tier.MEMBER, 0, 0, 0, "Start earning toward Medallion Status with every eligible community journey.", ["Earn and redeem SkyMiles", "Member rewards catalog"]),
+                (Tier.SILVER, 20000, 4000, 1, "The stepping stone to Medallion Status, with elevated recognition on eligible community trips.", ["Complimentary upgrade eligibility", "Priority boarding"]),
+                (Tier.GOLD, 30000, 12000, 5, "Unlock a broader suite of priority services and recognition throughout the community.", ["Unlimited complimentary upgrade eligibility", "Sky Priority-style community services"]),
+                (Tier.PLATINUM, 40000, 20000, 10, "The final step before Diamond, with customizable benefits and premium community recognition.", ["Unlimited complimentary upgrade eligibility", "Choice Benefits", "Priority services"]),
+                (Tier.DIAMOND, 50000, 28000, 15, "Our highest roleplay Medallion tier, recognizing the community's most engaged travelers.", ["Highest upgrade priority", "Highest Medallion boarding priority", "Customizable Choice Benefits"]),
+            ]
+            for tier, miles, mqp, segments, description, benefits in tier_defaults:
+                db.add(TierConfig(tier=tier, miles_threshold=miles, mqp_threshold=mqp, segments_threshold=segments, description=description, benefits=benefits))
             for name, desc, cost in [("Priority Boarding","Board first at a community flight.",2500),("Flight Upgrade","Upgrade an eligible roleplay itinerary.",5000),("Exclusive Discord Role","Unlock a distinguished community role.",10000),("Special Aircraft Access","Access a featured community aircraft.",15000)]: db.add(Reward(name=name, description=desc, miles_cost=cost, active=True))
             db.commit()
     yield
@@ -126,7 +134,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
 
 
 def member_page(request: Request, template: str, db: Session):
-    user=current_user(request,db); transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all(); rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all(); tiers=db.scalars(select(TierConfig).order_by(TierConfig.threshold)).all()
+    user=current_user(request,db); transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all(); rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all(); tiers=db.scalars(select(TierConfig).order_by(TierConfig.miles_threshold)).all()
     return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=permission(user,settings)))
 
 
