@@ -1,4 +1,6 @@
 """Add configurable Medallion miles, MQP, segment, and benefit criteria."""
+import json
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -38,9 +40,32 @@ def upgrade():
         "PLATINUM": (40000, 20000, 10, "The final step before Diamond, with customizable benefits and premium community recognition.", ["Unlimited complimentary upgrade eligibility", "Choice Benefits", "Priority services"]),
         "DIAMOND": (50000, 28000, 15, "Our highest roleplay Medallion tier, recognizing the community's most engaged travelers.", ["Highest upgrade priority", "Highest Medallion boarding priority", "Customizable Choice Benefits"]),
     }
-    table = sa.table("tier_config", sa.column("tier"), sa.column("miles_threshold"), sa.column("mqp_threshold"), sa.column("segments_threshold"), sa.column("description"), sa.column("benefits", sa.JSON()))
+    benefits_expression = "CAST(:benefits AS JSON)" if bind.dialect.name == "postgresql" else ":benefits"
     for tier, values in requirements.items():
-        bind.execute(table.update().where(table.c.tier == tier).values(miles_threshold=values[0], mqp_threshold=values[1], segments_threshold=values[2], description=values[3], benefits=values[4]))
+        # PostgreSQL enum columns cannot be compared directly with a VARCHAR
+        # bind parameter. Cast the enum to text so this migration works on
+        # both PostgreSQL and SQLite instead of raising SQLAlchemy f405.
+        bind.execute(
+            sa.text(
+                f"""
+                UPDATE tier_config
+                SET miles_threshold = :miles,
+                    mqp_threshold = :mqp,
+                    segments_threshold = :segments,
+                    description = :description,
+                    benefits = {benefits_expression}
+                WHERE CAST(tier AS TEXT) = :tier
+                """
+            ),
+            {
+                "tier": tier,
+                "miles": values[0],
+                "mqp": values[1],
+                "segments": values[2],
+                "description": values[3],
+                "benefits": json.dumps(values[4]),
+            },
+        )
 
 
 def downgrade():
