@@ -398,8 +398,9 @@ async def flights(request:Request,db:Session=Depends(get_db)):
     try: await sync_flights(db)
     except Exception: pass
     available=db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED])).order_by(Flight.starts_at)).all()
-    booked=set(db.scalars(select(Booking.flight_id).where(Booking.user_id==user.id)).all())
-    return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,booked=booked,amenities=eligible_amenities(user),auth=auth))
+    member_bookings=db.scalars(select(Booking).where(Booking.user_id==user.id)).all()
+    bookings={booking.flight_id:booking for booking in member_bookings}
+    return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,bookings=bookings,amenities=eligible_amenities(user),auth=auth))
 
 
 @app.post("/flights/{flight_id}/book")
@@ -419,6 +420,21 @@ async def book_flight(request:Request,flight_id:int,csrf:str=Form(...),amenities
     except Exception:
         pass  # A Discord outage must not undo a confirmed booking.
     return RedirectResponse("/flights?booked=1",303)
+
+
+@app.post("/flights/{flight_id}/cancel")
+@limiter.limit("10/minute")
+async def cancel_booking(request:Request,flight_id:int,csrf:str=Form(...),db:Session=Depends(get_db)):
+    """Release a reservation and every flight-only amenity before departure."""
+    check_csrf(request,csrf); user=current_user(request,db)
+    flight=db.get(Flight,flight_id)
+    booking=db.scalar(select(Booking).where(Booking.flight_id==flight_id,Booking.user_id==user.id).with_for_update())
+    if not flight or not booking or booking.status!="CONFIRMED": raise HTTPException(404,"Active booking not found")
+    if flight.starts_at<=datetime.now(timezone.utc): raise HTTPException(409,"This flight has already departed and can no longer be cancelled")
+    booking.status="CANCELLED"; booking.amenities=[]; db.commit()
+    try: await discord_announce_update(settings,title="Flight Booking Cancelled",description=f"{user.discord_display_name} left {flight.flight_number}. Their flight-only amenities were returned.")
+    except Exception: pass
+    return RedirectResponse("/flights?cancelled=1",303)
 
 
 @app.post("/tiers/{tier_name}/join")
@@ -497,7 +513,9 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     audit_logs=db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
     directory_users=db.scalars(select(User)).all() if required=="OWNER" else []
     user_map={item.id:item for item in directory_users}
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,feedback=feedback,audit_logs=audit_logs,user_map=user_map,panel_level=required,auth=permission(actor,settings)))
+    flight_form=request.session.pop("flight_form",{})
+    flight_form_error=request.session.pop("flight_form_error",None)
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,feedback=feedback,audit_logs=audit_logs,user_map=user_map,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -588,34 +606,40 @@ async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depen
 
 
 @app.post("/admin/flights/create")
-async def admin_create_flight(request:Request,flight_number:str=Form(...),departure_airport:str=Form(...),destination_airport:str=Form(...),name:str=Form(""),starts_at:str=Form(""),discord_event_url:str=Form(""),miles_reward:int=Form(...),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+async def admin_create_flight(request:Request,flight_number:str=Form(""),departure_airport:str=Form(""),destination_airport:str=Form(""),name:str=Form(""),starts_at:str=Form(""),discord_event_url:str=Form(""),miles_reward:str=Form(""),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); actor=await require_admin(request,db)
+    submitted={"flight_number":flight_number,"departure_airport":departure_airport,"destination_airport":destination_airport,"name":name,"starts_at":starts_at,"discord_event_url":discord_event_url,"miles_reward":miles_reward,"description":description}
+    def reject(message:str):
+        request.session["flight_form"]=submitted; request.session["flight_form_error"]=message
+        return RedirectResponse(panel_path(permission(actor,settings))+"#create-flight",303)
     number=" ".join(flight_number.upper().split()); departure=departure_airport.upper().strip(); destination=destination_airport.upper().strip()
-    if not re.fullmatch(r"[A-Z]{2,4} ?\d{1,4}",number): raise HTTPException(422,"Use a flight number such as DAL 1234")
-    if not re.fullmatch(r"[A-Z0-9]{3,4}",departure) or not re.fullmatch(r"[A-Z0-9]{3,4}",destination): raise HTTPException(422,"Use valid 3–4 character airport codes")
-    if departure==destination: raise HTTPException(422,"Departure and destination must be different")
-    if miles_reward < 0 or miles_reward > 100_000: raise HTTPException(422,"Miles reward must be between 0 and 100,000")
+    if not re.fullmatch(r"[A-Z]{2,4} ?\d{1,4}",number): return reject("Use a flight number such as DAL 1234.")
+    if not re.fullmatch(r"[A-Z0-9]{3,4}",departure) or not re.fullmatch(r"[A-Z0-9]{3,4}",destination): return reject("Use valid 3–4 character airport codes.")
+    if departure==destination: return reject("Departure and destination must be different.")
+    try: reward=int(miles_reward)
+    except (TypeError,ValueError): return reject("Enter a whole-number SkyMiles reward.")
+    if reward < 0 or reward > 100_000: return reject("SkyMiles reward must be between 0 and 100,000.")
     event_id=None; event=None
     if discord_event_url.strip():
         match=re.fullmatch(r"https://discord\.com/events/(\d+)/(\d+)/?",discord_event_url.strip())
-        if not match or match.group(1)!=settings.discord_guild_id: raise HTTPException(422,"Use a scheduled-event link from the configured Discord server")
+        if not match or match.group(1)!=settings.discord_guild_id: return reject("Use a scheduled-event link from the configured Discord server.")
         event_id=match.group(2)
         try: event=next((item for item in await discord_scheduled_events(settings) if str(item.get("id"))==event_id),None)
-        except Exception as exc: raise HTTPException(502,"Could not read that Discord event") from exc
-        if not event: raise HTTPException(404,"Discord event not found")
-        if db.scalar(select(Flight.id).where(Flight.discord_event_id==event_id)): raise HTTPException(409,"That Discord event is already linked to a flight")
+        except Exception: return reject("Discord could not be reached. Your entries were preserved; please try again.")
+        if not event: return reject("Discord event not found. Your entries were preserved.")
+        if db.scalar(select(Flight.id).where(Flight.discord_event_id==event_id)): return reject("That Discord event is already linked to a flight.")
     if event:
         departure_time=datetime.fromisoformat(event["scheduled_start_time"].replace("Z","+00:00")); name=(event.get("name") or name).strip(); description=(event.get("description") or description).strip(); location=(event.get("entity_metadata") or {}).get("location") or f"{departure} → {destination}"
     else:
-        if not name.strip() or not starts_at: raise HTTPException(422,"A title and departure time are required without a Discord event link")
+        if not name.strip() or not starts_at: return reject("A title and departure time are required without a Discord event link.")
         try: departure_time=datetime.fromisoformat(starts_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
-        except ValueError: raise HTTPException(422,"Invalid departure date and time")
+        except ValueError: return reject("Enter a valid departure date and time.")
         location=f"{departure} → {destination}"
-    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,miles_reward=miles_reward,status=FlightStatus.SCHEDULED)
+    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,miles_reward=reward,status=FlightStatus.SCHEDULED)
     db.add(flight); db.flush()
-    db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":miles_reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
     db.commit()
-    try: await discord_announce_update(settings,title="Flight Created",description=f"{actor.discord_display_name} created {number}: {departure} → {destination}.",fields=[{"name":"SkyMiles reward","value":f"{miles_reward:,}","inline":True},{"name":"Discord event","value":discord_event_url.strip() or "Manual flight"}])
+    try: await discord_announce_update(settings,title="Flight Created",description=f"{actor.discord_display_name} created {number}: {departure} → {destination}.",fields=[{"name":"SkyMiles reward","value":f"{reward:,}","inline":True},{"name":"Discord event","value":discord_event_url.strip() or "Manual flight"}])
     except Exception: pass
     return RedirectResponse(f"{panel_path(permission(actor,settings))}?flight_created=1",303)
 
@@ -629,12 +653,6 @@ async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...)
     if not flight: raise HTTPException(404,"Flight not found")
     old={"status":flight.status.value,"message":flight.status_message}
     flight.status=new_status; flight.status_message=message.strip()[:500] or None
-    if new_status == FlightStatus.COMPLETED:
-        bookings=db.scalars(select(Booking).where(Booking.flight_id==flight.id,Booking.status=="CONFIRMED").with_for_update()).all()
-        for booking in bookings:
-            member=db.scalar(select(User).where(User.id==booking.user_id).with_for_update())
-            before=member.miles_balance; member.miles_balance+=flight.miles_reward; member.lifetime_miles+=flight.miles_reward; member.segments_flown+=1; booking.status="REWARDED"
-            db.add(Transaction(user_id=member.id,type="FLIGHT_COMPLETED",description=f"{flight.flight_number} · {flight.departure_airport} → {flight.destination_airport}",reference=flight.flight_number,miles_change=flight.miles_reward,balance_before=before,balance_after=member.miles_balance,created_by=actor.id))
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action=f"FLIGHT_{new_status.value}",old_value=old,new_value={"status":new_status.value,"message":flight.status_message},reason=message.strip() or f"Flight marked {new_status.value}",security_metadata={"ip":request.client.host if request.client else None,"flight_id":flight.id}))
     db.commit()
     try: await discord_announce_update(settings,title=f"Flight {new_status.value.title()}",description=f"{actor.discord_display_name} updated {flight.flight_number}.",fields=[{"name":"Message","value":flight.status_message or "No additional message"}])

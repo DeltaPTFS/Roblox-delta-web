@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from datetime import datetime, timezone
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
 from fastapi.testclient import TestClient
@@ -82,3 +83,20 @@ def test_login_has_safe_oauth_and_disclaimer():
 def test_admin_requires_session():
     with TestClient(app) as client:
         assert client.get("/admin").status_code==401
+
+
+def test_flight_management_is_manual_and_local_time_enabled():
+    main_source = Path("website/app/main.py").read_text()
+    flight_template = Path("website/templates/flights.html").read_text()
+    assert 'if new_status == FlightStatus.COMPLETED' not in main_source
+    assert 'data-local-time' in flight_template
+    assert 'Leave Flight &amp; Request Refund' in flight_template
+    assert 'Rebook This Flight' in flight_template
+
+
+def test_invalid_flight_form_preserves_submitted_values():
+    main_source = Path("website/app/main.py").read_text()
+    admin_template = Path("website/templates/admin.html").read_text()
+    assert 'request.session["flight_form"]=submitted' in main_source
+    assert "flight_form.get('flight_number','')" in admin_template
+    assert 'flight_form_error' in admin_template
