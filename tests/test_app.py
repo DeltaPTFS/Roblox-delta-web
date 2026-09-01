@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
 from fastapi.testclient import TestClient
-from website.app.main import app, next_medallion_expiration, qualifies_for_tier
+from website.app.main import app, is_tier_upgrade, next_medallion_expiration, qualifies_for_tier
 from website.app.database import normalize_database_url
 from website.app.models import Tier, TierConfig, User
 
@@ -17,10 +17,18 @@ def test_medallion_expires_next_new_year_at_midnight_eastern():
     joined = datetime(2026, 3, 3, 18, 30, tzinfo=timezone.utc)
     assert next_medallion_expiration(joined) == datetime(2027, 1, 1, 5, 0, tzinfo=timezone.utc)
 
-def test_medallion_qualification_uses_earned_skymiles():
+def test_medallion_qualification_requires_all_three_metrics():
     member = User(lifetime_miles=100_000, medallion_qualifying_points=0, segments_flown=0)
     diamond = TierConfig(tier=Tier.DIAMOND, miles_threshold=50_000, mqp_threshold=28_000, segments_threshold=15)
+    assert not qualifies_for_tier(member, diamond)
+    member.medallion_qualifying_points=28_000; member.segments_flown=15
     assert qualifies_for_tier(member, diamond)
+
+
+def test_medallion_changes_must_be_upgrades():
+    assert is_tier_upgrade(Tier.SILVER, Tier.GOLD)
+    assert not is_tier_upgrade(Tier.GOLD, Tier.GOLD)
+    assert not is_tier_upgrade(Tier.PLATINUM, Tier.SILVER)
 
 def test_health():
     with TestClient(app) as client:

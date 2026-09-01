@@ -74,8 +74,20 @@ def context(request, **values):
 
 
 def qualifies_for_tier(user: User, tier: TierConfig) -> bool:
-    """Medallion enrollment is earned with SkyMiles; MQP and segments are progress stats."""
-    return user.lifetime_miles >= tier.miles_threshold
+    """Require every published qualification for Medallion enrollment."""
+    return (
+        user.lifetime_miles >= tier.miles_threshold
+        and user.medallion_qualifying_points >= tier.mqp_threshold
+        and user.segments_flown >= tier.segments_threshold
+    )
+
+
+TIER_ORDER = {Tier.MEMBER: 0, Tier.SILVER: 1, Tier.GOLD: 2, Tier.PLATINUM: 3, Tier.DIAMOND: 4}
+
+
+def is_tier_upgrade(current: Tier, desired: Tier) -> bool:
+    """Members may move upward during a status year, but never sideways or down."""
+    return TIER_ORDER[desired] > TIER_ORDER[current]
 
 
 @app.get("/health")
@@ -263,7 +275,7 @@ async def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_
     tier=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
     if not tier: raise HTTPException(404,"Medallion tier not found")
     qualifies=qualifies_for_tier(user,tier)
-    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,auth=auth))
+    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,can_upgrade=is_tier_upgrade(user.tier,desired),auth=auth))
 
 
 def eligible_amenities(user: User) -> list[dict]:
@@ -357,7 +369,8 @@ async def join_tier(request:Request,tier_name:str,csrf:str=Form(...),db:Session=
     with db.begin_nested():
         user=db.scalar(select(User).where(User.id==user.id).with_for_update())
         config=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
-        if not config or not qualifies_for_tier(user,config): raise HTTPException(403,"You have not earned enough lifetime SkyMiles for this Medallion level")
+        if not is_tier_upgrade(user.tier,desired): raise HTTPException(409,"You can only upgrade to a higher Medallion level during the current status year")
+        if not config or not qualifies_for_tier(user,config): raise HTTPException(403,"You must meet the SkyMiles, MQP, and segment requirements for this Medallion level")
         if user.miles_balance < config.enrollment_cost: raise HTTPException(400,"Not Enough Miles")
         before=user.miles_balance; user.miles_balance-=config.enrollment_cost
         user.tier=desired; user.medallion_expires_at=next_medallion_expiration()
@@ -415,6 +428,22 @@ async def adjust(request:Request,user_id:int,action:str=Form(...),amount:int=For
         before=target.miles_balance; target.miles_balance=max(0,before+signed_amount); actual=target.miles_balance-before
         if actual>0: target.lifetime_miles+=actual
         db.add(Transaction(user_id=target.id,type="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",description=reason.strip(),reference=reference[:100],miles_change=actual,balance_before=before,balance_after=target.miles_balance,created_by=actor.id)); db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",old_value={"balance":before},new_value={"balance":target.miles_balance},reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None}))
+    db.commit(); return RedirectResponse(f"/admin?q={target.skymiles_number}",303)
+
+
+@app.post("/admin/members/{user_id}/qualifications")
+@limiter.limit("20/minute")
+async def adjust_qualifications(request:Request,user_id:int,mqp:int=Form(0),segments:int=Form(0),reason:str=Form(...),reference:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_staff(request,db)
+    if not reason.strip() or mqp<0 or segments<0 or (mqp==0 and segments==0) or mqp>1_000_000 or segments>10_000:
+        raise HTTPException(422,"Enter a positive MQP or segment amount and a reason")
+    with db.begin_nested():
+        target=db.scalar(select(User).where(User.id==user_id).with_for_update())
+        if not target: raise HTTPException(404,"Member not found")
+        before={"mqp":target.medallion_qualifying_points,"segments":target.segments_flown}
+        target.medallion_qualifying_points+=mqp; target.segments_flown+=segments
+        after={"mqp":target.medallion_qualifying_points,"segments":target.segments_flown}
+        db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="QUALIFICATIONS_ADDED",old_value=before,new_value=after,reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None,"reference":reference[:100]}))
     db.commit(); return RedirectResponse(f"/admin?q={target.skymiles_number}",303)
 
 
