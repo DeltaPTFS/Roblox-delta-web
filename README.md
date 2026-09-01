@@ -41,10 +41,20 @@ Copy `.env.example`; never commit `.env` or provider secrets.
 - `APP_URL`, `DATABASE_URL`, and a cryptographically random 32+ character `SESSION_SECRET`.
 - `ROBLOX_CLIENT_ID`, `ROBLOX_CLIENT_SECRET`, `ROBLOX_REDIRECT_URI`, `ROBLOX_GROUP_ID`, `ROBLOX_GROUP_URL`.
 - `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `DISCORD_GUILD_ID`, `DISCORD_INVITE_URL`.
+- Secret `DISCORD_BOT_TOKEN` enables scheduled-event flight synchronization and server-side role assignment. The bot must be in the configured guild with **Manage Roles**, and its highest role must sit above every SkyMiles/Medallion role.
+- `DISCORD_MEMBER_ROLE_ID` is retained for every member. Configure the Silver, Gold, Platinum, and Diamond role IDs separately; `DISCORD_SILVER_ROLE_ID` is intentionally blank until a Silver role ID is supplied.
 - `STAFF_ROBLOX_MIN_RANK`, `ADMIN_ROBLOX_MIN_RANK`, comma-separated `OWNER_ROBLOX_USER_IDS`, `STAFF_DISCORD_ROLE_IDS`, and `ADMIN_DISCORD_ROLE_IDS`.
 - Optional `WELCOME_BONUS_MILES`; `COOKIE_SECURE=true` is required in production. Local password login remains disabled by default.
 
 The checked-in public community defaults target Roblox group `6661826`, Discord guild `1538738611988467782`, staff rank `241`, admin rank `255`, and a 150-mile welcome bonus. Replace the `example.onrender.com` callback hostname in both Render and the provider dashboard with the service's real Render hostname before deployment. Provider client IDs, client secrets, session secrets, and database credentials must still be supplied only through Render's Environment page.
+
+## Flights and Discord roles
+
+`BOOK A FLIGHT!` shows active Discord scheduled events. Opening the page synchronizes current events when `DISCORD_BOT_TOKEN` is configured; staff can also force a sync and publish scheduled, delayed, cancelled, or completed status from Staff Admin. Members book once per flight and may select only server-computed amenities allowed by their tier. Amenities apply to that booking only.
+
+Hovering or focusing a Medallion card exposes its join action. The server independently checks lifetime miles, MQP, and segments before changing status. Successful registration always assigns the base SkyMiles Member role. Successful Medallion enrollment retains that base role, removes other configured Medallion roles, and assigns the selected tier role. Attendance-channel messages are intentionally not implemented yet.
+
+Medallion Status is valid only through the next January 1 at 12:00 AM Eastern Time. The application uses the IANA `America/New_York` timezone, so the instant is correctly treated as EST in January (for example, enrollment on March 3, 2026 expires at January 1, 2027 12:00 AM ET / 05:00 UTC). An hourly server task returns expired members to the base SkyMiles Member tier and removes configured Medallion Discord roles while retaining the base member role.
 
 ## Roblox OAuth and community verification
 

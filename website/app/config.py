@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     discord_redirect_uri: str = "http://localhost:8000/auth/discord/callback"
     discord_guild_id: str = ""
     discord_invite_url: str = "https://discord.gg/"
+    discord_bot_token: str = ""
+    discord_member_role_id: str = "1539005061609422849"
+    discord_silver_role_id: str = ""
+    discord_gold_role_id: str = "1539005058686001275"
+    discord_platinum_role_id: str = "1539005057062805594"
+    discord_diamond_role_id: str = "1539005055322292335"
     staff_roblox_min_rank: int = 100
     admin_roblox_min_rank: int = 200
     owner_roblox_user_ids: str = ""
@@ -25,6 +31,15 @@ class Settings(BaseSettings):
     welcome_bonus_miles: int = 0
     local_password_login_enabled: bool = False
     cookie_secure: bool = True
+
+    @property
+    def medallion_role_ids(self) -> dict[str, str]:
+        return {
+            "SILVER": self.discord_silver_role_id,
+            "GOLD": self.discord_gold_role_id,
+            "PLATINUM": self.discord_platinum_role_id,
+            "DIAMOND": self.discord_diamond_role_id,
+        }
 
     @staticmethod
     def ids(value: str) -> set[str]:

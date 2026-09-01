@@ -1,6 +1,8 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,9 +14,9 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
-from .database import Base, engine, get_db
-from .models import AuditLog, Redemption, Reward, Status, Tier, TierConfig, Transaction, User
-from .oauth import discord_authorize, discord_identity, roblox_authorize, roblox_identity
+from .database import Base, SessionLocal, engine, get_db
+from .models import AuditLog, Booking, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User
+from .oauth import discord_authorize, discord_identity, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -40,7 +42,12 @@ async def lifespan(app):
                 db.add(TierConfig(tier=tier, miles_threshold=miles, mqp_threshold=mqp, segments_threshold=segments, description=description, benefits=benefits))
             for name, desc, cost in [("Priority Boarding","Board first at a community flight.",2500),("Flight Upgrade","Upgrade an eligible roleplay itinerary.",5000),("Exclusive Discord Role","Unlock a distinguished community role.",10000),("Special Aircraft Access","Access a featured community aircraft.",15000)]: db.add(Reward(name=name, description=desc, miles_cost=cost, active=True))
             db.commit()
-    yield
+    await expire_medallions_once()
+    expiration_task = asyncio.create_task(medallion_expiration_worker())
+    try:
+        yield
+    finally:
+        expiration_task.cancel()
 
 
 app = FastAPI(title="Delta SkyMiles | Roblox", lifespan=lifespan)
@@ -129,7 +136,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         db.add(user)
     try: db.commit()
     except IntegrityError: db.rollback(); raise HTTPException(409,"Account link conflict")
-    db.refresh(user); request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings)
+    db.refresh(user)
+    try: await discord_set_medallion_roles(settings, user.discord_user_id, user.tier.name if user.tier != Tier.MEMBER else None)
+    except Exception: pass  # Account creation must survive a temporary Discord role outage.
+    request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings)
     return RedirectResponse("/dashboard",303)
 
 
@@ -148,6 +158,102 @@ def activity(request:Request,db:Session=Depends(get_db)): return member_page(req
 def rewards(request:Request,db:Session=Depends(get_db)): return member_page(request,"rewards.html",db)
 @app.get("/profile", response_class=HTMLResponse)
 def profile(request:Request,db:Session=Depends(get_db)): return member_page(request,"profile.html",db)
+
+
+def eligible_amenities(user: User) -> list[dict]:
+    amenities = [{"id":"fast_booking","name":"Fast Booking","description":"Priority handling for this flight booking."}]
+    if user.tier in {Tier.GOLD, Tier.PLATINUM, Tier.DIAMOND}: amenities.append({"id":"priority_boarding","name":"Priority Boarding","description":"Board in the Medallion priority group."})
+    if user.tier in {Tier.PLATINUM, Tier.DIAMOND}: amenities.append({"id":"upgrade_priority","name":"Upgrade Priority","description":"Apply upgrade priority to this flight only."})
+    if user.tier == Tier.DIAMOND: amenities.append({"id":"diamond_service","name":"Diamond Service","description":"Highest community service priority."})
+    return amenities
+
+
+def next_medallion_expiration(now: datetime | None = None) -> datetime:
+    """Return next January 1 at midnight Eastern, stored as UTC."""
+    eastern = ZoneInfo("America/New_York")
+    current = (now or datetime.now(timezone.utc)).astimezone(eastern)
+    return datetime(current.year + 1, 1, 1, 0, 0, tzinfo=eastern).astimezone(timezone.utc)
+
+
+async def expire_medallions_once() -> int:
+    now = datetime.now(timezone.utc)
+    with SessionLocal() as db:
+        expired = db.scalars(select(User).where(User.tier != Tier.MEMBER, User.medallion_expires_at.is_not(None), User.medallion_expires_at <= now)).all()
+        for user in expired:
+            old_tier = user.tier.value
+            user.tier = Tier.MEMBER
+            user.medallion_expires_at = None
+            db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEDALLION_EXPIRED",old_value={"tier":old_tier},new_value={"tier":Tier.MEMBER.value},reason="Annual Medallion term ended at midnight Eastern on January 1",security_metadata={"automatic":True}))
+        db.commit()
+        identities = [(user.discord_user_id, user.id) for user in expired]
+    for discord_user_id, _ in identities:
+        try: await discord_set_medallion_roles(settings, discord_user_id, None)
+        except Exception: pass
+    return len(identities)
+
+
+async def medallion_expiration_worker():
+    while True:
+        await asyncio.sleep(3600)
+        await expire_medallions_once()
+
+
+async def sync_flights(db: Session) -> int:
+    events = await discord_scheduled_events(settings)
+    for event in events:
+        if not event.get("scheduled_start_time"): continue
+        flight = db.scalar(select(Flight).where(Flight.discord_event_id == str(event["id"])))
+        if not flight:
+            flight = Flight(discord_event_id=str(event["id"]), name=event["name"], starts_at=datetime.fromisoformat(event["scheduled_start_time"].replace("Z","+00:00")))
+            db.add(flight)
+        flight.name = event["name"]
+        flight.description = event.get("description") or "Community flight"
+        flight.location = (event.get("entity_metadata") or {}).get("location") or "Delta Roblox Community"
+        flight.starts_at = datetime.fromisoformat(event["scheduled_start_time"].replace("Z","+00:00"))
+        flight.ends_at = datetime.fromisoformat(event["scheduled_end_time"].replace("Z","+00:00")) if event.get("scheduled_end_time") else None
+        flight.image_url = f"https://cdn.discordapp.com/guild-events/{event['id']}/{event['image']}.png" if event.get("image") else None
+        if event.get("status") == 4: flight.status = FlightStatus.COMPLETED
+    db.commit()
+    return len(events)
+
+
+@app.get("/flights", response_class=HTMLResponse)
+async def flights(request:Request,db:Session=Depends(get_db)):
+    user=current_user(request,db)
+    try: await sync_flights(db)
+    except Exception: pass
+    available=db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED])).order_by(Flight.starts_at)).all()
+    booked=set(db.scalars(select(Booking.flight_id).where(Booking.user_id==user.id)).all())
+    return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,booked=booked,amenities=eligible_amenities(user),auth=permission(user,settings)))
+
+
+@app.post("/flights/{flight_id}/book")
+@limiter.limit("10/minute")
+def book_flight(request:Request,flight_id:int,csrf:str=Form(...),amenities:list[str]=Form(default=[]),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); user=current_user(request,db)
+    flight=db.get(Flight,flight_id)
+    if not flight or flight.status in {FlightStatus.CANCELLED,FlightStatus.COMPLETED}: raise HTTPException(400,"This flight is not available for booking")
+    allowed={item["id"] for item in eligible_amenities(user)}
+    selected=[item for item in amenities if item in allowed]
+    existing=db.scalar(select(Booking).where(Booking.flight_id==flight.id,Booking.user_id==user.id))
+    if existing: existing.amenities=selected; existing.status="CONFIRMED"
+    else: db.add(Booking(flight_id=flight.id,user_id=user.id,amenities=selected))
+    db.commit(); return RedirectResponse("/flights?booked=1",303)
+
+
+@app.post("/tiers/{tier_name}/join")
+@limiter.limit("5/minute")
+async def join_tier(request:Request,tier_name:str,csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); user=current_user(request,db)
+    try: desired=Tier[tier_name.upper()]
+    except KeyError: raise HTTPException(404,"Medallion tier not found")
+    config=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
+    if not config or user.lifetime_miles < config.miles_threshold or user.medallion_qualifying_points < config.mqp_threshold or user.segments_flown < config.segments_threshold:
+        raise HTTPException(403,"You have not met all requirements for this Medallion level")
+    user.tier=desired; user.medallion_expires_at=next_medallion_expiration(); db.commit()
+    try: await discord_set_medallion_roles(settings,user.discord_user_id,desired.name)
+    except Exception: raise HTTPException(502,"Status updated, but Discord role synchronization needs staff attention")
+    return RedirectResponse("/miles?joined=1",303)
 
 
 @app.post("/rewards/{reward_id}/redeem")
@@ -176,7 +282,8 @@ def require_staff(request,db):
 def admin(request:Request,q:str="",db:Session=Depends(get_db)):
     actor=require_staff(request,db); users=[]
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,auth=permission(actor,settings)))
+    flights=db.scalars(select(Flight).order_by(Flight.starts_at.desc()).limit(20)).all()
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,flights=flights,auth=permission(actor,settings)))
 
 
 @app.post("/admin/members/{user_id}/miles")
@@ -191,6 +298,26 @@ def adjust(request:Request,user_id:int,amount:int=Form(...),reason:str=Form(...)
         if actual>0: target.lifetime_miles+=actual
         db.add(Transaction(user_id=target.id,type="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",description=reason.strip(),reference=reference[:100],miles_change=actual,balance_before=before,balance_after=target.miles_balance,created_by=actor.id)); db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",old_value={"balance":before},new_value={"balance":target.miles_balance},reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None}))
     db.commit(); return RedirectResponse(f"/admin?q={target.skymiles_number}",303)
+
+
+@app.post("/admin/flights/sync")
+async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); require_staff(request,db)
+    await sync_flights(db)
+    return RedirectResponse("/admin?flights_synced=1",303)
+
+
+@app.post("/admin/flights/{flight_id}/status")
+def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=require_staff(request,db)
+    try: new_status=FlightStatus[status.upper()]
+    except KeyError: raise HTTPException(422,"Invalid flight status")
+    flight=db.get(Flight,flight_id)
+    if not flight: raise HTTPException(404,"Flight not found")
+    old={"status":flight.status.value,"message":flight.status_message}
+    flight.status=new_status; flight.status_message=message.strip()[:500] or None
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action=f"FLIGHT_{new_status.value}",old_value=old,new_value={"status":new_status.value,"message":flight.status_message},reason=message.strip() or f"Flight marked {new_status.value}",security_metadata={"ip":request.client.host if request.client else None,"flight_id":flight.id}))
+    db.commit(); return RedirectResponse("/admin?flight_updated=1",303)
 
 
 @app.post("/logout")

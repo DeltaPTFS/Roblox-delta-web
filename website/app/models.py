@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -10,6 +10,7 @@ def now(): return datetime.now(timezone.utc)
 
 class Status(str, enum.Enum): ACTIVE="ACTIVE"; SUSPENDED="SUSPENDED"; DISABLED="DISABLED"
 class Tier(str, enum.Enum): MEMBER="SKYMILES MEMBER"; SILVER="SILVER MEDALLION"; GOLD="GOLD MEDALLION"; PLATINUM="PLATINUM MEDALLION"; DIAMOND="DIAMOND MEDALLION"
+class FlightStatus(str, enum.Enum): SCHEDULED="SCHEDULED"; DELAYED="DELAYED"; CANCELLED="CANCELLED"; COMPLETED="COMPLETED"
 
 
 class User(Base):
@@ -33,6 +34,7 @@ class User(Base):
     medallion_qualifying_points: Mapped[int] = mapped_column(BigInteger, default=0)
     segments_flown: Mapped[int] = mapped_column(Integer, default=0)
     tier: Mapped[Tier] = mapped_column(Enum(Tier), default=Tier.MEMBER)
+    medallion_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     account_status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE)
     roblox_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     discord_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
@@ -108,3 +110,33 @@ class WebSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class Flight(Base):
+    __tablename__ = "flights"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    discord_event_id: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(Text, default="")
+    location: Mapped[str] = mapped_column(String(160), default="To be announced")
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    image_url: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[FlightStatus] = mapped_column(Enum(FlightStatus), default=FlightStatus.SCHEDULED)
+    status_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class Booking(Base):
+    __tablename__ = "bookings"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    flight_id: Mapped[int] = mapped_column(ForeignKey("flights.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    amenities: Mapped[list] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(30), default="CONFIRMED")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+    __table_args__ = (
+        UniqueConstraint("flight_id", "user_id", name="uq_booking_flight_user"),
+    )

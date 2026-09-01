@@ -11,6 +11,8 @@ DISCORD_AUTHORIZE = "https://discord.com/oauth2/authorize"
 DISCORD_TOKEN = "https://discord.com/api/v10/oauth2/token"
 DISCORD_ME = "https://discord.com/api/v10/users/@me"
 DISCORD_MEMBER = "https://discord.com/api/v10/users/@me/guilds/{guild_id}/member"
+DISCORD_GUILD_EVENTS = "https://discord.com/api/v10/guilds/{guild_id}/scheduled-events"
+DISCORD_GUILD_ROLE = "https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}/roles/{role_id}"
 
 
 def roblox_authorize(settings: Settings, state: str, challenge: str) -> str:
@@ -42,3 +44,33 @@ async def discord_identity(settings: Settings, code: str, verifier: str) -> dict
         member = member_response.json() if member_response.status_code == 200 else None
         avatar = f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get("avatar") else None
         return {"id":str(user["id"]),"username":user["username"],"display_name":user.get("global_name") or user["username"],"avatar":avatar,"member":member}
+
+
+async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_name: str | None = None) -> bool:
+    """Keep the base member role and replace provider-managed Medallion roles."""
+    if not settings.discord_bot_token:
+        return False
+    headers = {"Authorization": f"Bot {settings.discord_bot_token}"}
+    desired = settings.medallion_role_ids.get(tier_name or "", "")
+    async with httpx.AsyncClient(timeout=15) as client:
+        member_url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=settings.discord_member_role_id)
+        (await client.put(member_url, headers=headers)).raise_for_status()
+        for role_id in {role for role in settings.medallion_role_ids.values() if role}:
+            url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=role_id)
+            response = await (client.put(url, headers=headers) if role_id == desired else client.delete(url, headers=headers))
+            if response.status_code not in {204, 404}:
+                response.raise_for_status()
+    return True
+
+
+async def discord_scheduled_events(settings: Settings) -> list[dict]:
+    if not settings.discord_bot_token:
+        return []
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.get(
+            DISCORD_GUILD_EVENTS.format(guild_id=settings.discord_guild_id),
+            headers={"Authorization": f"Bot {settings.discord_bot_token}"},
+            params={"with_user_count": "true"},
+        )
+        response.raise_for_status()
+        return response.json()
