@@ -78,6 +78,19 @@ async def discord_remove_skymiles_roles(settings: Settings, user_id: str) -> boo
     return True
 
 
+async def discord_member_roles(settings: Settings, user_id: str) -> list[str] | None:
+    """Fetch authoritative guild roles for server-side authorization."""
+    if not settings.discord_bot_token:
+        return None
+    url = f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{user_id}"
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.get(url, headers={"Authorization": f"Bot {settings.discord_bot_token}"})
+        if response.status_code == 404:
+            return []
+        response.raise_for_status()
+        return [str(role_id) for role_id in response.json().get("roles", [])]
+
+
 async def discord_scheduled_events(settings: Settings) -> list[dict]:
     if not settings.discord_bot_token:
         return []

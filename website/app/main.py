@@ -1,5 +1,6 @@
 import asyncio
 import re
+import secrets
 from uuid import uuid4
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -17,8 +18,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import AuditLog, Booking, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User
-from .oauth import discord_authorize, discord_identity, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
+from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User
+from .oauth import discord_authorize, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -59,7 +60,12 @@ app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
 
-def context(request, **values): return {"request":request,"csrf":csrf_token(request),"settings":settings,**values}
+def context(request, **values):
+    user=values.get("user")
+    show_feedback=False
+    if user and not request.session.get("feedback_prompted") and secrets.randbelow(4)==0:
+        request.session["feedback_prompted"]=True; show_feedback=True
+    return {"request":request,"csrf":csrf_token(request),"settings":settings,"show_feedback":show_feedback,**values}
 
 
 @app.get("/health")
@@ -95,6 +101,9 @@ async def roblox_callback(request: Request, code: str, state: str, db: Session=D
         existing.roblox_username, existing.roblox_display_name, existing.roblox_avatar_url = identity["username"], identity["display_name"], identity["avatar"]
         existing.roblox_group_role, existing.roblox_group_rank = role.get("name"), int(role.get("rank",0)); db.commit()
         request.session["link_user_id"] = existing.id
+        if existing.discord_verified_at and existing.account_status == Status.ACTIVE:
+            request.session.clear(); request.session["user_id"]=existing.id; request.session["authorization"]=permission(existing,settings); request.session["theme"]=existing.theme_preference
+            return RedirectResponse("/dashboard",303)
     return RedirectResponse("/connect-discord", 303)
 
 
@@ -113,6 +122,15 @@ def start_discord(request: Request):
     return RedirectResponse(discord_authorize(settings, state, challenge))
 
 
+@app.get("/auth/discord/login")
+@limiter.limit("10/minute")
+def start_discord_login(request: Request):
+    if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
+    request.session["discord_login_only"]=True
+    state, challenge = oauth_values(request, "discord")
+    return RedirectResponse(discord_authorize(settings, state, challenge))
+
+
 def next_number(db):
     last = db.scalar(select(User.skymiles_number).order_by(User.id.desc()).limit(1))
     return f"SM-{(int(last.split('-')[1]) + 1 if last else 1):08d}"
@@ -122,11 +140,19 @@ def next_number(db):
 @limiter.limit("10/minute")
 async def discord_callback(request: Request, code: str, state: str, db: Session=Depends(get_db)):
     pending = request.session.get("pending_roblox")
-    if not pending: raise HTTPException(401, "Verification session expired")
+    direct_login = bool(request.session.pop("discord_login_only",False))
+    if not pending and not direct_login: raise HTTPException(401, "Verification session expired")
     verifier = consume_oauth(request, "discord", state)
     try: identity = await discord_identity(settings, code, verifier)
     except Exception: return RedirectResponse("/error?kind=discord",303)
     if not identity["member"]: return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
+    if direct_login:
+        user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
+        if not user: return templates.TemplateResponse("error.html",context(request,title="Roblox Verification Required",message="Verify with Roblox first to create your SkyMiles membership."),status_code=404)
+        if user.account_status != Status.ACTIVE: raise HTTPException(403,"Account suspended")
+        user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc); db.commit()
+        request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
+        return RedirectResponse("/dashboard",303)
     existing_roblox = db.scalar(select(User).where(User.roblox_user_id == pending["id"]))
     existing_discord = db.scalar(select(User).where(User.discord_user_id == identity["id"]))
     if existing_discord and (not existing_roblox or existing_discord.id != existing_roblox.id): return templates.TemplateResponse("error.html", context(request, title="Account Already Linked", message="That Discord account is already linked to another SkyMiles membership."), status_code=409)
@@ -141,39 +167,60 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     db.refresh(user)
     try: await discord_set_medallion_roles(settings, user.discord_user_id, user.tier.name if user.tier != Tier.MEMBER else None)
     except Exception: pass  # Account creation must survive a temporary Discord role outage.
-    request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings)
+    request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
     return RedirectResponse("/dashboard",303)
 
 
-def member_page(request: Request, template: str, db: Session):
-    user=current_user(request,db); transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all(); rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all(); tiers=db.scalars(select(TierConfig).order_by(TierConfig.miles_threshold)).all()
-    return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=permission(user,settings)))
+async def refresh_discord_authorization(user: User, db: Session) -> str:
+    if settings.discord_bot_token:
+        try: user.discord_role_ids=await discord_member_roles(settings,user.discord_user_id) or []
+        except Exception: user.discord_role_ids=[]
+        db.commit()
+    return permission(user,settings)
+
+
+async def member_page(request: Request, template: str, db: Session):
+    user=current_user(request,db); auth=await refresh_discord_authorization(user,db); transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all(); rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all(); tiers=db.scalars(select(TierConfig).order_by(TierConfig.miles_threshold)).all()
+    return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=auth))
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request:Request,db:Session=Depends(get_db)): return member_page(request,"dashboard.html",db)
+async def dashboard(request:Request,db:Session=Depends(get_db)): return await member_page(request,"dashboard.html",db)
 @app.get("/miles", response_class=HTMLResponse)
-def miles(request:Request,db:Session=Depends(get_db)): return member_page(request,"miles.html",db)
+async def miles(request:Request,db:Session=Depends(get_db)): return await member_page(request,"miles.html",db)
 @app.get("/activity", response_class=HTMLResponse)
-def activity(request:Request,db:Session=Depends(get_db)): return member_page(request,"activity.html",db)
+async def activity(request:Request,db:Session=Depends(get_db)): return await member_page(request,"activity.html",db)
 @app.get("/rewards", response_class=HTMLResponse)
-def rewards(request:Request,db:Session=Depends(get_db)): return member_page(request,"rewards.html",db)
+async def rewards(request:Request,db:Session=Depends(get_db)): return await member_page(request,"rewards.html",db)
 @app.get("/profile", response_class=HTMLResponse)
-def profile(request:Request,db:Session=Depends(get_db)): return member_page(request,"profile.html",db)
+async def profile(request:Request,db:Session=Depends(get_db)): return await member_page(request,"profile.html",db)
 
 
 @app.get("/settings", response_class=HTMLResponse)
-def account_settings(request:Request,db:Session=Depends(get_db)):
+async def account_settings(request:Request,db:Session=Depends(get_db)):
     user=current_user(request,db)
-    return templates.TemplateResponse("settings.html",context(request,user=user,theme=request.session.get("theme","light"),auth=permission(user,settings)))
+    auth=await refresh_discord_authorization(user,db)
+    return templates.TemplateResponse("settings.html",context(request,user=user,theme=request.session.get("theme","light"),auth=auth))
 
 
 @app.post("/settings/theme")
 def update_theme(request:Request,theme:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); current_user(request,db)
+    check_csrf(request,csrf); user=current_user(request,db)
     if theme not in {"light","dark","system"}: raise HTTPException(422,"Invalid theme")
-    request.session["theme"]=theme
+    request.session["theme"]=theme; user.theme_preference=theme; db.commit()
     return RedirectResponse("/settings?theme_saved=1",303)
+
+
+@app.post("/feedback")
+@limiter.limit("3/day")
+def submit_feedback(request:Request,website_rating:int=Form(...),community_rating:int=Form(...),message:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); user=current_user(request,db)
+    if website_rating not in range(1,6) or community_rating not in range(1,6): raise HTTPException(422,"Ratings must be between 1 and 5 stars")
+    clean=message.strip()
+    if len(clean)<10 or len(clean)>1500: raise HTTPException(422,"Feedback must be between 10 and 1,500 characters")
+    db.add(Feedback(user_id=user.id,website_rating=website_rating,community_rating=community_rating,message=clean)); db.commit()
+    request.session["feedback_submitted"]=True
+    return RedirectResponse("/dashboard?feedback_received=1",303)
 
 
 @app.post("/settings/quit")
@@ -191,15 +238,16 @@ async def quit_skymiles(request:Request,confirmation:str=Form(...),csrf:str=Form
 
 
 @app.get("/medallions/{tier_name}", response_class=HTMLResponse)
-def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_db)):
+async def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_db)):
     user=current_user(request,db)
+    auth=await refresh_discord_authorization(user,db)
     try: desired=Tier[tier_name.upper()]
     except KeyError: raise HTTPException(404,"Medallion tier not found")
     if desired == Tier.MEMBER: raise HTTPException(404,"Medallion tier not found")
     tier=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
     if not tier: raise HTTPException(404,"Medallion tier not found")
     qualifies=user.lifetime_miles>=tier.miles_threshold and user.medallion_qualifying_points>=tier.mqp_threshold and user.segments_flown>=tier.segments_threshold
-    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,auth=permission(user,settings)))
+    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,auth=auth))
 
 
 def eligible_amenities(user: User) -> list[dict]:
@@ -262,11 +310,12 @@ async def sync_flights(db: Session) -> int:
 @app.get("/flights", response_class=HTMLResponse)
 async def flights(request:Request,db:Session=Depends(get_db)):
     user=current_user(request,db)
+    auth=await refresh_discord_authorization(user,db)
     try: await sync_flights(db)
     except Exception: pass
     available=db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED])).order_by(Flight.starts_at)).all()
     booked=set(db.scalars(select(Booking.flight_id).where(Booking.user_id==user.id)).all())
-    return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,booked=booked,amenities=eligible_amenities(user),auth=permission(user,settings)))
+    return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,booked=booked,amenities=eligible_amenities(user),auth=auth))
 
 
 @app.post("/flights/{flight_id}/book")
@@ -320,24 +369,26 @@ def redeem(request:Request,reward_id:int,csrf:str=Form(...),db:Session=Depends(g
     db.commit(); return RedirectResponse("/rewards?redeemed=1",303)
 
 
-def require_staff(request,db):
+async def require_staff(request,db):
     user=current_user(request,db)
-    if permission(user,settings) not in {"STAFF","ADMIN","OWNER"}: raise HTTPException(403,"Access denied")
+    auth=await refresh_discord_authorization(user,db)
+    if auth not in {"STAFF","ADMIN","OWNER"}: raise HTTPException(403,"Access denied")
     return user
 
 
 @app.get("/admin",response_class=HTMLResponse)
-def admin(request:Request,q:str="",db:Session=Depends(get_db)):
-    actor=require_staff(request,db); users=[]
+async def admin(request:Request,q:str="",db:Session=Depends(get_db)):
+    actor=await require_staff(request,db); users=[]
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
     flights=db.scalars(select(Flight).order_by(Flight.starts_at.desc()).limit(20)).all()
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,flights=flights,auth=permission(actor,settings)))
+    feedback=db.execute(select(Feedback,User).join(User,Feedback.user_id==User.id).order_by(Feedback.created_at.desc()).limit(50)).all()
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,flights=flights,feedback=feedback,auth=permission(actor,settings)))
 
 
 @app.post("/admin/members/{user_id}/miles")
 @limiter.limit("20/minute")
-def adjust(request:Request,user_id:int,amount:int=Form(...),reason:str=Form(...),reference:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); actor=require_staff(request,db)
+async def adjust(request:Request,user_id:int,amount:int=Form(...),reason:str=Form(...),reference:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_staff(request,db)
     if not reason.strip() or amount==0 or abs(amount)>1_000_000: raise HTTPException(422,"A valid amount and reason are required")
     with db.begin_nested():
         target=db.scalar(select(User).where(User.id==user_id).with_for_update())
@@ -350,14 +401,14 @@ def adjust(request:Request,user_id:int,amount:int=Form(...),reason:str=Form(...)
 
 @app.post("/admin/flights/sync")
 async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); require_staff(request,db)
+    check_csrf(request,csrf); await require_staff(request,db)
     await sync_flights(db)
     return RedirectResponse("/admin?flights_synced=1",303)
 
 
 @app.post("/admin/flights/create")
-def admin_create_flight(request:Request,flight_number:str=Form(...),departure_airport:str=Form(...),destination_airport:str=Form(...),name:str=Form(...),starts_at:str=Form(...),miles_reward:int=Form(...),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); actor=require_staff(request,db)
+async def admin_create_flight(request:Request,flight_number:str=Form(...),departure_airport:str=Form(...),destination_airport:str=Form(...),name:str=Form(...),starts_at:str=Form(...),miles_reward:int=Form(...),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_staff(request,db)
     number=" ".join(flight_number.upper().split()); departure=departure_airport.upper().strip(); destination=destination_airport.upper().strip()
     if not re.fullmatch(r"[A-Z]{2,4} ?\d{1,4}",number): raise HTTPException(422,"Use a flight number such as DAL 1234")
     if not re.fullmatch(r"[A-Z0-9]{3,4}",departure) or not re.fullmatch(r"[A-Z0-9]{3,4}",destination): raise HTTPException(422,"Use valid 3–4 character airport codes")
@@ -372,8 +423,8 @@ def admin_create_flight(request:Request,flight_number:str=Form(...),departure_ai
 
 
 @app.post("/admin/flights/{flight_id}/status")
-def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); actor=require_staff(request,db)
+async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_staff(request,db)
     try: new_status=FlightStatus[status.upper()]
     except KeyError: raise HTTPException(422,"Invalid flight status")
     flight=db.get(Flight,flight_id)

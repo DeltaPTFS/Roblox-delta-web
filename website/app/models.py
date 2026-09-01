@@ -27,6 +27,7 @@ class User(Base):
     discord_display_name: Mapped[str] = mapped_column(String(64))
     discord_avatar_url: Mapped[str | None] = mapped_column(Text)
     discord_role_ids: Mapped[list] = mapped_column(JSON, default=list)
+    theme_preference: Mapped[str] = mapped_column(String(10), default="system")
     skymiles_number: Mapped[str] = mapped_column(String(16), unique=True, index=True)
     password_hash: Mapped[str | None] = mapped_column(String(255))
     miles_balance: Mapped[int] = mapped_column(BigInteger, default=0)
@@ -145,3 +146,13 @@ class Booking(Base):
     __table_args__ = (
         UniqueConstraint("flight_id", "user_id", name="uq_booking_flight_user"),
     )
+
+
+class Feedback(Base):
+    __tablename__ = "feedback"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    website_rating: Mapped[int] = mapped_column(Integer)
+    community_rating: Mapped[int] = mapped_column(Integer)
+    message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)

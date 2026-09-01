@@ -25,6 +25,7 @@ def test_login_has_safe_oauth_and_disclaimer():
     with TestClient(app) as client:
         response=client.get("/")
         assert "Verify with Roblox" in response.text
+        assert "Continue with Discord" in response.text
         assert "Roblox Password" not in response.text
         assert "Not affiliated with or operated by Delta Air Lines, Inc." in response.text
 

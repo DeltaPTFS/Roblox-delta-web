@@ -76,6 +76,10 @@ Permissions are recomputed server-side from stored, provider-verified Roblox ran
 
 Sessions use opaque random IDs with state stored in PostgreSQL. Cookies are `HttpOnly`, `SameSite=Lax`, secure in production, expire after one day, and are deleted from the database at logout. OAuth state/verifiers stay server-side and tokens are never put in local storage. Put the service behind Render TLS, rotate provider secrets, restrict database access, and configure log retention/alerting.
 
+Returning members may authenticate with either their linked Roblox or linked Discord account. New memberships remain Roblox-first so the permanent Roblox identity and configured group membership are verified before Discord linking. Display theme is saved on the member record and restored on either login method. Staff navigation is based on verified authorization, and every admin endpoint refreshes Discord guild roles with the bot before enforcing access (falling closed for Discord-role authorization if refresh fails).
+
+The site occasionally shows a two-rating feedback dialog once per session. Ratings and written suggestions are validated server-side and stored for authorized staff review in Staff Admin; they are never posted publicly.
+
 ## Render deployment
 
 1. Create a Blueprint from `render.yaml`, or a Python web service plus PostgreSQL.
