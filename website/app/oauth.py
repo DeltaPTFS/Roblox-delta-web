@@ -1,4 +1,5 @@
 import httpx
+from time import monotonic
 from urllib.parse import urlencode
 from .config import Settings
 
@@ -14,6 +15,7 @@ DISCORD_MEMBER = "https://discord.com/api/v10/users/@me/guilds/{guild_id}/member
 DISCORD_GUILD_EVENTS = "https://discord.com/api/v10/guilds/{guild_id}/scheduled-events"
 DISCORD_GUILD_ROLE = "https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}/roles/{role_id}"
 DISCORD_CHANNEL_MESSAGES = "https://discord.com/api/v10/channels/{channel_id}/messages"
+_guild_role_cache: dict[str, tuple[float, list[dict]]] = {}
 
 
 def roblox_authorize(settings: Settings, state: str, challenge: str) -> str:
@@ -65,6 +67,29 @@ async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_nam
     return True
 
 
+def expected_skymiles_role_ids(settings: Settings, tier_name: str | None = None) -> set[str]:
+    """Return the exact managed Discord roles expected for a membership tier."""
+    expected={settings.discord_member_role_id} if settings.discord_member_role_id else set()
+    desired=settings.medallion_role_ids.get(tier_name or "", "")
+    if tier_name and not desired:
+        raise ValueError(f"No Discord role ID is configured for {tier_name}")
+    if desired: expected.add(desired)
+    return expected
+
+
+async def discord_sync_skymiles_roles(settings: Settings, user_id: str, tier_name: str | None = None) -> list[str]:
+    """Apply and verify the member's exact managed roles against Discord."""
+    if not await discord_set_medallion_roles(settings,user_id,tier_name):
+        raise RuntimeError("Discord bot role synchronization is not configured")
+    roles=await discord_member_roles(settings,user_id)
+    if roles is None: raise RuntimeError("Discord roles could not be verified")
+    actual=set(roles); expected=expected_skymiles_role_ids(settings,tier_name)
+    managed={settings.discord_member_role_id,*settings.medallion_role_ids.values()}-{""}
+    if not expected.issubset(actual) or actual & (managed-expected):
+        raise RuntimeError("Discord returned an unexpected managed role state")
+    return roles
+
+
 async def discord_remove_skymiles_roles(settings: Settings, user_id: str) -> bool:
     """Remove base and Medallion roles when a member leaves the program."""
     if not settings.discord_bot_token:
@@ -97,11 +122,15 @@ async def discord_guild_roles(settings: Settings) -> list[dict]:
     """Return the guild role catalog for the secured Staff Admin integration view."""
     if not settings.discord_bot_token:
         return []
+    cached=_guild_role_cache.get(settings.discord_guild_id)
+    if cached and cached[0]>monotonic(): return cached[1]
     url = f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/roles"
     async with httpx.AsyncClient(timeout=15) as client:
         response = await client.get(url, headers={"Authorization": f"Bot {settings.discord_bot_token}"})
         response.raise_for_status()
-        return sorted(response.json(), key=lambda role: int(role.get("position", 0)), reverse=True)
+        roles=sorted(response.json(), key=lambda role: int(role.get("position", 0)), reverse=True)
+        _guild_role_cache[settings.discord_guild_id]=(monotonic()+300,roles)
+        return roles
 
 
 async def discord_scheduled_events(settings: Settings) -> list[dict]:

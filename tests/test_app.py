@@ -2,11 +2,12 @@ import os
 from datetime import datetime, timezone
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
 from fastapi.testclient import TestClient
-from website.app.main import app, is_tier_upgrade, next_medallion_expiration, qualifies_for_tier
+from website.app.main import app, display_discord_roles, is_tier_upgrade, next_medallion_expiration, qualifies_for_tier
 from website.app.database import normalize_database_url
 from website.app.models import Tier, TierConfig, User
 from website.app.config import Settings
 from website.app.security import permission
+from website.app.oauth import expected_skymiles_role_ids
 
 
 def test_render_postgres_url_uses_psycopg3():
@@ -41,6 +42,17 @@ def test_discord_roles_map_to_three_staff_panels():
     assert permission(member,settings)=="ADMIN"
     member.discord_role_ids=["1539005297417519205"]
     assert permission(member,settings)=="OWNER"
+
+
+def test_expected_discord_roles_keep_member_and_exact_medallion():
+    settings=Settings()
+    assert expected_skymiles_role_ids(settings)=={"1539005061609422849"}
+    assert expected_skymiles_role_ids(settings,"GOLD")=={"1539005061609422849","1539005058686001275"}
+
+
+def test_member_discord_roles_display_real_guild_names_and_colors():
+    catalog=[{"id":"everyone","name":"@everyone","color":0},{"id":"staff","name":"Flight Operations","color":0xD7193F},{"id":"gold","name":"Gold Medallion","color":0xC7962D}]
+    assert display_discord_roles(["staff","gold"],catalog)==[{"id":"staff","name":"Flight Operations","color":0xD7193F},{"id":"gold","name":"Gold Medallion","color":0xC7962D}]
 
 def test_health():
     with TestClient(app) as client:

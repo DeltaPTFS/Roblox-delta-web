@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
-from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
+from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -65,12 +65,19 @@ def context(request, **values):
     show_feedback=False
     if user and not request.session.get("feedback_prompted") and secrets.randbelow(4)==0:
         request.session["feedback_prompted"]=True; show_feedback=True
-    discord_roles=[]
+    discord_roles=[]; discord_role_details=[]
+    role_sync_state=getattr(user,"_discord_sync_state","unavailable") if user else "unavailable"
     if user:
-        role_names={settings.discord_member_role_id:"SkyMiles Member"}
-        role_names.update({role_id:f"{tier.title()} Medallion" for tier,role_id in settings.medallion_role_ids.items() if role_id})
-        discord_roles=[name for role_id,name in role_names.items() if role_id in set(user.discord_role_ids or [])]
-    return {"request":request,"csrf":csrf_token(request),"settings":settings,"show_feedback":show_feedback,"discord_roles":discord_roles,**values}
+        discord_role_details=getattr(user,"_discord_role_details",[])
+        if not discord_role_details:
+            role_names={settings.discord_member_role_id:"SkyMiles Member"}
+            role_names.update({role_id:f"{tier.title()} Medallion" for tier,role_id in settings.medallion_role_ids.items() if role_id})
+            role_names.update({role_id:"Ownership" for role_id in settings.ids(settings.owner_discord_role_ids)})
+            role_names.update({role_id:"Staff Admin" for role_id in settings.ids(settings.admin_discord_role_ids)})
+            role_names.update({role_id:"Staff" for role_id in settings.ids(settings.staff_discord_role_ids)})
+            discord_role_details=[{"id":role_id,"name":role_names[role_id],"color":0} for role_id in user.discord_role_ids or [] if role_id in role_names]
+        discord_roles=[role["name"] for role in discord_role_details]
+    return {"request":request,"csrf":csrf_token(request),"settings":settings,"show_feedback":show_feedback,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
 
 
 def qualifies_for_tier(user: User, tier: TierConfig) -> bool:
@@ -88,6 +95,12 @@ TIER_ORDER = {Tier.MEMBER: 0, Tier.SILVER: 1, Tier.GOLD: 2, Tier.PLATINUM: 3, Ti
 def is_tier_upgrade(current: Tier, desired: Tier) -> bool:
     """Members may move upward during a status year, but never sideways or down."""
     return TIER_ORDER[desired] > TIER_ORDER[current]
+
+
+def display_discord_roles(member_role_ids: list[str], catalog: list[dict]) -> list[dict]:
+    """Map authoritative member role IDs to display-safe guild role metadata."""
+    member_ids=set(member_role_ids or [])
+    return [{"id":str(role["id"]),"name":str(role["name"]),"color":int(role.get("color",0))} for role in catalog if str(role["id"]) in member_ids and role.get("name")!="@everyone"]
 
 
 @app.get("/health")
@@ -172,7 +185,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
         if not user: return templates.TemplateResponse("error.html",context(request,title="Roblox Verification Required",message="Verify with Roblox first to create your SkyMiles membership."),status_code=404)
         if user.account_status != Status.ACTIVE: raise HTTPException(403,"Account suspended")
-        user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc); db.commit()
+        user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc)
+        try: user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None)
+        except Exception: pass
+        db.commit()
         request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
         return RedirectResponse("/dashboard",303)
     existing_roblox = db.scalar(select(User).where(User.roblox_user_id == pending["id"]))
@@ -187,7 +203,8 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     try: db.commit()
     except IntegrityError: db.rollback(); raise HTTPException(409,"Account link conflict")
     db.refresh(user)
-    try: await discord_set_medallion_roles(settings, user.discord_user_id, user.tier.name if user.tier != Tier.MEMBER else None)
+    try:
+        user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None); db.commit()
     except Exception: pass  # Account creation must survive a temporary Discord role outage.
     request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
     return RedirectResponse("/dashboard",303)
@@ -195,9 +212,24 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
 
 async def refresh_discord_authorization(user: User, db: Session) -> str:
     if settings.discord_bot_token:
-        try: user.discord_role_ids=await discord_member_roles(settings,user.discord_user_id) or []
-        except Exception: user.discord_role_ids=[]
-        db.commit()
+        roles=None
+        try:
+            tier_name=user.tier.name if user.tier!=Tier.MEMBER else None
+            roles=await discord_member_roles(settings,user.discord_user_id)
+            if roles is None: raise RuntimeError("Discord roles could not be read")
+            actual=set(roles); expected=expected_skymiles_role_ids(settings,tier_name); managed={settings.discord_member_role_id,*settings.medallion_role_ids.values()}-{""}
+            user.discord_role_ids=roles if expected.issubset(actual) and not actual & (managed-expected) else await discord_sync_skymiles_roles(settings,user.discord_user_id,tier_name)
+            user._discord_sync_state="synced"; db.commit()
+        except Exception:
+            if roles is not None:
+                user.discord_role_ids=roles; db.commit()  # Discord answered authoritatively even if managed-role repair failed.
+            user._discord_sync_state="error"  # Retain cache only when Discord itself is unreachable.
+    else: user._discord_sync_state="unavailable"
+    try:
+        catalog=await discord_guild_roles(settings)
+        member_role_ids=set(user.discord_role_ids or [])
+        user._discord_role_details=display_discord_roles(list(member_role_ids),catalog)
+    except Exception: user._discord_role_details=[]
     return permission(user,settings)
 
 

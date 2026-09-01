@@ -59,7 +59,11 @@ Staff can also create flights directly with a validated flight number, departure
 
 Staff Admin and Ownership may alternatively paste a Discord scheduled-event link in the flight form. The server verifies that the link belongs to the configured guild, retrieves the event through the bot, and imports its title, start time, description, and location. Ownership can kick sessions, ban or restore non-owner memberships, review member feedback, inspect the guild role connection, and review the latest 200 immutable staff audit records.
 
-Clicking or tapping a Medallion card opens its dedicated details and enrollment page. The server independently checks lifetime miles, MQP, and segments before changing status. Successful registration always assigns the base SkyMiles Member role. Successful Medallion enrollment retains that base role, removes other configured Medallion roles, and assigns the selected tier role. Attendance-channel messages are intentionally not implemented yet.
+Clicking or tapping a Medallion card opens its dedicated details and enrollment page. The server independently checks lifetime miles, MQP, and segments before changing status. Successful registration always assigns the base SkyMiles Member role. Successful Medallion enrollment retains that base role, removes other configured Medallion roles, and assigns the selected tier role. Confirmed flight bookings are announced through the configured Discord booking channel.
+
+On every authenticated page load, the server reads the member's authoritative Discord roles. If the permanent SkyMiles Member role or current Medallion role is missing—or a stale managed Medallion role remains—the bot repairs the exact role set and verifies the result with Discord. Temporary Discord outages retain the last verified authorization cache instead of incorrectly deleting panel access; the account menu displays the connection state.
+
+The account menu and Profile page display every current Discord server role returned for the authenticated member, using the role names, hierarchy order, and colors from the guild's authoritative role catalog. The catalog is cached for five minutes to limit Discord API traffic; member role IDs themselves are still refreshed for authorization checks.
 
 Medallion cards are full click/tap targets that open a dedicated status page. Annual enrollment prices live in `tier_config`; purchasing status rechecks qualification and balance server-side, deducts miles atomically, and records a `MEDALLION_ENROLLMENT` transaction before synchronizing Discord roles.
 
