@@ -41,18 +41,23 @@ Copy `.env.example`; never commit `.env` or provider secrets.
 - `APP_URL`, `DATABASE_URL`, and a cryptographically random 32+ character `SESSION_SECRET`.
 - `ROBLOX_CLIENT_ID`, `ROBLOX_CLIENT_SECRET`, `ROBLOX_REDIRECT_URI`, `ROBLOX_GROUP_ID`, `ROBLOX_GROUP_URL`.
 - `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `DISCORD_GUILD_ID`, `DISCORD_INVITE_URL`.
-- Secret `DISCORD_BOT_TOKEN` enables scheduled-event flight synchronization and server-side role assignment. The bot must be in the configured guild with **Manage Roles**, and its highest role must sit above every SkyMiles/Medallion role.
+- Secret `DISCORD_BOT_TOKEN` enables scheduled-event flight synchronization, authoritative staff-role checks, server-side SkyMiles/Medallion role assignment, and booking announcements. The bot must be in the configured guild with **Manage Roles**, and its highest role must sit above every SkyMiles/Medallion role.
+- `DISCORD_BOOKING_CHANNEL_ID` selects the staff channel where the bot posts confirmed flight bookings. Give the bot **View Channel**, **Send Messages**, and **Embed Links** in that channel.
+- `DISCORD_LOG_CHANNEL_ID=1539005101941850274` receives staff adjustments, qualification changes, flight updates, event synchronization, and ownership access actions through the bot.
 - `DISCORD_MEMBER_ROLE_ID` is retained for every member. Configure the Silver, Gold, Platinum, and Diamond role IDs separately; `DISCORD_SILVER_ROLE_ID` is intentionally blank until a Silver role ID is supplied.
 - `STAFF_ROBLOX_MIN_RANK`, `ADMIN_ROBLOX_MIN_RANK`, comma-separated `OWNER_ROBLOX_USER_IDS`, `STAFF_DISCORD_ROLE_IDS`, and `ADMIN_DISCORD_ROLE_IDS`.
+- Panel access is refreshed from Discord and defaults to Ownership role `1539005297417519205`, Staff Admin roles `1539005030189891684` and `1539005033020919828`, and Staff role `1539968936681148456`. Ownership includes all panels; Staff Admin includes SkyMiles and flights; Staff includes SkyMiles only.
 - Optional `WELCOME_BONUS_MILES`; `COOKIE_SECURE=true` is required in production. Local password login remains disabled by default.
 
 The checked-in public community defaults target Roblox group `6661826`, Discord guild `1538738611988467782`, staff rank `241`, admin rank `255`, and a 150-mile welcome bonus. Replace the `example.onrender.com` callback hostname in both Render and the provider dashboard with the service's real Render hostname before deployment. Provider client IDs, client secrets, session secrets, and database credentials must still be supplied only through Render's Environment page.
 
 ## Flights and Discord roles
 
-`BOOK A FLIGHT!` shows active Discord scheduled events. Opening the page synchronizes current events when `DISCORD_BOT_TOKEN` is configured; staff can also force a sync and publish scheduled, delayed, cancelled, or completed status from Staff Admin. Members book once per flight and may select only server-computed amenities allowed by their tier. Amenities apply to that booking only.
+`BOOK A FLIGHT!` shows active Discord scheduled events. Opening the page synchronizes current events when `DISCORD_BOT_TOKEN` is configured; staff can also force a sync and publish scheduled, delayed, cancelled, or completed status from Staff Admin. Members book once per flight and may select only server-computed amenities allowed by their tier. Amenities apply to that booking only. After confirmation, the website uses the bot to post the member and flight information in `DISCORD_BOOKING_CHANNEL_ID`; Discord mention parsing is disabled for safety.
 
 Staff can also create flights directly with a validated flight number, departure and destination airport codes, Eastern departure time, description, and SkyMiles completion reward. When staff mark a flight completed, each confirmed booking is rewarded exactly once, receives a transaction record, and gains one completed segment.
+
+Staff Admin and Ownership may alternatively paste a Discord scheduled-event link in the flight form. The server verifies that the link belongs to the configured guild, retrieves the event through the bot, and imports its title, start time, description, and location. Ownership can kick sessions, ban or restore non-owner memberships, review member feedback, inspect the guild role connection, and review the latest 200 immutable staff audit records.
 
 Clicking or tapping a Medallion card opens its dedicated details and enrollment page. The server independently checks lifetime miles, MQP, and segments before changing status. Successful registration always assigns the base SkyMiles Member role. Successful Medallion enrollment retains that base role, removes other configured Medallion roles, and assigns the selected tier role. Attendance-channel messages are intentionally not implemented yet.
 

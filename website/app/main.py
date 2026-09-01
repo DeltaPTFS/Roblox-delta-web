@@ -13,13 +13,13 @@ from fastapi.templating import Jinja2Templates
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User
-from .oauth import discord_authorize, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
+from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
+from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -348,7 +348,7 @@ async def flights(request:Request,db:Session=Depends(get_db)):
 
 @app.post("/flights/{flight_id}/book")
 @limiter.limit("10/minute")
-def book_flight(request:Request,flight_id:int,csrf:str=Form(...),amenities:list[str]=Form(default=[]),db:Session=Depends(get_db)):
+async def book_flight(request:Request,flight_id:int,csrf:str=Form(...),amenities:list[str]=Form(default=[]),db:Session=Depends(get_db)):
     check_csrf(request,csrf); user=current_user(request,db)
     flight=db.get(Flight,flight_id)
     if not flight or flight.status in {FlightStatus.CANCELLED,FlightStatus.COMPLETED}: raise HTTPException(400,"This flight is not available for booking")
@@ -357,7 +357,12 @@ def book_flight(request:Request,flight_id:int,csrf:str=Form(...),amenities:list[
     existing=db.scalar(select(Booking).where(Booking.flight_id==flight.id,Booking.user_id==user.id))
     if existing: existing.amenities=selected; existing.status="CONFIRMED"
     else: db.add(Booking(flight_id=flight.id,user_id=user.id,amenities=selected))
-    db.commit(); return RedirectResponse("/flights?booked=1",303)
+    db.commit()
+    try:
+        await discord_announce_booking(settings,discord_user_id=user.discord_user_id,display_name=user.discord_display_name,flight_number=flight.flight_number or flight.name,route=f"{flight.departure_airport or 'TBA'} → {flight.destination_airport or 'TBA'}")
+    except Exception:
+        pass  # A Discord outage must not undo a confirmed booking.
+    return RedirectResponse("/flights?booked=1",303)
 
 
 @app.post("/tiers/{tier_name}/join")
@@ -406,13 +411,49 @@ async def require_staff(request,db):
     return user
 
 
-@app.get("/admin",response_class=HTMLResponse)
-async def admin(request:Request,q:str="",db:Session=Depends(get_db)):
-    actor=await require_staff(request,db); users=[]
+async def require_admin(request,db):
+    user=await require_staff(request,db)
+    if permission(user,settings) not in {"ADMIN","OWNER"}: raise HTTPException(403,"Staff Admin access denied")
+    return user
+
+
+async def require_owner(request,db):
+    user=await require_staff(request,db)
+    if permission(user,settings) != "OWNER": raise HTTPException(403,"Ownership access denied")
+    return user
+
+
+def panel_path(auth: str) -> str:
+    return "/owner" if auth=="OWNER" else "/admin" if auth=="ADMIN" else "/staff"
+
+
+async def render_staff_panel(request:Request,q:str,db:Session,required:str):
+    actor=await ({"STAFF":require_staff,"ADMIN":require_admin,"OWNER":require_owner}[required])(request,db); users=[]
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
-    flights=db.scalars(select(Flight).order_by(Flight.starts_at.desc()).limit(20)).all()
-    feedback=db.execute(select(Feedback,User).join(User,Feedback.user_id==User.id).order_by(Feedback.created_at.desc()).limit(50)).all()
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,flights=flights,feedback=feedback,auth=permission(actor,settings)))
+    flights=db.scalars(select(Flight).order_by(Flight.starts_at.desc()).limit(20)).all() if required in {"ADMIN","OWNER"} else []
+    feedback=db.execute(select(Feedback,User).join(User,Feedback.user_id==User.id).order_by(Feedback.created_at.desc()).limit(50)).all() if required=="OWNER" else []
+    last_award=func.max(Transaction.created_at).label("last_award")
+    member_directory=db.execute(select(User,last_award).outerjoin(Transaction,(Transaction.user_id==User.id) & (Transaction.miles_change>0)).where(User.account_status==Status.ACTIVE).group_by(User.id).order_by(last_award.desc().nullslast(),User.created_at.desc())).all()
+    guild_roles=[]
+    if required=="OWNER":
+        try: guild_roles=await discord_guild_roles(settings)
+        except Exception: pass
+    audit_logs=db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
+    directory_users=db.scalars(select(User)).all() if required=="OWNER" else []
+    user_map={item.id:item for item in directory_users}
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,feedback=feedback,audit_logs=audit_logs,user_map=user_map,panel_level=required,auth=permission(actor,settings)))
+
+
+@app.get("/staff",response_class=HTMLResponse)
+async def staff_panel(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"STAFF")
+
+
+@app.get("/admin",response_class=HTMLResponse)
+async def admin(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"ADMIN")
+
+
+@app.get("/owner",response_class=HTMLResponse)
+async def owner_panel(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"OWNER")
 
 
 @app.post("/admin/members/{user_id}/miles")
@@ -428,7 +469,10 @@ async def adjust(request:Request,user_id:int,action:str=Form(...),amount:int=For
         before=target.miles_balance; target.miles_balance=max(0,before+signed_amount); actual=target.miles_balance-before
         if actual>0: target.lifetime_miles+=actual
         db.add(Transaction(user_id=target.id,type="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",description=reason.strip(),reference=reference[:100],miles_change=actual,balance_before=before,balance_after=target.miles_balance,created_by=actor.id)); db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",old_value={"balance":before},new_value={"balance":target.miles_balance},reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None}))
-    db.commit(); return RedirectResponse(f"/admin?q={target.skymiles_number}",303)
+    db.commit()
+    try: await discord_announce_update(settings,title="SkyMiles Adjustment",description=f"{actor.discord_display_name} adjusted {target.discord_display_name} by {actual:+,} SkyMiles.",fields=[{"name":"Reason","value":reason.strip()[:1024]},{"name":"New balance","value":f"{target.miles_balance:,}","inline":True}])
+    except Exception: pass
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?q={target.skymiles_number}&skymiles_applied=1",303)
 
 
 @app.post("/admin/members/{user_id}/qualifications")
@@ -444,35 +488,85 @@ async def adjust_qualifications(request:Request,user_id:int,mqp:int=Form(0),segm
         target.medallion_qualifying_points+=mqp; target.segments_flown+=segments
         after={"mqp":target.medallion_qualifying_points,"segments":target.segments_flown}
         db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="QUALIFICATIONS_ADDED",old_value=before,new_value=after,reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None,"reference":reference[:100]}))
-    db.commit(); return RedirectResponse(f"/admin?q={target.skymiles_number}",303)
+    db.commit()
+    try: await discord_announce_update(settings,title="Medallion Qualifications Added",description=f"{actor.discord_display_name} updated {target.discord_display_name}.",fields=[{"name":"MQP added","value":str(mqp),"inline":True},{"name":"Segments added","value":str(segments),"inline":True},{"name":"Reason","value":reason.strip()[:1024]}])
+    except Exception: pass
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?q={target.skymiles_number}&qualifications_applied=1",303)
+
+
+@app.post("/owner/members/{user_id}/access")
+@limiter.limit("10/minute")
+async def owner_member_access(request:Request,user_id:int,action:str=Form(...),reason:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_owner(request,db); action=action.upper().strip(); reason=reason.strip()
+    if action not in {"KICK","BAN","RESTORE"} or not reason: raise HTTPException(422,"Choose an action and provide a reason")
+    target=db.get(User,user_id)
+    if not target: raise HTTPException(404,"Member not found")
+    if target.id==actor.id or permission(target,settings)=="OWNER": raise HTTPException(403,"Ownership accounts cannot be changed here")
+    old={"status":target.account_status.value}
+    for session in db.scalars(select(WebSession)).all():
+        if (session.data or {}).get("user_id")==target.id: db.delete(session)
+    if action=="BAN": target.account_status=Status.DISABLED
+    elif action=="RESTORE": target.account_status=Status.ACTIVE
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action=f"MEMBER_{action}",old_value=old,new_value={"status":target.account_status.value,"sessions_revoked":True},reason=reason,security_metadata={"ip":request.client.host if request.client else None}))
+    if action=="BAN":
+        try:
+            if not await discord_remove_skymiles_roles(settings,target.discord_user_id): raise RuntimeError("Discord bot role synchronization is not configured")
+        except Exception as exc: db.rollback(); raise HTTPException(502,"Discord roles could not be removed; the ban was not applied") from exc
+    elif action=="RESTORE":
+        try:
+            if not await discord_set_medallion_roles(settings,target.discord_user_id,target.tier.name if target.tier!=Tier.MEMBER else None): raise RuntimeError("Discord bot role synchronization is not configured")
+        except Exception as exc: db.rollback(); raise HTTPException(502,"Discord roles could not be restored; the account was not restored") from exc
+    db.commit()
+    try: await discord_announce_update(settings,title=f"Member {action.title()}",description=f"{actor.discord_display_name} applied **{action}** to {target.discord_display_name}.",fields=[{"name":"Reason","value":reason[:1024]}])
+    except Exception: pass
+    return RedirectResponse(f"/owner?q={target.skymiles_number}&access_updated=1",303)
 
 
 @app.post("/admin/flights/sync")
 async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); await require_staff(request,db)
+    check_csrf(request,csrf); actor=await require_admin(request,db)
     await sync_flights(db)
-    return RedirectResponse("/admin?flights_synced=1",303)
+    try: await discord_announce_update(settings,title="Discord Events Synchronized",description=f"{actor.discord_display_name} synchronized scheduled events with the website.")
+    except Exception: pass
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?flights_synced=1",303)
 
 
 @app.post("/admin/flights/create")
-async def admin_create_flight(request:Request,flight_number:str=Form(...),departure_airport:str=Form(...),destination_airport:str=Form(...),name:str=Form(...),starts_at:str=Form(...),miles_reward:int=Form(...),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); actor=await require_staff(request,db)
+async def admin_create_flight(request:Request,flight_number:str=Form(...),departure_airport:str=Form(...),destination_airport:str=Form(...),name:str=Form(""),starts_at:str=Form(""),discord_event_url:str=Form(""),miles_reward:int=Form(...),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_admin(request,db)
     number=" ".join(flight_number.upper().split()); departure=departure_airport.upper().strip(); destination=destination_airport.upper().strip()
     if not re.fullmatch(r"[A-Z]{2,4} ?\d{1,4}",number): raise HTTPException(422,"Use a flight number such as DAL 1234")
     if not re.fullmatch(r"[A-Z0-9]{3,4}",departure) or not re.fullmatch(r"[A-Z0-9]{3,4}",destination): raise HTTPException(422,"Use valid 3–4 character airport codes")
     if departure==destination: raise HTTPException(422,"Departure and destination must be different")
     if miles_reward < 0 or miles_reward > 100_000: raise HTTPException(422,"Miles reward must be between 0 and 100,000")
-    try: departure_time=datetime.fromisoformat(starts_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
-    except ValueError: raise HTTPException(422,"Invalid departure date and time")
-    flight=Flight(discord_event_id=f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name.strip()[:120],description=description.strip()[:1000],location=f"{departure} → {destination}",starts_at=departure_time,miles_reward=miles_reward,status=FlightStatus.SCHEDULED)
+    event_id=None; event=None
+    if discord_event_url.strip():
+        match=re.fullmatch(r"https://discord\.com/events/(\d+)/(\d+)/?",discord_event_url.strip())
+        if not match or match.group(1)!=settings.discord_guild_id: raise HTTPException(422,"Use a scheduled-event link from the configured Discord server")
+        event_id=match.group(2)
+        try: event=next((item for item in await discord_scheduled_events(settings) if str(item.get("id"))==event_id),None)
+        except Exception as exc: raise HTTPException(502,"Could not read that Discord event") from exc
+        if not event: raise HTTPException(404,"Discord event not found")
+        if db.scalar(select(Flight.id).where(Flight.discord_event_id==event_id)): raise HTTPException(409,"That Discord event is already linked to a flight")
+    if event:
+        departure_time=datetime.fromisoformat(event["scheduled_start_time"].replace("Z","+00:00")); name=(event.get("name") or name).strip(); description=(event.get("description") or description).strip(); location=(event.get("entity_metadata") or {}).get("location") or f"{departure} → {destination}"
+    else:
+        if not name.strip() or not starts_at: raise HTTPException(422,"A title and departure time are required without a Discord event link")
+        try: departure_time=datetime.fromisoformat(starts_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
+        except ValueError: raise HTTPException(422,"Invalid departure date and time")
+        location=f"{departure} → {destination}"
+    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,miles_reward=miles_reward,status=FlightStatus.SCHEDULED)
     db.add(flight); db.flush()
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":miles_reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
-    db.commit(); return RedirectResponse("/admin?flight_created=1",303)
+    db.commit()
+    try: await discord_announce_update(settings,title="Flight Created",description=f"{actor.discord_display_name} created {number}: {departure} → {destination}.",fields=[{"name":"SkyMiles reward","value":f"{miles_reward:,}","inline":True},{"name":"Discord event","value":discord_event_url.strip() or "Manual flight"}])
+    except Exception: pass
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?flight_created=1",303)
 
 
 @app.post("/admin/flights/{flight_id}/status")
 async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
-    check_csrf(request,csrf); actor=await require_staff(request,db)
+    check_csrf(request,csrf); actor=await require_admin(request,db)
     try: new_status=FlightStatus[status.upper()]
     except KeyError: raise HTTPException(422,"Invalid flight status")
     flight=db.get(Flight,flight_id)
@@ -486,7 +580,10 @@ async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...)
             before=member.miles_balance; member.miles_balance+=flight.miles_reward; member.lifetime_miles+=flight.miles_reward; member.segments_flown+=1; booking.status="REWARDED"
             db.add(Transaction(user_id=member.id,type="FLIGHT_COMPLETED",description=f"{flight.flight_number} · {flight.departure_airport} → {flight.destination_airport}",reference=flight.flight_number,miles_change=flight.miles_reward,balance_before=before,balance_after=member.miles_balance,created_by=actor.id))
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action=f"FLIGHT_{new_status.value}",old_value=old,new_value={"status":new_status.value,"message":flight.status_message},reason=message.strip() or f"Flight marked {new_status.value}",security_metadata={"ip":request.client.host if request.client else None,"flight_id":flight.id}))
-    db.commit(); return RedirectResponse("/admin?flight_updated=1",303)
+    db.commit()
+    try: await discord_announce_update(settings,title=f"Flight {new_status.value.title()}",description=f"{actor.discord_display_name} updated {flight.flight_number}.",fields=[{"name":"Message","value":flight.status_message or "No additional message"}])
+    except Exception: pass
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?flight_updated=1",303)
 
 
 @app.post("/logout")

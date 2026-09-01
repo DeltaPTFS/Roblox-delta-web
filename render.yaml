@@ -22,6 +22,16 @@ services:
         value: https://www.roblox.com/communities/6661826/Delta-Air-Lines-RBLX#!/about
       - key: DISCORD_GUILD_ID
         value: "1538738611988467782"
+      - key: DISCORD_BOOKING_CHANNEL_ID
+        sync: false
+      - key: DISCORD_LOG_CHANNEL_ID
+        value: "1539005101941850274"
+      - key: OWNER_DISCORD_ROLE_IDS
+        value: "1539005297417519205"
+      - key: STAFF_DISCORD_ROLE_IDS
+        value: "1539968936681148456"
+      - key: ADMIN_DISCORD_ROLE_IDS
+        value: "1539005030189891684,1539005033020919828"
       - key: DISCORD_MEMBER_ROLE_ID
         value: "1539005061609422849"
       - key: DISCORD_GOLD_ROLE_ID

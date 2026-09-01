@@ -5,6 +5,8 @@ from fastapi.testclient import TestClient
 from website.app.main import app, is_tier_upgrade, next_medallion_expiration, qualifies_for_tier
 from website.app.database import normalize_database_url
 from website.app.models import Tier, TierConfig, User
+from website.app.config import Settings
+from website.app.security import permission
 
 
 def test_render_postgres_url_uses_psycopg3():
@@ -30,6 +32,16 @@ def test_medallion_changes_must_be_upgrades():
     assert not is_tier_upgrade(Tier.GOLD, Tier.GOLD)
     assert not is_tier_upgrade(Tier.PLATINUM, Tier.SILVER)
 
+
+def test_discord_roles_map_to_three_staff_panels():
+    settings=Settings()
+    member=User(roblox_user_id="1",discord_role_ids=["1539968936681148456"])
+    assert permission(member,settings)=="STAFF"
+    member.discord_role_ids=["1539005030189891684"]
+    assert permission(member,settings)=="ADMIN"
+    member.discord_role_ids=["1539005297417519205"]
+    assert permission(member,settings)=="OWNER"
+
 def test_health():
     with TestClient(app) as client:
         response=client.get("/health")
@@ -40,6 +52,8 @@ def test_login_has_safe_oauth_and_disclaimer():
         response=client.get("/")
         assert "Verify with Roblox" in response.text
         assert "Continue with Discord" in response.text
+        assert "COMMUNITY OPERATIONS" in response.text
+        assert "ROLEPLAY COMMUNITY</small>" not in response.text
         assert "Roblox Password" not in response.text
         assert "Not affiliated with or operated by Delta Air Lines, Inc." in response.text
 

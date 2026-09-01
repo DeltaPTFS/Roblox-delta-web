@@ -13,6 +13,7 @@ DISCORD_ME = "https://discord.com/api/v10/users/@me"
 DISCORD_MEMBER = "https://discord.com/api/v10/users/@me/guilds/{guild_id}/member"
 DISCORD_GUILD_EVENTS = "https://discord.com/api/v10/guilds/{guild_id}/scheduled-events"
 DISCORD_GUILD_ROLE = "https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}/roles/{role_id}"
+DISCORD_CHANNEL_MESSAGES = "https://discord.com/api/v10/channels/{channel_id}/messages"
 
 
 def roblox_authorize(settings: Settings, state: str, challenge: str) -> str:
@@ -92,6 +93,17 @@ async def discord_member_roles(settings: Settings, user_id: str) -> list[str] | 
         return [str(role_id) for role_id in response.json().get("roles", [])]
 
 
+async def discord_guild_roles(settings: Settings) -> list[dict]:
+    """Return the guild role catalog for the secured Staff Admin integration view."""
+    if not settings.discord_bot_token:
+        return []
+    url = f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/roles"
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.get(url, headers={"Authorization": f"Bot {settings.discord_bot_token}"})
+        response.raise_for_status()
+        return sorted(response.json(), key=lambda role: int(role.get("position", 0)), reverse=True)
+
+
 async def discord_scheduled_events(settings: Settings) -> list[dict]:
     if not settings.discord_bot_token:
         return []
@@ -103,3 +115,37 @@ async def discord_scheduled_events(settings: Settings) -> list[dict]:
         )
         response.raise_for_status()
         return response.json()
+
+
+async def discord_announce_booking(settings: Settings, *, discord_user_id: str, display_name: str, flight_number: str, route: str) -> bool:
+    """Post a booking notice through the configured bot without exposing its token."""
+    if not settings.discord_bot_token or not settings.discord_booking_channel_id:
+        return False
+    payload = {
+        "allowed_mentions": {"parse": []},
+        "embeds": [{
+            "title": "New SkyMiles Flight Booking",
+            "description": f"**{display_name}** (`{discord_user_id}`) is attending **{flight_number}**.",
+            "color": 14096703,
+            "fields": [{"name": "Route", "value": route, "inline": True}],
+        }],
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.post(
+            DISCORD_CHANNEL_MESSAGES.format(channel_id=settings.discord_booking_channel_id),
+            headers={"Authorization": f"Bot {settings.discord_bot_token}"},
+            json=payload,
+        )
+        response.raise_for_status()
+    return True
+
+
+async def discord_announce_update(settings: Settings, *, title: str, description: str, fields: list[dict] | None = None) -> bool:
+    """Send a non-mentioning operational/audit update to the configured log channel."""
+    if not settings.discord_bot_token or not settings.discord_log_channel_id:
+        return False
+    payload={"allowed_mentions":{"parse":[]},"embeds":[{"title":title,"description":description,"color":14096703,"fields":fields or []}]}
+    async with httpx.AsyncClient(timeout=15) as client:
+        response=await client.post(DISCORD_CHANNEL_MESSAGES.format(channel_id=settings.discord_log_channel_id),headers={"Authorization":f"Bot {settings.discord_bot_token}"},json=payload)
+        response.raise_for_status()
+    return True

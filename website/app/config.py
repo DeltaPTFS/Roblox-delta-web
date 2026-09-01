@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     discord_guild_id: str = ""
     discord_invite_url: str = "https://discord.gg/"
     discord_bot_token: str = ""
+    discord_booking_channel_id: str = ""
+    discord_log_channel_id: str = "1539005101941850274"
     discord_member_role_id: str = "1539005061609422849"
     discord_silver_role_id: str = ""
     discord_gold_role_id: str = "1539005058686001275"
@@ -26,8 +28,9 @@ class Settings(BaseSettings):
     staff_roblox_min_rank: int = 100
     admin_roblox_min_rank: int = 200
     owner_roblox_user_ids: str = ""
-    staff_discord_role_ids: str = ""
-    admin_discord_role_ids: str = ""
+    owner_discord_role_ids: str = "1539005297417519205"
+    staff_discord_role_ids: str = "1539968936681148456"
+    admin_discord_role_ids: str = "1539005030189891684,1539005033020919828"
     welcome_bonus_miles: int = 0
     local_password_login_enabled: bool = False
     cookie_secure: bool = True

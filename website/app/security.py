@@ -32,10 +32,10 @@ def check_csrf(request: Request, supplied: str):
 
 
 def permission(user: User, settings: Settings) -> str:
-    if user.roblox_user_id in settings.ids(settings.owner_roblox_user_ids): return "OWNER"
     roles = set(user.discord_role_ids or [])
-    if user.roblox_group_rank >= settings.admin_roblox_min_rank or roles & settings.ids(settings.admin_discord_role_ids): return "ADMIN"
-    if user.roblox_group_rank >= settings.staff_roblox_min_rank or roles & settings.ids(settings.staff_discord_role_ids): return "STAFF"
+    if user.roblox_user_id in settings.ids(settings.owner_roblox_user_ids) or roles & settings.ids(settings.owner_discord_role_ids): return "OWNER"
+    if roles & settings.ids(settings.admin_discord_role_ids): return "ADMIN"
+    if roles & settings.ids(settings.staff_discord_role_ids): return "STAFF"
     return "MEMBER"
 
 
