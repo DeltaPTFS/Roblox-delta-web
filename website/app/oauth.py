@@ -63,6 +63,21 @@ async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_nam
     return True
 
 
+async def discord_remove_skymiles_roles(settings: Settings, user_id: str) -> bool:
+    """Remove base and Medallion roles when a member leaves the program."""
+    if not settings.discord_bot_token:
+        return False
+    headers = {"Authorization": f"Bot {settings.discord_bot_token}"}
+    role_ids = {settings.discord_member_role_id, *settings.medallion_role_ids.values()} - {""}
+    async with httpx.AsyncClient(timeout=15) as client:
+        for role_id in role_ids:
+            url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=role_id)
+            response = await client.delete(url, headers=headers)
+            if response.status_code not in {204, 404}:
+                response.raise_for_status()
+    return True
+
+
 async def discord_scheduled_events(settings: Settings) -> list[dict]:
     if not settings.discord_bot_token:
         return []

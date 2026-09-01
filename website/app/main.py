@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .models import AuditLog, Booking, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User
-from .oauth import discord_authorize, discord_identity, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
+from .oauth import discord_authorize, discord_identity, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -160,6 +160,34 @@ def activity(request:Request,db:Session=Depends(get_db)): return member_page(req
 def rewards(request:Request,db:Session=Depends(get_db)): return member_page(request,"rewards.html",db)
 @app.get("/profile", response_class=HTMLResponse)
 def profile(request:Request,db:Session=Depends(get_db)): return member_page(request,"profile.html",db)
+
+
+@app.get("/settings", response_class=HTMLResponse)
+def account_settings(request:Request,db:Session=Depends(get_db)):
+    user=current_user(request,db)
+    return templates.TemplateResponse("settings.html",context(request,user=user,theme=request.session.get("theme","light"),auth=permission(user,settings)))
+
+
+@app.post("/settings/theme")
+def update_theme(request:Request,theme:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); current_user(request,db)
+    if theme not in {"light","dark","system"}: raise HTTPException(422,"Invalid theme")
+    request.session["theme"]=theme
+    return RedirectResponse("/settings?theme_saved=1",303)
+
+
+@app.post("/settings/quit")
+@limiter.limit("2/hour")
+async def quit_skymiles(request:Request,confirmation:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); user=current_user(request,db)
+    if confirmation.strip().upper() != "QUIT": raise HTTPException(422,"Type QUIT to confirm")
+    user.account_status=Status.DISABLED
+    db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEMBERSHIP_ENDED",old_value={"status":"ACTIVE","tier":user.tier.value},new_value={"status":"DISABLED"},reason="Member voluntarily left the SkyMiles program",security_metadata={"ip":request.client.host if request.client else None,"self_service":True}))
+    db.commit()
+    try: await discord_remove_skymiles_roles(settings,user.discord_user_id)
+    except Exception: pass
+    request.session.clear()
+    response=RedirectResponse("/?membership_ended=1",303); response.delete_cookie("skymiles_session"); return response
 
 
 @app.get("/medallions/{tier_name}", response_class=HTMLResponse)
