@@ -100,3 +100,12 @@ def test_invalid_flight_form_preserves_submitted_values():
     assert 'request.session["flight_form"]=submitted' in main_source
     assert "flight_form.get('flight_number','')" in admin_template
     assert 'flight_form_error' in admin_template
+
+
+def test_release_update_notice_and_uncached_health():
+    base_template = Path("website/templates/base.html").read_text()
+    assert "Website update in progress" in base_template
+    assert "skymiles-release-{{ asset_version }}" in base_template
+    with TestClient(app) as client:
+        response = client.get("/health")
+        assert response.headers["cache-control"] == "no-store"

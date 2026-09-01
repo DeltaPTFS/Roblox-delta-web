@@ -26,7 +26,12 @@ from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth
 from .session import DatabaseSessionMiddleware
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSET_VERSION = str(int((ROOT / "static" / "style.css").stat().st_mtime))
+# Any application, template, or stylesheet change creates a new release notice key.
+ASSET_VERSION = str(int(max(
+    path.stat().st_mtime
+    for folder in (ROOT / "app", ROOT / "templates", ROOT / "static")
+    for path in folder.rglob("*") if path.is_file()
+)))
 settings = get_settings()
 templates = Jinja2Templates(directory=ROOT / "templates")
 limiter = Limiter(key_func=get_remote_address)
@@ -117,7 +122,7 @@ def display_discord_roles(member_role_ids: list[str], catalog: list[dict]) -> li
 
 
 @app.get("/health")
-def health(): return {"status":"ok"}
+def health(): return JSONResponse({"status":"ok"},headers={"Cache-Control":"no-store"})
 
 
 @app.get("/", response_class=HTMLResponse)
