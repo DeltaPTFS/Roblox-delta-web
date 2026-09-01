@@ -26,6 +26,7 @@ from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth
 from .session import DatabaseSessionMiddleware
 
 ROOT = Path(__file__).resolve().parents[1]
+ASSET_VERSION = str(int((ROOT / "static" / "style.css").stat().st_mtime))
 settings = get_settings()
 templates = Jinja2Templates(directory=ROOT / "templates")
 limiter = Limiter(key_func=get_remote_address)
@@ -89,7 +90,7 @@ def context(request, **values):
             role_names.update({role_id:"Staff" for role_id in settings.ids(settings.staff_discord_role_ids)})
             discord_role_details=[{"id":role_id,"name":role_names[role_id],"color":0} for role_id in user.discord_role_ids or [] if role_id in role_names]
         discord_roles=[role["name"] for role in discord_role_details]
-    return {"request":request,"csrf":csrf_token(request),"settings":settings,"show_feedback":show_feedback,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
+    return {"request":request,"csrf":csrf_token(request),"settings":settings,"asset_version":ASSET_VERSION,"show_feedback":show_feedback,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
 
 
 def qualifies_for_tier(user: User, tier: TierConfig) -> bool:
