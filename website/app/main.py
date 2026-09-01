@@ -1,4 +1,6 @@
 import asyncio
+import re
+from uuid import uuid4
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,7 +41,7 @@ async def lifespan(app):
                 (Tier.DIAMOND, 50000, 28000, 15, "Our highest roleplay Medallion tier, recognizing the community's most engaged travelers.", ["Highest upgrade priority", "Highest Medallion boarding priority", "Customizable Choice Benefits"]),
             ]
             for tier, miles, mqp, segments, description, benefits in tier_defaults:
-                db.add(TierConfig(tier=tier, miles_threshold=miles, mqp_threshold=mqp, segments_threshold=segments, description=description, benefits=benefits))
+                db.add(TierConfig(tier=tier, miles_threshold=miles, mqp_threshold=mqp, segments_threshold=segments, description=description, benefits=benefits, enrollment_cost=miles))
             for name, desc, cost in [("Priority Boarding","Board first at a community flight.",2500),("Flight Upgrade","Upgrade an eligible roleplay itinerary.",5000),("Exclusive Discord Role","Unlock a distinguished community role.",10000),("Special Aircraft Access","Access a featured community aircraft.",15000)]: db.add(Reward(name=name, description=desc, miles_cost=cost, active=True))
             db.commit()
     await expire_medallions_once()
@@ -160,6 +162,18 @@ def rewards(request:Request,db:Session=Depends(get_db)): return member_page(requ
 def profile(request:Request,db:Session=Depends(get_db)): return member_page(request,"profile.html",db)
 
 
+@app.get("/medallions/{tier_name}", response_class=HTMLResponse)
+def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_db)):
+    user=current_user(request,db)
+    try: desired=Tier[tier_name.upper()]
+    except KeyError: raise HTTPException(404,"Medallion tier not found")
+    if desired == Tier.MEMBER: raise HTTPException(404,"Medallion tier not found")
+    tier=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
+    if not tier: raise HTTPException(404,"Medallion tier not found")
+    qualifies=user.lifetime_miles>=tier.miles_threshold and user.medallion_qualifying_points>=tier.mqp_threshold and user.segments_flown>=tier.segments_threshold
+    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,auth=permission(user,settings)))
+
+
 def eligible_amenities(user: User) -> list[dict]:
     amenities = [{"id":"fast_booking","name":"Fast Booking","description":"Priority handling for this flight booking."}]
     if user.tier in {Tier.GOLD, Tier.PLATINUM, Tier.DIAMOND}: amenities.append({"id":"priority_boarding","name":"Priority Boarding","description":"Board in the Medallion priority group."})
@@ -247,13 +261,19 @@ async def join_tier(request:Request,tier_name:str,csrf:str=Form(...),db:Session=
     check_csrf(request,csrf); user=current_user(request,db)
     try: desired=Tier[tier_name.upper()]
     except KeyError: raise HTTPException(404,"Medallion tier not found")
-    config=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
-    if not config or user.lifetime_miles < config.miles_threshold or user.medallion_qualifying_points < config.mqp_threshold or user.segments_flown < config.segments_threshold:
-        raise HTTPException(403,"You have not met all requirements for this Medallion level")
-    user.tier=desired; user.medallion_expires_at=next_medallion_expiration(); db.commit()
+    with db.begin_nested():
+        user=db.scalar(select(User).where(User.id==user.id).with_for_update())
+        config=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
+        if not config or user.lifetime_miles < config.miles_threshold or user.medallion_qualifying_points < config.mqp_threshold or user.segments_flown < config.segments_threshold:
+            raise HTTPException(403,"You have not met all requirements for this Medallion level")
+        if user.miles_balance < config.enrollment_cost: raise HTTPException(400,"Not Enough Miles")
+        before=user.miles_balance; user.miles_balance-=config.enrollment_cost
+        user.tier=desired; user.medallion_expires_at=next_medallion_expiration()
+        db.add(Transaction(user_id=user.id,type="MEDALLION_ENROLLMENT",description=f"Joined {desired.value}",reference=desired.name,miles_change=-config.enrollment_cost,balance_before=before,balance_after=user.miles_balance,created_by=user.id))
+    db.commit()
     try: await discord_set_medallion_roles(settings,user.discord_user_id,desired.name)
     except Exception: raise HTTPException(502,"Status updated, but Discord role synchronization needs staff attention")
-    return RedirectResponse("/miles?joined=1",303)
+    return RedirectResponse(f"/medallions/{desired.name}?joined=1",303)
 
 
 @app.post("/rewards/{reward_id}/redeem")
@@ -307,6 +327,22 @@ async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depen
     return RedirectResponse("/admin?flights_synced=1",303)
 
 
+@app.post("/admin/flights/create")
+def admin_create_flight(request:Request,flight_number:str=Form(...),departure_airport:str=Form(...),destination_airport:str=Form(...),name:str=Form(...),starts_at:str=Form(...),miles_reward:int=Form(...),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=require_staff(request,db)
+    number=" ".join(flight_number.upper().split()); departure=departure_airport.upper().strip(); destination=destination_airport.upper().strip()
+    if not re.fullmatch(r"[A-Z]{2,4} ?\d{1,4}",number): raise HTTPException(422,"Use a flight number such as DAL 1234")
+    if not re.fullmatch(r"[A-Z0-9]{3,4}",departure) or not re.fullmatch(r"[A-Z0-9]{3,4}",destination): raise HTTPException(422,"Use valid 3–4 character airport codes")
+    if departure==destination: raise HTTPException(422,"Departure and destination must be different")
+    if miles_reward < 0 or miles_reward > 100_000: raise HTTPException(422,"Miles reward must be between 0 and 100,000")
+    try: departure_time=datetime.fromisoformat(starts_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
+    except ValueError: raise HTTPException(422,"Invalid departure date and time")
+    flight=Flight(discord_event_id=f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name.strip()[:120],description=description.strip()[:1000],location=f"{departure} → {destination}",starts_at=departure_time,miles_reward=miles_reward,status=FlightStatus.SCHEDULED)
+    db.add(flight); db.flush()
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":miles_reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
+    db.commit(); return RedirectResponse("/admin?flight_created=1",303)
+
+
 @app.post("/admin/flights/{flight_id}/status")
 def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); actor=require_staff(request,db)
@@ -316,6 +352,12 @@ def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),messa
     if not flight: raise HTTPException(404,"Flight not found")
     old={"status":flight.status.value,"message":flight.status_message}
     flight.status=new_status; flight.status_message=message.strip()[:500] or None
+    if new_status == FlightStatus.COMPLETED:
+        bookings=db.scalars(select(Booking).where(Booking.flight_id==flight.id,Booking.status=="CONFIRMED").with_for_update()).all()
+        for booking in bookings:
+            member=db.scalar(select(User).where(User.id==booking.user_id).with_for_update())
+            before=member.miles_balance; member.miles_balance+=flight.miles_reward; member.lifetime_miles+=flight.miles_reward; member.segments_flown+=1; booking.status="REWARDED"
+            db.add(Transaction(user_id=member.id,type="FLIGHT_COMPLETED",description=f"{flight.flight_number} · {flight.departure_airport} → {flight.destination_airport}",reference=flight.flight_number,miles_change=flight.miles_reward,balance_before=before,balance_after=member.miles_balance,created_by=actor.id))
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action=f"FLIGHT_{new_status.value}",old_value=old,new_value={"status":new_status.value,"message":flight.status_message},reason=message.strip() or f"Flight marked {new_status.value}",security_metadata={"ip":request.client.host if request.client else None,"flight_id":flight.id}))
     db.commit(); return RedirectResponse("/admin?flight_updated=1",303)
 

@@ -52,7 +52,11 @@ The checked-in public community defaults target Roblox group `6661826`, Discord 
 
 `BOOK A FLIGHT!` shows active Discord scheduled events. Opening the page synchronizes current events when `DISCORD_BOT_TOKEN` is configured; staff can also force a sync and publish scheduled, delayed, cancelled, or completed status from Staff Admin. Members book once per flight and may select only server-computed amenities allowed by their tier. Amenities apply to that booking only.
 
-Hovering or focusing a Medallion card exposes its join action. The server independently checks lifetime miles, MQP, and segments before changing status. Successful registration always assigns the base SkyMiles Member role. Successful Medallion enrollment retains that base role, removes other configured Medallion roles, and assigns the selected tier role. Attendance-channel messages are intentionally not implemented yet.
+Staff can also create flights directly with a validated flight number, departure and destination airport codes, Eastern departure time, description, and SkyMiles completion reward. When staff mark a flight completed, each confirmed booking is rewarded exactly once, receives a transaction record, and gains one completed segment.
+
+Clicking or tapping a Medallion card opens its dedicated details and enrollment page. The server independently checks lifetime miles, MQP, and segments before changing status. Successful registration always assigns the base SkyMiles Member role. Successful Medallion enrollment retains that base role, removes other configured Medallion roles, and assigns the selected tier role. Attendance-channel messages are intentionally not implemented yet.
+
+Medallion cards are full click/tap targets that open a dedicated status page. Annual enrollment prices live in `tier_config`; purchasing status rechecks qualification and balance server-side, deducts miles atomically, and records a `MEDALLION_ENROLLMENT` transaction before synchronizing Discord roles.
 
 Medallion Status is valid only through the next January 1 at 12:00 AM Eastern Time. The application uses the IANA `America/New_York` timezone, so the instant is correctly treated as EST in January (for example, enrollment on March 3, 2026 expires at January 1, 2027 12:00 AM ET / 05:00 UTC). An hourly server task returns expired members to the base SkyMiles Member tier and removes configured Medallion Discord roles while retaining the base member role.
 

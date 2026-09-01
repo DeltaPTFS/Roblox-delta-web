@@ -51,6 +51,7 @@ class TierConfig(Base):
     segments_threshold: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[str] = mapped_column(Text, default="")
     benefits: Mapped[list] = mapped_column(JSON, default=list)
+    enrollment_cost: Mapped[int] = mapped_column(BigInteger, default=0)
 
 
 class Transaction(Base):
@@ -116,6 +117,10 @@ class Flight(Base):
     __tablename__ = "flights"
     id: Mapped[int] = mapped_column(primary_key=True)
     discord_event_id: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    flight_number: Mapped[str] = mapped_column(String(20), default="DAL 0000")
+    departure_airport: Mapped[str] = mapped_column(String(8), default="TBA")
+    destination_airport: Mapped[str] = mapped_column(String(8), default="TBA")
+    miles_reward: Mapped[int] = mapped_column(BigInteger, default=0)
     name: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text, default="")
     location: Mapped[str] = mapped_column(String(160), default="To be announced")
