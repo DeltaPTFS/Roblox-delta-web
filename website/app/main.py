@@ -65,7 +65,17 @@ def context(request, **values):
     show_feedback=False
     if user and not request.session.get("feedback_prompted") and secrets.randbelow(4)==0:
         request.session["feedback_prompted"]=True; show_feedback=True
-    return {"request":request,"csrf":csrf_token(request),"settings":settings,"show_feedback":show_feedback,**values}
+    discord_roles=[]
+    if user:
+        role_names={settings.discord_member_role_id:"SkyMiles Member"}
+        role_names.update({role_id:f"{tier.title()} Medallion" for tier,role_id in settings.medallion_role_ids.items() if role_id})
+        discord_roles=[name for role_id,name in role_names.items() if role_id in set(user.discord_role_ids or [])]
+    return {"request":request,"csrf":csrf_token(request),"settings":settings,"show_feedback":show_feedback,"discord_roles":discord_roles,**values}
+
+
+def qualifies_for_tier(user: User, tier: TierConfig) -> bool:
+    """Medallion enrollment is earned with SkyMiles; MQP and segments are progress stats."""
+    return user.lifetime_miles >= tier.miles_threshold
 
 
 @app.get("/health")
@@ -228,11 +238,17 @@ def submit_feedback(request:Request,website_rating:int=Form(...),community_ratin
 async def quit_skymiles(request:Request,confirmation:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); user=current_user(request,db)
     if confirmation.strip().upper() != "QUIT": raise HTTPException(422,"Type QUIT to confirm")
-    user.account_status=Status.DISABLED
-    db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEMBERSHIP_ENDED",old_value={"status":"ACTIVE","tier":user.tier.value},new_value={"status":"DISABLED"},reason="Member voluntarily left the SkyMiles program",security_metadata={"ip":request.client.host if request.client else None,"self_service":True}))
+    old_balance=user.miles_balance; old_tier=user.tier.value
+    if old_balance:
+        db.add(Transaction(user_id=user.id,type="MEMBERSHIP_ENDED",description="SkyMiles forfeited when membership ended",reference="MEMBERSHIP-QUIT",miles_change=-old_balance,balance_before=old_balance,balance_after=0,created_by=user.id))
+    user.miles_balance=0; user.lifetime_miles=0; user.medallion_qualifying_points=0; user.segments_flown=0
+    user.tier=Tier.MEMBER; user.medallion_expires_at=None; user.account_status=Status.DISABLED
+    db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEMBERSHIP_ENDED",old_value={"status":"ACTIVE","tier":old_tier,"miles_balance":old_balance},new_value={"status":"DISABLED","tier":Tier.MEMBER.value,"miles_balance":0},reason="Member voluntarily left the SkyMiles program",security_metadata={"ip":request.client.host if request.client else None,"self_service":True}))
+    try:
+        if not await discord_remove_skymiles_roles(settings,user.discord_user_id): raise HTTPException(503,"Discord role synchronization is not configured")
+    except HTTPException: db.rollback(); raise
+    except Exception as exc: db.rollback(); raise HTTPException(502,"Could not remove the Discord roles; your membership was not changed") from exc
     db.commit()
-    try: await discord_remove_skymiles_roles(settings,user.discord_user_id)
-    except Exception: pass
     request.session.clear()
     response=RedirectResponse("/?membership_ended=1",303); response.delete_cookie("skymiles_session"); return response
 
@@ -246,7 +262,7 @@ async def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_
     if desired == Tier.MEMBER: raise HTTPException(404,"Medallion tier not found")
     tier=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
     if not tier: raise HTTPException(404,"Medallion tier not found")
-    qualifies=user.lifetime_miles>=tier.miles_threshold and user.medallion_qualifying_points>=tier.mqp_threshold and user.segments_flown>=tier.segments_threshold
+    qualifies=qualifies_for_tier(user,tier)
     return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,auth=auth))
 
 
@@ -341,15 +357,16 @@ async def join_tier(request:Request,tier_name:str,csrf:str=Form(...),db:Session=
     with db.begin_nested():
         user=db.scalar(select(User).where(User.id==user.id).with_for_update())
         config=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
-        if not config or user.lifetime_miles < config.miles_threshold or user.medallion_qualifying_points < config.mqp_threshold or user.segments_flown < config.segments_threshold:
-            raise HTTPException(403,"You have not met all requirements for this Medallion level")
+        if not config or not qualifies_for_tier(user,config): raise HTTPException(403,"You have not earned enough lifetime SkyMiles for this Medallion level")
         if user.miles_balance < config.enrollment_cost: raise HTTPException(400,"Not Enough Miles")
         before=user.miles_balance; user.miles_balance-=config.enrollment_cost
         user.tier=desired; user.medallion_expires_at=next_medallion_expiration()
         db.add(Transaction(user_id=user.id,type="MEDALLION_ENROLLMENT",description=f"Joined {desired.value}",reference=desired.name,miles_change=-config.enrollment_cost,balance_before=before,balance_after=user.miles_balance,created_by=user.id))
+    try:
+        if not await discord_set_medallion_roles(settings,user.discord_user_id,desired.name): raise HTTPException(503,"Discord role synchronization is not configured")
+    except HTTPException: db.rollback(); raise
+    except Exception as exc: db.rollback(); raise HTTPException(502,"Could not assign the exact Discord Medallion role; no miles were spent") from exc
     db.commit()
-    try: await discord_set_medallion_roles(settings,user.discord_user_id,desired.name)
-    except Exception: raise HTTPException(502,"Status updated, but Discord role synchronization needs staff attention")
     return RedirectResponse(f"/medallions/{desired.name}?joined=1",303)
 
 
@@ -387,13 +404,15 @@ async def admin(request:Request,q:str="",db:Session=Depends(get_db)):
 
 @app.post("/admin/members/{user_id}/miles")
 @limiter.limit("20/minute")
-async def adjust(request:Request,user_id:int,amount:int=Form(...),reason:str=Form(...),reference:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+async def adjust(request:Request,user_id:int,action:str=Form(...),amount:int=Form(...),reason:str=Form(...),reference:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); actor=await require_staff(request,db)
-    if not reason.strip() or amount==0 or abs(amount)>1_000_000: raise HTTPException(422,"A valid amount and reason are required")
+    action=action.upper().strip()
+    if action not in {"ADD","REMOVE"} or not reason.strip() or amount<=0 or amount>1_000_000: raise HTTPException(422,"Choose Add or Remove and enter a positive amount with a reason")
+    signed_amount=amount if action=="ADD" else -amount
     with db.begin_nested():
         target=db.scalar(select(User).where(User.id==user_id).with_for_update())
         if not target: raise HTTPException(404,"Member not found")
-        before=target.miles_balance; target.miles_balance=max(0,before+amount); actual=target.miles_balance-before
+        before=target.miles_balance; target.miles_balance=max(0,before+signed_amount); actual=target.miles_balance-before
         if actual>0: target.lifetime_miles+=actual
         db.add(Transaction(user_id=target.id,type="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",description=reason.strip(),reference=reference[:100],miles_change=actual,balance_before=before,balance_after=target.miles_balance,created_by=actor.id)); db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",old_value={"balance":before},new_value={"balance":target.miles_balance},reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None}))
     db.commit(); return RedirectResponse(f"/admin?q={target.skymiles_number}",303)

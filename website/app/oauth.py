@@ -52,6 +52,7 @@ async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_nam
         return False
     headers = {"Authorization": f"Bot {settings.discord_bot_token}"}
     desired = settings.medallion_role_ids.get(tier_name or "", "")
+    if tier_name and not desired: raise ValueError(f"No Discord role ID is configured for {tier_name}")
     async with httpx.AsyncClient(timeout=15) as client:
         member_url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=settings.discord_member_role_id)
         (await client.put(member_url, headers=headers)).raise_for_status()
