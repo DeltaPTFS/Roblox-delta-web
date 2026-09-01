@@ -14,7 +14,7 @@ The website is isolated under `website/` so an existing or future Discord bot ca
 
 ## Install and run locally
 
-Python 3.12 is recommended.
+Python 3.13 is recommended and Render is pinned through `.python-version` to avoid silently adopting a new major Python runtime.
 
 ```bash
 python -m venv .venv
