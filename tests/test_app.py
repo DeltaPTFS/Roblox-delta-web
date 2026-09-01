@@ -59,6 +59,14 @@ def test_health():
         response=client.get("/health")
         assert response.status_code==200 and response.json()=={"status":"ok"}
 
+
+def test_static_assets_are_cached_and_compressed():
+    with TestClient(app) as client:
+        response=client.get("/static/style.css",headers={"Accept-Encoding":"gzip"})
+        assert response.status_code==200
+        assert "max-age=3600" in response.headers["cache-control"]
+        assert response.headers.get("content-encoding")=="gzip"
+
 def test_login_has_safe_oauth_and_disclaimer():
     with TestClient(app) as client:
         response=client.get("/")

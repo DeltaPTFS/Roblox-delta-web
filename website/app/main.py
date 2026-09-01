@@ -1,6 +1,7 @@
 import asyncio
 import re
 import secrets
+from time import time
 from uuid import uuid4
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -10,6 +11,7 @@ from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.gzip import GZipMiddleware
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -57,7 +59,17 @@ app = FastAPI(title="Delta SkyMiles | Roblox", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, lambda r, e: JSONResponse({"detail":"Too many requests"}, 429))
 app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max_age=86400)
+app.add_middleware(GZipMiddleware, minimum_size=800)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
+
+
+@app.middleware("http")
+async def cache_static_assets(request: Request, call_next):
+    """Cache deployment assets and avoid retransmitting large CSS/SVG files."""
+    response=await call_next(request)
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"]="public, max-age=3600, stale-while-revalidate=86400"
+    return response
 
 
 def context(request, **values):
@@ -234,7 +246,18 @@ async def refresh_discord_authorization(user: User, db: Session) -> str:
 
 
 async def member_page(request: Request, template: str, db: Session):
-    user=current_user(request,db); auth=await refresh_discord_authorization(user,db); transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all(); rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all(); tiers=db.scalars(select(TierConfig).order_by(TierConfig.miles_threshold)).all()
+    user=current_user(request,db)
+    last_sync=float(request.session.get("discord_sync_checked_at",0) or 0)
+    if time()-last_sync<30:
+        user._discord_sync_state="synced"
+        try: user._discord_role_details=display_discord_roles(user.discord_role_ids or [],await discord_guild_roles(settings))
+        except Exception: user._discord_role_details=[]
+        auth=permission(user,settings)
+    else:
+        auth=await refresh_discord_authorization(user,db); request.session["discord_sync_checked_at"]=time()
+    transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all() if template in {"dashboard.html","activity.html"} else []
+    rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all() if template=="rewards.html" else []
+    tiers=db.scalars(select(TierConfig).order_by(TierConfig.miles_threshold)).all() if template=="miles.html" else []
     return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=auth))
 
 

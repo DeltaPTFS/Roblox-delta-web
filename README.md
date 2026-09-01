@@ -65,6 +65,10 @@ On every authenticated page load, the server reads the member's authoritative Di
 
 The account menu and Profile page display every current Discord server role returned for the authenticated member, using the role names, hierarchy order, and colors from the guild's authoritative role catalog. The catalog is cached for five minutes to limit Discord API traffic; member role IDs themselves are still refreshed for authorization checks.
 
+## Performance
+
+HTML and larger static responses are compressed with GZip. Static CSS/SVG assets use a one-hour browser cache with a one-day stale-while-revalidate window, normal member pages reuse a verified Discord role result for 30 seconds, and guild role metadata remains cached for five minutes. Administrative actions still force authoritative Discord authorization checks. Expensive full-page background-position and backdrop-filter animations were replaced with lightweight opacity-only fades and are disabled on mobile or when reduced motion is requested.
+
 Medallion cards are full click/tap targets that open a dedicated status page. Annual enrollment prices live in `tier_config`; purchasing status rechecks qualification and balance server-side, deducts miles atomically, and records a `MEDALLION_ENROLLMENT` transaction before synchronizing Discord roles.
 
 Medallion Status is valid only through the next January 1 at 12:00 AM Eastern Time. The application uses the IANA `America/New_York` timezone, so the instant is correctly treated as EST in January (for example, enrollment on March 3, 2026 expires at January 1, 2027 12:00 AM ET / 05:00 UTC). An hourly server task returns expired members to the base SkyMiles Member tier and removes configured Medallion Discord roles while retaining the base member role.
