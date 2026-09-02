@@ -1,8 +1,9 @@
 import base64, hashlib, secrets
 from fastapi import HTTPException, Request
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from .config import Settings
-from .models import User
+from .models import Status, User
 
 
 def oauth_values(request: Request, provider: str) -> tuple[str, str]:
@@ -43,5 +44,7 @@ def current_user(request: Request, db: Session) -> User:
     user_id = request.session.get("user_id")
     user = db.get(User, user_id) if user_id else None
     if not user: raise HTTPException(401, "Session expired")
+    if user.account_status.value != "ACTIVE" and not user.permanent_ban and user.restricted_until and user.restricted_until <= datetime.now(timezone.utc):
+        user.account_status=Status.ACTIVE; user.restricted_until=None; user.restriction_reason=None; db.commit()
     if user.account_status.value != "ACTIVE": raise HTTPException(403, "Account suspended")
     return user

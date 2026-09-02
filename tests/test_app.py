@@ -109,3 +109,35 @@ def test_release_update_notice_and_uncached_health():
     with TestClient(app) as client:
         response = client.get("/health")
         assert response.headers["cache-control"] == "no-store"
+
+
+def test_my_trips_refunds_moderation_and_notification_logging_present():
+    models = Path("website/app/models.py").read_text()
+    main = Path("website/app/main.py").read_text()
+    trip = Path("website/templates/trip_detail.html").read_text()
+    assert "class ModerationAction" in models and "class NotificationLog" in models
+    assert "booking.created_at+timedelta(hours=24)" in main
+    assert 'delivery_status="PENDING"' in main
+    assert 'log.delivery_status="DELIVERED"' in main
+    assert "Refund Eligible Until" in trip
+    assert "To Be Assigned" in trip
+    assert "View My Trips" in trip and "Cancel Flight" in trip
+
+
+def test_discord_dm_uses_installed_custom_emoji_catalog():
+    oauth = Path("website/app/oauth.py").read_text()
+    assert "/emojis" in oauth
+    assert "async def discord_dm" in oauth
+    assert '"recipient_id":user_id' in oauth
+
+
+def test_confirmation_numbers_are_unique_and_title_cased_messages_exist():
+    from website.app.main import confirmation_number
+    values={confirmation_number() for _ in range(250)}
+    assert len(values)==250
+    assert all(value.startswith("DL") and len(value)==12 for value in values)
+    source=Path("website/app/main.py").read_text()
+    assert "Delta Air Lines | Booking Confirmed" in source
+    assert "Delta Air Lines | Flight Cancelled" in source
+    assert "Delta Air Lines | Flight Reminder" in source
+    assert "To Be Assigned" in source

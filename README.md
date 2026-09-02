@@ -115,3 +115,11 @@ The site occasionally shows a two-rating feedback dialog once per session. Ratin
 ## Pre-launch acceptance checks
 
 Use separate test accounts to verify: new-member enrollment and welcome bonus; returning Roblox ID recognition; non-group denial without user creation; wrong-guild denial; duplicate Discord/Roblox prevention; staff adjustment transaction plus audit; direct member request to `/admin` returning 403; reward balance failure and atomic successful redemption; suspension denial; logout/session expiry; responsive mobile/desktop rendering; and branded 404/500 behavior.
+
+## My Trips, refunds, moderation, and Discord DMs
+
+Every reservation receives a unique confirmation number and remains in **My Trips** after completion or cancellation. Flight details use the member's local browser timezone and display **To Be Assigned** rather than raw null values. Cancellations within 24 hours of the exact booking timestamp refund eligible applied SkyMiles; later pre-departure cancellations clearly disclose and forfeit the applied amount.
+
+The bot resolves the guild's installed custom emoji catalog before sending event-driven DMs. Booking, member cancellation/refund, staff flight cancellation, delay, gate, aircraft, schedule, completion, verified no-show, warning, suspension, and ban deliveries are recorded in `notification_logs`, including failed DMs. Unique event keys prevent duplicate notices. A Discord delivery failure never rolls back the website action.
+
+Staff moderation records the member, moderator, required reason, time, and optional related flight. No-shows are never inferred automatically: staff must select a real reservation and confirm the action. Ownership can remove, temporarily restrict, permanently ban, restore, and reverse warnings. Temporary restrictions expire automatically on the member's next authenticated request.

@@ -4,7 +4,7 @@ import secrets
 from time import time
 from uuid import uuid4
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
@@ -20,8 +20,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
-from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
-from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
+from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
+from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -55,10 +55,12 @@ async def lifespan(app):
             db.commit()
     await expire_medallions_once()
     expiration_task = asyncio.create_task(medallion_expiration_worker())
+    reminder_task = asyncio.create_task(flight_reminder_worker())
     try:
         yield
     finally:
         expiration_task.cancel()
+        reminder_task.cancel()
 
 
 app = FastAPI(title="Delta SkyMiles | Roblox", lifespan=lifespan)
@@ -121,8 +123,46 @@ def display_discord_roles(member_role_ids: list[str], catalog: list[dict]) -> li
     return [{"id":str(role["id"]),"name":str(role["name"]),"color":int(role.get("color",0))} for role in catalog if str(role["id"]) in member_ids and role.get("name")!="@everyone"]
 
 
+def assigned(value) -> str: return str(value) if value not in {None,""} else "To Be Assigned"
+
+
+def confirmation_number() -> str: return "DL"+secrets.token_hex(5).upper()
+
+
+def release_expired_restriction(user:User,db:Session) -> None:
+    if user.account_status!=Status.ACTIVE and not user.permanent_ban and user.restricted_until and user.restricted_until<=datetime.now(timezone.utc):
+        user.account_status=Status.ACTIVE; user.restricted_until=None; user.restriction_reason=None; db.commit()
+
+
+async def notify_member(db:Session,user:User,flight:Flight|None,booking:Booking|None,kind:str,content:str,event_key:str):
+    """Deliver at most one event notification and always retain its outcome."""
+    log=NotificationLog(user_id=user.id,flight_id=flight.id if flight else None,booking_id=booking.id if booking else None,notification_type=kind,event_key=event_key,delivery_status="PENDING",error=None)
+    try: db.add(log); db.commit()
+    except IntegrityError: db.rollback(); return
+    try: await discord_dm(settings,user.discord_user_id,content)
+    except Exception as exc: log.delivery_status="FAILED"; log.error=str(exc)[:1000]
+    else: log.delivery_status="DELIVERED"
+    db.commit()
+
+
+async def emoji_map() -> dict[str,str]:
+    try: return await discord_custom_emojis(settings)
+    except Exception: return {}
+
+
+def em(emojis:dict,name:str,fallback:str) -> str:
+    return emojis.get(name.lower(),fallback)
+
+
 @app.get("/health")
 def health(): return JSONResponse({"status":"ok"},headers={"Cache-Control":"no-store"})
+
+
+@app.get("/api/discord-emojis")
+async def web_discord_emojis(request:Request,db:Session=Depends(get_db)):
+    current_user(request,db)
+    try: return JSONResponse(await discord_custom_emoji_assets(settings),headers={"Cache-Control":"private, max-age=300"})
+    except Exception: return JSONResponse({})
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -151,6 +191,7 @@ async def roblox_callback(request: Request, code: str, state: str, db: Session=D
     request.session["pending_roblox"] = {**identity, "membership":True, "role":role.get("name"), "rank":int(role.get("rank",0))}
     existing = db.scalar(select(User).where(User.roblox_user_id == identity["id"]))
     if existing:
+        release_expired_restriction(existing,db)
         existing.roblox_username, existing.roblox_display_name, existing.roblox_avatar_url = identity["username"], identity["display_name"], identity["avatar"]
         existing.roblox_group_role, existing.roblox_group_rank = role.get("name"), int(role.get("rank",0)); db.commit()
         request.session["link_user_id"] = existing.id
@@ -202,6 +243,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     if direct_login:
         user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
         if not user: return templates.TemplateResponse("error.html",context(request,title="Roblox Verification Required",message="Verify with Roblox first to create your SkyMiles membership."),status_code=404)
+        release_expired_restriction(user,db)
         if user.account_status != Status.ACTIVE: raise HTTPException(403,"Account suspended")
         user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc)
         try: user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None)
@@ -279,6 +321,23 @@ async def rewards(request:Request,db:Session=Depends(get_db)): return await memb
 async def profile(request:Request,db:Session=Depends(get_db)): return await member_page(request,"profile.html",db)
 
 
+@app.get("/trips",response_class=HTMLResponse)
+async def my_trips(request:Request,db:Session=Depends(get_db)):
+    user=current_user(request,db); auth=await refresh_discord_authorization(user,db)
+    trips=db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id).where(Booking.user_id==user.id).order_by(Flight.starts_at.desc())).all()
+    return templates.TemplateResponse("trips.html",context(request,user=user,trips=trips,auth=auth,now=datetime.now(timezone.utc)))
+
+
+@app.get("/trips/{confirmation}",response_class=HTMLResponse)
+async def trip_detail(request:Request,confirmation:str,db:Session=Depends(get_db)):
+    user=current_user(request,db); auth=await refresh_discord_authorization(user,db)
+    row=db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id).where(Booking.user_id==user.id,Booking.confirmation_number==confirmation)).first()
+    if not row: raise HTTPException(404,"Trip not found")
+    booking,flight=row; refund_until=booking.created_at+timedelta(hours=24); refund_eligible=datetime.now(timezone.utc)<=refund_until and booking.status=="CONFIRMED"
+    catalog={item["id"]:item for item in eligible_amenities(user)}
+    return templates.TemplateResponse("trip_detail.html",context(request,user=user,booking=booking,flight=flight,refund_until=refund_until,refund_eligible=refund_eligible,amenity_catalog=catalog,auth=auth))
+
+
 @app.get("/settings", response_class=HTMLResponse)
 async def account_settings(request:Request,db:Session=Depends(get_db)):
     user=current_user(request,db)
@@ -340,10 +399,9 @@ async def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_
 
 
 def eligible_amenities(user: User) -> list[dict]:
-    amenities = [{"id":"fast_booking","name":"Fast Booking","description":"Priority handling for this flight booking."}]
-    if user.tier in {Tier.GOLD, Tier.PLATINUM, Tier.DIAMOND}: amenities.append({"id":"priority_boarding","name":"Priority Boarding","description":"Board in the Medallion priority group."})
-    if user.tier in {Tier.PLATINUM, Tier.DIAMOND}: amenities.append({"id":"upgrade_priority","name":"Upgrade Priority","description":"Apply upgrade priority to this flight only."})
-    if user.tier == Tier.DIAMOND: amenities.append({"id":"diamond_service","name":"Diamond Service","description":"Highest community service priority."})
+    amenities = [{"id":"wifi","name":"Wi-Fi","emoji":"WiFi","description":"Connectivity when offered on the assigned aircraft."},{"id":"personal_screen","name":"Personal Entertainment Screen","emoji":"PersonalScreen","description":"Seatback entertainment when available."},{"id":"in_seat_power","name":"In-Seat Power","emoji":"InSeatPower","description":"Power at the assigned seat."},{"id":"usb_power","name":"USB Power","emoji":"USBPower","description":"USB charging at the assigned seat."},{"id":"snacks","name":"Snacks","emoji":"Snacks","description":"Complimentary roleplay snack service."}]
+    if user.tier in {Tier.GOLD, Tier.PLATINUM, Tier.DIAMOND}: amenities += [{"id":"satellite_tv","name":"Satellite TV","emoji":"Satelite","description":"Live television when available."},{"id":"meal","name":"Meal","emoji":"food","description":"Meal service for this itinerary."}]
+    if user.tier in {Tier.PLATINUM, Tier.DIAMOND}: amenities.append({"id":"lie_flat_bed","name":"Lie-Flat Bed","emoji":"Bed","description":"Lie-flat seating when assigned."})
     return amenities
 
 
@@ -375,6 +433,19 @@ async def medallion_expiration_worker():
     while True:
         await asyncio.sleep(3600)
         await expire_medallions_once()
+
+
+async def flight_reminder_worker():
+    """Notify confirmed passengers once when departure enters the next 24 hours."""
+    while True:
+        now=datetime.now(timezone.utc)
+        with SessionLocal() as db:
+            rows=db.execute(select(Booking,Flight,User).join(Flight,Booking.flight_id==Flight.id).join(User,Booking.user_id==User.id).where(Booking.status=="CONFIRMED",Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.starts_at>now,Flight.starts_at<=now+timedelta(hours=24))).all()
+            emojis=await emoji_map()
+            for booking,flight,user in rows:
+                content=f"{em(emojis,'Timer','⏱️')} Delta Air Lines | Flight Reminder\n\nYour upcoming flight is approaching.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Parking','🅿️')} Gate: {assigned(flight.gate)}\n{em(emojis,'Nametag','🏷️')} Seat: {assigned(booking.seat)}\n{em(emojis,{'Delta Main':'DeltaMain','Delta Comfort':'Comfort','First Class':'FirstClass','Delta One':'DeltaOne'}.get(booking.cabin,'DeltaMain'),'💺')} Cabin: {assigned(booking.cabin)}\n\nPlease be ready before the scheduled departure time.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+                await notify_member(db,user,flight,booking,"FLIGHT_REMINDER",content,f"booking:{booking.id}:reminder:24h")
+        await asyncio.sleep(900)
 
 
 async def sync_flights(db: Session) -> int:
@@ -412,19 +483,29 @@ async def flights(request:Request,db:Session=Depends(get_db)):
 @limiter.limit("10/minute")
 async def book_flight(request:Request,flight_id:int,csrf:str=Form(...),amenities:list[str]=Form(default=[]),db:Session=Depends(get_db)):
     check_csrf(request,csrf); user=current_user(request,db)
+    if user.account_status!=Status.ACTIVE or user.permanent_ban or (user.restricted_until and user.restricted_until>datetime.now(timezone.utc)): raise HTTPException(403,"Your SkyMiles account is restricted")
     flight=db.get(Flight,flight_id)
     if not flight or flight.status in {FlightStatus.CANCELLED,FlightStatus.COMPLETED}: raise HTTPException(400,"This flight is not available for booking")
     allowed={item["id"] for item in eligible_amenities(user)}
     selected=[item for item in amenities if item in allowed]
     existing=db.scalar(select(Booking).where(Booking.flight_id==flight.id,Booking.user_id==user.id))
-    if existing: existing.amenities=selected; existing.status="CONFIRMED"
-    else: db.add(Booking(flight_id=flight.id,user_id=user.id,amenities=selected))
+    cabin={Tier.DIAMOND:"Delta One",Tier.PLATINUM:"First Class",Tier.GOLD:"Delta Comfort"}.get(user.tier,"Delta Main")
+    if existing:
+        if existing.status!="CONFIRMED": existing.created_at=datetime.now(timezone.utc); existing.miles_refunded=0
+        existing.amenities=selected; existing.status="CONFIRMED"; existing.cancelled_at=None
+    else:
+        existing=Booking(flight_id=flight.id,user_id=user.id,amenities=selected,confirmation_number=confirmation_number(),cabin=cabin,carry_on="1 Carry-On",checked_bags="To Be Assigned",miles_used=0)
+        db.add(existing)
     db.commit()
     try:
         await discord_announce_booking(settings,discord_user_id=user.discord_user_id,display_name=user.discord_display_name,flight_number=flight.flight_number or flight.name,route=f"{flight.departure_airport or 'TBA'} → {flight.destination_airport or 'TBA'}")
     except Exception:
         pass  # A Discord outage must not undo a confirmed booking.
-    return RedirectResponse("/flights?booked=1",303)
+    emojis=await emoji_map(); depart=flight.starts_at.strftime("%b %d, %Y at %H:%M UTC"); arrival=flight.ends_at.strftime("%b %d, %Y at %H:%M UTC") if flight.ends_at else "To Be Assigned"
+    cabin_emoji={"Delta Main":"DeltaMain","Delta Comfort":"Comfort","First Class":"FirstClass","Delta One":"DeltaOne"}.get(existing.cabin,"DeltaMain")
+    content=f"{em(emojis,'CheckMark','✅')} Delta Air Lines | Booking Confirmed\n\nYour Delta Air Lines reservation has been confirmed.\n\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {existing.confirmation_number}\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {depart}\n{em(emojis,'Schedule','📅')} Arrival: {arrival}\n{em(emojis,'Plane','✈️')} Aircraft: {assigned(flight.aircraft)}\n{em(emojis,'Parking','🅿️')} Gate: {assigned(flight.gate)}\n{em(emojis,cabin_emoji,'💺')} Cabin: {assigned(existing.cabin)}\n{em(emojis,'CreditCard','💳')} SkyMiles Used: {existing.miles_used:,}\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+    await notify_member(db,user,flight,existing,"BOOKING_CONFIRMED",content,f"booking:{existing.id}:confirmed:{existing.created_at.isoformat()}")
+    return RedirectResponse(f"/trips/{existing.confirmation_number}?booked=1",303)
 
 
 @app.post("/flights/{flight_id}/cancel")
@@ -436,10 +517,18 @@ async def cancel_booking(request:Request,flight_id:int,csrf:str=Form(...),db:Ses
     booking=db.scalar(select(Booking).where(Booking.flight_id==flight_id,Booking.user_id==user.id).with_for_update())
     if not flight or not booking or booking.status!="CONFIRMED": raise HTTPException(404,"Active booking not found")
     if flight.starts_at<=datetime.now(timezone.utc): raise HTTPException(409,"This flight has already departed and can no longer be cancelled")
-    booking.status="CANCELLED"; booking.amenities=[]; db.commit()
+    eligible=datetime.now(timezone.utc)<=booking.created_at+timedelta(hours=24)
+    refunded=booking.miles_used if eligible else 0; forfeited=booking.miles_used-refunded
+    if refunded: user.miles_balance+=refunded
+    booking.status="CANCELLED"; booking.amenities=[]; booking.cancelled_at=datetime.now(timezone.utc); booking.miles_refunded=refunded; db.commit()
     try: await discord_announce_update(settings,title="Flight Booking Cancelled",description=f"{user.discord_display_name} left {flight.flight_number}. Their flight-only amenities were returned.")
     except Exception: pass
-    return RedirectResponse("/flights?cancelled=1",303)
+    emojis=await emoji_map(); content=f"{em(emojis,'CheckMark','✅')} Delta Air Lines | Cancellation Confirmed\n\nYour reservation has been cancelled successfully.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {booking.confirmation_number}\n{em(emojis,'Schedule','📅')} Original Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n\n{em(emojis,'CreditCard','💳')} SkyMiles Refunded: {refunded:,}\n{em(emojis,'Warning','⚠️')} SkyMiles Forfeited: {forfeited:,}\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+    await notify_member(db,user,flight,booking,"CANCELLATION_CONFIRMED",content,f"booking:{booking.id}:cancelled")
+    if refunded:
+        refund_content=f"{em(emojis,'CreditCard','💳')} Delta Air Lines | Refund Confirmed\n\nYour SkyMiles refund has been processed.\n\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {booking.confirmation_number}\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'CreditCard','💳')} SkyMiles Refunded: {refunded:,}\n{em(emojis,'CreditCard','💳')} Updated Balance: {user.miles_balance:,}\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+        await notify_member(db,user,flight,booking,"REFUND_CONFIRMED",refund_content,f"booking:{booking.id}:refund:{booking.cancelled_at.isoformat()}")
+    return RedirectResponse(f"/trips/{booking.confirmation_number}?cancelled=1",303)
 
 
 @app.post("/tiers/{tier_name}/join")
@@ -516,11 +605,15 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str):
         try: guild_roles=await discord_guild_roles(settings)
         except Exception: pass
     audit_logs=db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
+    moderation_logs=db.scalars(select(ModerationAction).order_by(ModerationAction.created_at.desc()).limit(200)).all() if required=="OWNER" else []
+    notification_logs=db.scalars(select(NotificationLog).order_by(NotificationLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
     directory_users=db.scalars(select(User)).all() if required=="OWNER" else []
     user_map={item.id:item for item in directory_users}
+    member_bookings={member.id:db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id).where(Booking.user_id==member.id).order_by(Booking.created_at.desc()).limit(10)).all() for member in users}
+    moderation={member.id:db.scalars(select(ModerationAction).where(ModerationAction.user_id==member.id).order_by(ModerationAction.created_at.desc()).limit(20)).all() for member in users}
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,feedback=feedback,audit_logs=audit_logs,user_map=user_map,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -573,6 +666,47 @@ async def adjust_qualifications(request:Request,user_id:int,mqp:int=Form(0),segm
     return RedirectResponse(f"{panel_path(permission(actor,settings))}?q={target.skymiles_number}&qualifications_applied=1",303)
 
 
+@app.post("/admin/members/{user_id}/moderate")
+@limiter.limit("10/minute")
+async def moderate_member(request:Request,user_id:int,action:str=Form(...),reason:str=Form(...),flight_id:str=Form(""),moderation_id:str=Form(""),duration_hours:int=Form(0),csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); actor=await require_staff(request,db); level=permission(actor,settings)
+    action=action.upper(); reason=reason.strip(); owner_actions={"REMOVE","SUSPEND","BAN_TEMPORARY","BAN_PERMANENT","RESTORE","REVERSE_WARNING"}
+    if not reason or action not in {"WARN","NO_SHOW",*owner_actions}: raise HTTPException(422,"Choose a moderation action and enter a reason")
+    if action in owner_actions and level!="OWNER": raise HTTPException(403,"Ownership access required")
+    target=db.get(User,user_id); flight=db.get(Flight,int(flight_id)) if flight_id.isdigit() else None
+    if not target: raise HTTPException(404,"Member not found")
+    if action in {"WARN","NO_SHOW"} and not flight and action=="NO_SHOW": raise HTTPException(422,"A no-show must be linked to a flight")
+    if action=="NO_SHOW":
+        no_show_booking=db.scalar(select(Booking).where(Booking.user_id==target.id,Booking.flight_id==flight.id))
+        if not no_show_booking: raise HTTPException(422,"No booking exists for that member and flight")
+        no_show_booking.attendance_status="NO_SHOW"
+    if action in {"SUSPEND","BAN_TEMPORARY"}:
+        if duration_hours<1 or duration_hours>8760: raise HTTPException(422,"Restriction duration must be 1–8,760 hours")
+        target.account_status=Status.SUSPENDED; target.restricted_until=datetime.now(timezone.utc)+timedelta(hours=duration_hours); target.restriction_reason=reason; target.permanent_ban=False
+    elif action in {"BAN_PERMANENT","REMOVE"}:
+        target.account_status=Status.DISABLED; target.permanent_ban=True; target.restricted_until=None; target.restriction_reason=reason
+        if action=="REMOVE":
+            before=target.miles_balance; target.miles_balance=0
+            if before: db.add(Transaction(user_id=target.id,type="MEMBERSHIP_REMOVED",description=reason,reference="OWNERSHIP-REMOVAL",miles_change=-before,balance_before=before,balance_after=0,created_by=actor.id))
+    elif action=="RESTORE": target.account_status=Status.ACTIVE; target.permanent_ban=False; target.restricted_until=None; target.restriction_reason=None
+    elif action=="REVERSE_WARNING":
+        previous=db.get(ModerationAction,int(moderation_id)) if moderation_id.isdigit() else None
+        if not previous or previous.user_id!=target.id or previous.action not in {"WARN","NO_SHOW"} or previous.reversed_at: raise HTTPException(422,"Choose an active warning to reverse")
+        previous.reversed_at=datetime.now(timezone.utc); previous.reversed_by=actor.id
+    record=ModerationAction(user_id=target.id,moderator_id=actor.id,flight_id=flight.id if flight else None,action=action,reason=reason); db.add(record); db.flush()
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action=f"MODERATION_{action}",old_value=None,new_value={"restriction_until":target.restricted_until.isoformat() if target.restricted_until else None},reason=reason,security_metadata={"flight_id":flight.id if flight else None,"ip":request.client.host if request.client else None})); db.commit()
+    emojis=await emoji_map(); count=db.scalar(select(func.count()).select_from(ModerationAction).where(ModerationAction.user_id==target.id,ModerationAction.action=="WARN",ModerationAction.reversed_at.is_(None))) or 0
+    title="SkyMiles Warning" if action in {"WARN","NO_SHOW"} else "SkyMiles Account Banned" if action in {"BAN_PERMANENT","REMOVE"} else "SkyMiles Account Suspended" if action in {"SUSPEND","BAN_TEMPORARY"} else "SkyMiles Restriction Reversed"
+    content=f"{em(emojis,'Warning','⚠️')} Delta Air Lines | {title}\n\n{em(emojis,'Warning','⚠️')} Reason: {reason}\n{em(emojis,'Plane','✈️')} Related Flight: {flight.flight_number if flight else 'Not Applicable'}\n{em(emojis,'Schedule','📅')} Issued: {datetime.now(timezone.utc).strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Warning','⚠️')} Current Warning Count: {count}\n{em(emojis,'Timer','⏱️')} Restriction Ends: {target.restricted_until.strftime('%b %d, %Y at %H:%M UTC') if target.restricted_until else 'Permanent' if target.permanent_ban else 'Not Applicable'}\n\n{em(emojis,'Support','🛟')} Contact Delta Support if you believe this is incorrect.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+    if action=="NO_SHOW":
+        content=f"{em(emojis,'Warning','⚠️')} Delta Air Lines | Missed Flight\n\nOur verified records indicate that you did not attend your scheduled flight and did not cancel before departure.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {no_show_booking.confirmation_number}\n{em(emojis,'CreditCard','💳')} SkyMiles Forfeited: {no_show_booking.miles_used:,}\n{em(emojis,'Warning','⚠️')} Account Warning: {reason}\n\nIf you believe this is incorrect, contact Delta Support.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+    await notify_member(db,target,flight,None,f"MODERATION_{action}",content,f"moderation:{record.id}")
+    if action=="REMOVE":
+        try: await discord_remove_skymiles_roles(settings,target.discord_user_id)
+        except Exception: pass
+    return RedirectResponse(f"{panel_path(level)}?q={target.skymiles_number}&moderation_applied=1",303)
+
+
 @app.post("/owner/members/{user_id}/access")
 @limiter.limit("10/minute")
 async def owner_member_access(request:Request,user_id:int,action:str=Form(...),reason:str=Form(...),csrf:str=Form(...),db:Session=Depends(get_db)):
@@ -611,9 +745,9 @@ async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depen
 
 
 @app.post("/admin/flights/create")
-async def admin_create_flight(request:Request,flight_number:str=Form(""),departure_airport:str=Form(""),destination_airport:str=Form(""),name:str=Form(""),starts_at:str=Form(""),discord_event_url:str=Form(""),miles_reward:str=Form(""),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+async def admin_create_flight(request:Request,flight_number:str=Form(""),departure_airport:str=Form(""),destination_airport:str=Form(""),name:str=Form(""),starts_at:str=Form(""),ends_at:str=Form(""),aircraft:str=Form(""),gate:str=Form(""),discord_event_url:str=Form(""),miles_reward:str=Form(""),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); actor=await require_admin(request,db)
-    submitted={"flight_number":flight_number,"departure_airport":departure_airport,"destination_airport":destination_airport,"name":name,"starts_at":starts_at,"discord_event_url":discord_event_url,"miles_reward":miles_reward,"description":description}
+    submitted={"flight_number":flight_number,"departure_airport":departure_airport,"destination_airport":destination_airport,"name":name,"starts_at":starts_at,"ends_at":ends_at,"aircraft":aircraft,"gate":gate,"discord_event_url":discord_event_url,"miles_reward":miles_reward,"description":description}
     def reject(message:str):
         request.session["flight_form"]=submitted; request.session["flight_form_error"]=message
         return RedirectResponse(panel_path(permission(actor,settings))+"#create-flight",303)
@@ -634,13 +768,16 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
         if not event: return reject("Discord event not found. Your entries were preserved.")
         if db.scalar(select(Flight.id).where(Flight.discord_event_id==event_id)): return reject("That Discord event is already linked to a flight.")
     if event:
-        departure_time=datetime.fromisoformat(event["scheduled_start_time"].replace("Z","+00:00")); name=(event.get("name") or name).strip(); description=(event.get("description") or description).strip(); location=(event.get("entity_metadata") or {}).get("location") or f"{departure} → {destination}"
+        departure_time=datetime.fromisoformat(event["scheduled_start_time"].replace("Z","+00:00")); arrival_time=datetime.fromisoformat(event["scheduled_end_time"].replace("Z","+00:00")) if event.get("scheduled_end_time") else None; name=(event.get("name") or name).strip(); description=(event.get("description") or description).strip(); location=(event.get("entity_metadata") or {}).get("location") or f"{departure} → {destination}"
     else:
         if not name.strip() or not starts_at: return reject("A title and departure time are required without a Discord event link.")
         try: departure_time=datetime.fromisoformat(starts_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
         except ValueError: return reject("Enter a valid departure date and time.")
+        try: arrival_time=datetime.fromisoformat(ends_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc) if ends_at else None
+        except ValueError: return reject("Enter a valid arrival date and time.")
+        if arrival_time and arrival_time<=departure_time: return reject("Arrival must be after departure.")
         location=f"{departure} → {destination}"
-    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,miles_reward=reward,status=FlightStatus.SCHEDULED)
+    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,ends_at=arrival_time,aircraft=aircraft.strip()[:100] or None,gate=gate.strip()[:30] or None,miles_reward=reward,status=FlightStatus.SCHEDULED)
     db.add(flight); db.flush()
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
     db.commit()
@@ -650,18 +787,46 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
 
 
 @app.post("/admin/flights/{flight_id}/status")
-async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...),message:str=Form(""),gate:str=Form(""),aircraft:str=Form(""),starts_at:str=Form(""),ends_at:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); actor=await require_admin(request,db)
     try: new_status=FlightStatus[status.upper()]
     except KeyError: raise HTTPException(422,"Invalid flight status")
     flight=db.get(Flight,flight_id)
     if not flight: raise HTTPException(404,"Flight not found")
-    old={"status":flight.status.value,"message":flight.status_message}
+    event_token=secrets.token_hex(6); old={"status":flight.status.value,"message":flight.status_message,"gate":flight.gate,"aircraft":flight.aircraft,"starts_at":flight.starts_at,"ends_at":flight.ends_at}
     flight.status=new_status; flight.status_message=message.strip()[:500] or None
+    flight.gate=gate.strip()[:30] or flight.gate; flight.aircraft=aircraft.strip()[:100] or flight.aircraft
+    try:
+        if starts_at: flight.starts_at=datetime.fromisoformat(starts_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
+        if ends_at: flight.ends_at=datetime.fromisoformat(ends_at).replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
+    except ValueError: raise HTTPException(422,"Invalid flight schedule date or time")
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action=f"FLIGHT_{new_status.value}",old_value=old,new_value={"status":new_status.value,"message":flight.status_message},reason=message.strip() or f"Flight marked {new_status.value}",security_metadata={"ip":request.client.host if request.client else None,"flight_id":flight.id}))
     db.commit()
     try: await discord_announce_update(settings,title=f"Flight {new_status.value.title()}",description=f"{actor.discord_display_name} updated {flight.flight_number}.",fields=[{"name":"Message","value":flight.status_message or "No additional message"}])
     except Exception: pass
+    if new_status in {FlightStatus.CANCELLED,FlightStatus.DELAYED,FlightStatus.COMPLETED}:
+        rows=db.execute(select(Booking,User).join(User,Booking.user_id==User.id).where(Booking.flight_id==flight.id,Booking.status=="CONFIRMED")).all(); emojis=await emoji_map()
+        for booking,member in rows:
+            if new_status==FlightStatus.CANCELLED:
+                refund=booking.miles_used; member.miles_balance+=refund; booking.miles_refunded+=refund; booking.status="CANCELLED"; booking.cancelled_at=datetime.now(timezone.utc)
+                content=f"{em(emojis,'Warning','⚠️')} Delta Air Lines | Flight Cancelled\n\nYour upcoming Delta flight has been cancelled.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Original Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {booking.confirmation_number}\n\nReason:\n{flight.status_message or 'Operational update'}\n\n{em(emojis,'CreditCard','💳')} SkyMiles Refunded: {refund:,}\n\nWe apologize for the inconvenience.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+            elif new_status==FlightStatus.DELAYED:
+                content=f"{em(emojis,'Timer','⏱️')} Delta Air Lines | Flight Delayed\n\nThere has been an update to your upcoming flight.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Parking','🅿️')} Gate: {assigned(flight.gate)}\n\nReason:\n{flight.status_message or 'Operational update'}\n\nPlease check My Trips for the latest information.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+            else:
+                content=f"{em(emojis,'CheckMark','✅')} Delta Air Lines | Flight Completed\n\nThank you for flying with Delta Air Lines.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Date: {flight.starts_at.strftime('%b %d, %Y')}\n{em(emojis,'CreditCard','💳')} SkyMiles Earned: To Be Reviewed\n{em(emojis,'CreditCard','💳')} Updated Balance: {member.miles_balance:,}\n\nYour completed flight appears in My Trips.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+                booking.status="COMPLETED"
+            db.commit(); await notify_member(db,member,flight,booking,f"FLIGHT_{new_status.value}",content,f"flight:{flight.id}:{new_status.value}:{event_token}:booking:{booking.id}")
+            if new_status==FlightStatus.CANCELLED and refund:
+                refund_content=f"{em(emojis,'CreditCard','💳')} Delta Air Lines | Refund Confirmed\n\nYour SkyMiles refund has been processed.\n\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {booking.confirmation_number}\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'CreditCard','💳')} SkyMiles Refunded: {refund:,}\n{em(emojis,'CreditCard','💳')} Updated Balance: {member.miles_balance:,}\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+                await notify_member(db,member,flight,booking,"REFUND_CONFIRMED",refund_content,f"flight:{flight.id}:refund:{event_token}:booking:{booking.id}")
+    changes=[]
+    if old["gate"]!=flight.gate: changes.append(("GATE_CHANGE",f"{em(await emoji_map(),'Parking','🅿️')} Delta Air Lines | Gate Change\n\nYour departure gate has changed.\n\n✈️ Flight: Delta {flight.flight_number}\n🗺️ Route: {flight.departure_airport} → {flight.destination_airport}\n🅿️ Previous Gate: {assigned(old['gate'])}\n🅿️ New Gate: {assigned(flight.gate)}\n📅 Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}"))
+    if old["aircraft"]!=flight.aircraft: changes.append(("AIRCRAFT_CHANGE",f"✈️ Delta Air Lines | Aircraft Change\n\nThe aircraft assigned to your flight has changed.\n\n✈️ Flight: Delta {flight.flight_number}\n🗺️ Route: {flight.departure_airport} → {flight.destination_airport}\n✈️ Previous Aircraft: {assigned(old['aircraft'])}\n✈️ New Aircraft: {assigned(flight.aircraft)}\n📅 Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}"))
+    if old["starts_at"]!=flight.starts_at or old["ends_at"]!=flight.ends_at: changes.append(("SCHEDULE_CHANGE",f"📅 Delta Air Lines | Schedule Change\n\nYour flight schedule has been updated.\n\n✈️ Flight: Delta {flight.flight_number}\n🗺️ Route: {flight.departure_airport} → {flight.destination_airport}\n📅 Original Departure: {old['starts_at'].strftime('%b %d, %Y at %H:%M UTC')}\n📅 Updated Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n📅 Original Arrival: {old['ends_at'].strftime('%b %d, %Y at %H:%M UTC') if old['ends_at'] else 'To Be Assigned'}\n📅 Updated Arrival: {flight.ends_at.strftime('%b %d, %Y at %H:%M UTC') if flight.ends_at else 'To Be Assigned'}"))
+    if changes:
+        rows=db.execute(select(Booking,User).join(User,Booking.user_id==User.id).where(Booking.flight_id==flight.id,Booking.status=="CONFIRMED")).all()
+        for kind,text in changes:
+            for booking,member in rows: await notify_member(db,member,flight,booking,kind,text+"\n\n🔺 Keep Climbing, Delta Air Lines.",f"flight:{flight.id}:{kind}:{event_token}:booking:{booking.id}")
     return RedirectResponse(f"{panel_path(permission(actor,settings))}?flight_updated=1",303)
 
 

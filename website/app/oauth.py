@@ -16,6 +16,7 @@ DISCORD_GUILD_EVENTS = "https://discord.com/api/v10/guilds/{guild_id}/scheduled-
 DISCORD_GUILD_ROLE = "https://discord.com/api/v10/guilds/{guild_id}/members/{user_id}/roles/{role_id}"
 DISCORD_CHANNEL_MESSAGES = "https://discord.com/api/v10/channels/{channel_id}/messages"
 _guild_role_cache: dict[str, tuple[float, list[dict]]] = {}
+_emoji_cache: tuple[float, dict[str,str]] | None = None
 
 
 def roblox_authorize(settings: Settings, state: str, challenge: str) -> str:
@@ -178,3 +179,33 @@ async def discord_announce_update(settings: Settings, *, title: str, description
         response=await client.post(DISCORD_CHANNEL_MESSAGES.format(channel_id=settings.discord_log_channel_id),headers={"Authorization":f"Bot {settings.discord_bot_token}"},json=payload)
         response.raise_for_status()
     return True
+
+
+async def discord_custom_emojis(settings: Settings) -> dict[str,str]:
+    """Resolve the installed guild emoji set so DMs use real Delta emoji IDs."""
+    global _emoji_cache
+    if not settings.discord_bot_token: return {}
+    if _emoji_cache and _emoji_cache[0]>monotonic(): return _emoji_cache[1]
+    async with httpx.AsyncClient(timeout=15) as client:
+        response=await client.get(f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/emojis",headers={"Authorization":f"Bot {settings.discord_bot_token}"})
+        response.raise_for_status()
+        emojis={item["name"].lower():f"<{'a' if item.get('animated') else ''}:{item['name']}:{item['id']}>" for item in response.json()}
+        _emoji_cache=(monotonic()+300,emojis)
+        return emojis
+
+
+async def discord_dm(settings: Settings, user_id: str, content: str) -> None:
+    """Open a bot DM channel and deliver one event-driven member notification."""
+    if not settings.discord_bot_token: raise RuntimeError("Discord bot token is not configured")
+    headers={"Authorization":f"Bot {settings.discord_bot_token}"}
+    async with httpx.AsyncClient(timeout=15) as client:
+        channel=(await client.post("https://discord.com/api/v10/users/@me/channels",headers=headers,json={"recipient_id":user_id})).raise_for_status().json()
+        (await client.post(DISCORD_CHANNEL_MESSAGES.format(channel_id=channel["id"]),headers=headers,json={"content":content[:2000],"allowed_mentions":{"parse":[]}})).raise_for_status()
+
+async def discord_custom_emoji_assets(settings: Settings) -> dict[str,str]:
+    """Return browser-safe CDN URLs for the installed custom emojis."""
+    emojis=await discord_custom_emojis(settings); assets={}
+    for name,markup in emojis.items():
+        parts=markup.rstrip(">").split(":")
+        if len(parts)>=3: assets[name]=f"https://cdn.discordapp.com/emojis/{parts[-1]}.{'gif' if markup.startswith('<a:') else 'png'}?size=48&quality=lossless"
+    return assets

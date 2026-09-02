@@ -37,6 +37,9 @@ class User(Base):
     tier: Mapped[Tier] = mapped_column(Enum(Tier), default=Tier.MEMBER)
     medallion_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     account_status: Mapped[Status] = mapped_column(Enum(Status), default=Status.ACTIVE)
+    restriction_reason: Mapped[str | None] = mapped_column(Text)
+    restricted_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    permanent_ban: Mapped[bool] = mapped_column(Boolean, default=False)
     roblox_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     discord_verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
@@ -121,6 +124,8 @@ class Flight(Base):
     flight_number: Mapped[str] = mapped_column(String(20), default="DAL 0000")
     departure_airport: Mapped[str] = mapped_column(String(8), default="TBA")
     destination_airport: Mapped[str] = mapped_column(String(8), default="TBA")
+    aircraft: Mapped[str | None] = mapped_column(String(100))
+    gate: Mapped[str | None] = mapped_column(String(30))
     miles_reward: Mapped[int] = mapped_column(BigInteger, default=0)
     name: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text, default="")
@@ -140,6 +145,15 @@ class Booking(Base):
     flight_id: Mapped[int] = mapped_column(ForeignKey("flights.id"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     amenities: Mapped[list] = mapped_column(JSON, default=list)
+    confirmation_number: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    seat: Mapped[str | None] = mapped_column(String(20))
+    cabin: Mapped[str | None] = mapped_column(String(40))
+    carry_on: Mapped[str | None] = mapped_column(String(80))
+    checked_bags: Mapped[str | None] = mapped_column(String(80))
+    miles_used: Mapped[int] = mapped_column(BigInteger, default=0)
+    miles_refunded: Mapped[int] = mapped_column(BigInteger, default=0)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attendance_status: Mapped[str] = mapped_column(String(30), default="PENDING")
     status: Mapped[str] = mapped_column(String(30), default="CONFIRMED")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
@@ -155,4 +169,30 @@ class Feedback(Base):
     website_rating: Mapped[int] = mapped_column(Integer)
     community_rating: Mapped[int] = mapped_column(Integer)
     message: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class ModerationAction(Base):
+    __tablename__ = "moderation_actions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    moderator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    flight_id: Mapped[int | None] = mapped_column(ForeignKey("flights.id"), index=True)
+    action: Mapped[str] = mapped_column(String(40), index=True)
+    reason: Mapped[str] = mapped_column(Text)
+    reversed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reversed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class NotificationLog(Base):
+    __tablename__ = "notification_logs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    flight_id: Mapped[int | None] = mapped_column(ForeignKey("flights.id"), index=True)
+    booking_id: Mapped[int | None] = mapped_column(ForeignKey("bookings.id"), index=True)
+    notification_type: Mapped[str] = mapped_column(String(50), index=True)
+    event_key: Mapped[str] = mapped_column(String(160), unique=True)
+    delivery_status: Mapped[str] = mapped_column(String(30))
+    error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
