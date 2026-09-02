@@ -15,7 +15,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
@@ -35,6 +35,7 @@ ASSET_VERSION = str(int(max(
 settings = get_settings()
 templates = Jinja2Templates(directory=ROOT / "templates")
 limiter = Limiter(key_func=get_remote_address)
+FLIGHT_TERMINAL_GRACE = timedelta(minutes=10)
 
 
 @asynccontextmanager
@@ -473,7 +474,8 @@ async def flights(request:Request,db:Session=Depends(get_db)):
     auth=await refresh_discord_authorization(user,db)
     try: await sync_flights(db)
     except Exception: pass
-    available=db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED])).order_by(Flight.starts_at)).all()
+    terminal_cutoff=datetime.now(timezone.utc)-FLIGHT_TERMINAL_GRACE
+    available=db.scalars(select(Flight).where(or_(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.updated_at>terminal_cutoff)).order_by(Flight.starts_at)).all()
     member_bookings=db.scalars(select(Booking).where(Booking.user_id==user.id)).all()
     bookings={booking.flight_id:booking for booking in member_bookings}
     return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,bookings=bookings,amenities=eligible_amenities(user),auth=auth))
@@ -593,10 +595,25 @@ def panel_path(auth: str) -> str:
     return "/owner" if auth=="OWNER" else "/admin" if auth=="ADMIN" else "/staff"
 
 
+def persist_qualification_adjustment(db:Session,user_id:int,mqp:int,segments:int) -> tuple[User,dict,dict]:
+    """Atomically persist qualification totals and verify the committed row."""
+    target=db.scalar(select(User).where(User.id==user_id).with_for_update())
+    if not target: raise HTTPException(404,"Member not found")
+    before={"mqp":int(target.medallion_qualifying_points or 0),"segments":int(target.segments_flown or 0)}
+    after={"mqp":before["mqp"]+mqp,"segments":before["segments"]+segments}
+    result=db.execute(update(User).where(User.id==target.id).values(medallion_qualifying_points=after["mqp"],segments_flown=after["segments"]))
+    if result.rowcount!=1: db.rollback(); raise HTTPException(409,"The qualification update could not be applied")
+    db.flush(); db.refresh(target)
+    if target.medallion_qualifying_points!=after["mqp"] or target.segments_flown!=after["segments"]: raise HTTPException(500,"Qualification verification failed")
+    return target,before,after
+
+
 async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     actor=await ({"STAFF":require_staff,"ADMIN":require_admin,"OWNER":require_owner}[required])(request,db); users=[]
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
-    flights=db.scalars(select(Flight).order_by(Flight.starts_at.desc()).limit(20)).all() if required in {"ADMIN","OWNER"} else []
+    terminal_cutoff=datetime.now(timezone.utc)-FLIGHT_TERMINAL_GRACE
+    flights=db.scalars(select(Flight).where(or_(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.updated_at>terminal_cutoff)).order_by(Flight.starts_at.desc()).limit(20)).all() if required in {"ADMIN","OWNER"} else []
+    flight_logs=db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.CANCELLED,FlightStatus.COMPLETED]),Flight.updated_at<=terminal_cutoff).order_by(Flight.updated_at.desc()).limit(100)).all() if required in {"ADMIN","OWNER"} else []
     feedback=db.execute(select(Feedback,User).join(User,Feedback.user_id==User.id).order_by(Feedback.created_at.desc()).limit(50)).all() if required=="OWNER" else []
     last_award=func.max(Transaction.created_at).label("last_award")
     member_directory=db.execute(select(User,last_award).outerjoin(Transaction,(Transaction.user_id==User.id) & (Transaction.miles_change>0)).where(User.account_status==Status.ACTIVE).group_by(User.id).order_by(last_award.desc().nullslast(),User.created_at.desc())).all()
@@ -613,7 +630,7 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     moderation={member.id:db.scalars(select(ModerationAction).where(ModerationAction.user_id==member.id).order_by(ModerationAction.created_at.desc()).limit(20)).all() for member in users}
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -653,17 +670,11 @@ async def adjust_qualifications(request:Request,user_id:int,mqp:int=Form(0),segm
     check_csrf(request,csrf); actor=await require_staff(request,db)
     if not reason.strip() or mqp<0 or segments<0 or (mqp==0 and segments==0) or mqp>1_000_000 or segments>10_000:
         raise HTTPException(422,"Enter a positive MQP or segment amount and a reason")
-    with db.begin_nested():
-        target=db.scalar(select(User).where(User.id==user_id).with_for_update())
-        if not target: raise HTTPException(404,"Member not found")
-        before={"mqp":target.medallion_qualifying_points,"segments":target.segments_flown}
-        target.medallion_qualifying_points+=mqp; target.segments_flown+=segments
-        after={"mqp":target.medallion_qualifying_points,"segments":target.segments_flown}
-        db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="QUALIFICATIONS_ADDED",old_value=before,new_value=after,reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None,"reference":reference[:100]}))
-    db.commit()
+    target,before,after=persist_qualification_adjustment(db,user_id,mqp,segments)
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="QUALIFICATIONS_ADDED",old_value=before,new_value=after,reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None,"reference":reference[:100]})); db.commit(); db.refresh(target)
     try: await discord_announce_update(settings,title="Medallion Qualifications Added",description=f"{actor.discord_display_name} updated {target.discord_display_name}.",fields=[{"name":"MQP added","value":str(mqp),"inline":True},{"name":"Segments added","value":str(segments),"inline":True},{"name":"Reason","value":reason.strip()[:1024]}])
     except Exception: pass
-    return RedirectResponse(f"{panel_path(permission(actor,settings))}?q={target.skymiles_number}&qualifications_applied=1",303)
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?q={target.skymiles_number}&qualifications_applied=1&mqp_total={after['mqp']}&segments_total={after['segments']}",303)
 
 
 @app.post("/admin/members/{user_id}/moderate")

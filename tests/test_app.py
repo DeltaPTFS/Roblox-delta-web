@@ -141,3 +141,32 @@ def test_confirmation_numbers_are_unique_and_title_cased_messages_exist():
     assert "Delta Air Lines | Flight Cancelled" in source
     assert "Delta Air Lines | Flight Reminder" in source
     assert "To Be Assigned" in source
+
+
+def test_mqp_and_segments_are_committed_to_member_account():
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+    from website.app.database import Base
+    from website.app.main import persist_qualification_adjustment
+    engine=create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as db:
+        member=User(roblox_user_id="qual-rbx",roblox_username="qual",roblox_display_name="Qual",discord_user_id="qual-discord",discord_username="qual",discord_display_name="Qual",skymiles_number="SM-99000001",medallion_qualifying_points=100,segments_flown=2)
+        db.add(member); db.commit(); member_id=member.id
+        _,before,after=persist_qualification_adjustment(db,member_id,900,3)
+        assert before=={"mqp":100,"segments":2}
+        assert after=={"mqp":1000,"segments":5}
+        db.commit()
+    with Session(engine) as db:
+        persisted=db.get(User,member_id)
+        assert persisted.medallion_qualifying_points==1000
+        assert persisted.segments_flown==5
+
+
+def test_terminal_flights_have_ten_minute_panel_grace_and_archive():
+    source=Path("website/app/main.py").read_text()
+    admin=Path("website/templates/admin.html").read_text()
+    assert "FLIGHT_TERMINAL_GRACE = timedelta(minutes=10)" in source
+    assert "Flight.updated_at>terminal_cutoff" in source
+    assert "Flight.updated_at<=terminal_cutoff" in source
+    assert "Terminal flights move here ten minutes" in admin

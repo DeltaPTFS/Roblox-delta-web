@@ -87,3 +87,4 @@ html.theme-dark{background:#071426!important;color-scheme:dark}html.theme-dark b
 @media(max-width:760px){.trip-summary{grid-template-columns:1fr}.confirmation-grid{grid-template-columns:1fr}.trip-actions{grid-template-columns:1fr 1fr}.confirmation-section dl{grid-template-columns:1fr}.confirmation-section dd{text-align:left;padding-top:0}.confirmation-section dt{border-bottom:0}}
 .ops-flight form{grid-template-columns:repeat(2,minmax(130px,1fr))}.ops-flight form .button{grid-column:1/-1}
 .delta-emoji{display:inline-grid;place-items:center;width:1.25em;height:1.25em;vertical-align:-.2em}.delta-custom-emoji{display:block;width:1.2em;height:1.2em;object-fit:contain}
+.flight-archive{border-top:4px solid #173d70}.archived-flight{grid-template-columns:1fr}.terminal-flight-button{background:#263c58;color:#dce7f4;border-color:#4d6683;cursor:not-allowed}.qualification-adjust+section{margin-top:20px}

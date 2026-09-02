@@ -123,3 +123,9 @@ Every reservation receives a unique confirmation number and remains in **My Trip
 The bot resolves the guild's installed custom emoji catalog before sending event-driven DMs. Booking, member cancellation/refund, staff flight cancellation, delay, gate, aircraft, schedule, completion, verified no-show, warning, suspension, and ban deliveries are recorded in `notification_logs`, including failed DMs. Unique event keys prevent duplicate notices. A Discord delivery failure never rolls back the website action.
 
 Staff moderation records the member, moderator, required reason, time, and optional related flight. No-shows are never inferred automatically: staff must select a real reservation and confirm the action. Ownership can remove, temporarily restrict, permanently ban, restore, and reverse warnings. Temporary restrictions expire automatically on the member's next authenticated request.
+
+## Qualification persistence and terminal-flight grace period
+
+Staff MQP and segment adjustments use a row lock and an explicit database update. The new totals are flushed, read back, committed with the audit record, displayed in the success notice, and shown beside the member in Staff Admin. This prevents a success message from being shown for an update that did not affect exactly one account.
+
+Cancelled and completed flights remain visible in Flight Operations and the member flight panel for ten minutes after the terminal status update. They are not bookable during this grace period. After ten minutes they leave the active panel and appear in the Staff Admin **Flight Logs** archive; member reservations remain permanently available in **My Trips**.
