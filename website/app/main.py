@@ -1,14 +1,16 @@
 import asyncio
+import io
 import re
 import secrets
 from time import time
 from uuid import uuid4
+from urllib.parse import urlparse
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.gzip import GZipMiddleware
@@ -128,6 +130,15 @@ def assigned(value) -> str: return str(value) if value not in {None,""} else "To
 
 
 def confirmation_number() -> str: return "DL"+secrets.token_hex(5).upper()
+
+
+def validated_roblox_game_url(value:str) -> str:
+    """Accept only HTTPS Roblox links; never encode an arbitrary site in a boarding QR."""
+    parsed=urlparse(value.strip())
+    hostname=(parsed.hostname or "").lower()
+    if parsed.scheme!="https" or parsed.username or parsed.password or not (hostname=="roblox.com" or hostname.endswith(".roblox.com")):
+        raise ValueError("Enter a valid https://www.roblox.com game or share link")
+    return value.strip()
 
 
 def release_expired_restriction(user:User,db:Session) -> None:
@@ -336,7 +347,26 @@ async def trip_detail(request:Request,confirmation:str,db:Session=Depends(get_db
     if not row: raise HTTPException(404,"Trip not found")
     booking,flight=row; refund_until=booking.created_at+timedelta(hours=24); refund_eligible=datetime.now(timezone.utc)<=refund_until and booking.status=="CONFIRMED"
     catalog={item["id"]:item for item in eligible_amenities(user)}
-    return templates.TemplateResponse("trip_detail.html",context(request,user=user,booking=booking,flight=flight,refund_until=refund_until,refund_eligible=refund_eligible,amenity_catalog=catalog,auth=auth))
+    boarding_time=flight.starts_at-timedelta(minutes=30)
+    zone={"Delta One":"1","First Class":"2","Delta Comfort":"3","Delta Main":"5"}.get(booking.cabin,"To Be Assigned")
+    return templates.TemplateResponse("trip_detail.html",context(request,user=user,booking=booking,flight=flight,refund_until=refund_until,refund_eligible=refund_eligible,amenity_catalog=catalog,boarding_time=boarding_time,zone=zone,auth=auth))
+
+
+@app.get("/trips/{confirmation}/qr.svg")
+async def trip_game_qr(request:Request,confirmation:str,db:Session=Depends(get_db)):
+    """Generate a private booking QR that resolves only to the staff-approved Roblox URL."""
+    user=current_user(request,db)
+    row=db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id).where(Booking.user_id==user.id,Booking.confirmation_number==confirmation)).first()
+    if not row: raise HTTPException(404,"Trip not found")
+    _,flight=row
+    if not flight.roblox_game_url: raise HTTPException(404,"The Roblox game link has not been assigned")
+    try:
+        import qrcode
+        import qrcode.image.svg
+        image=qrcode.make(flight.roblox_game_url,image_factory=qrcode.image.svg.SvgPathImage,box_size=8,border=3)
+        output=io.BytesIO(); image.save(output)
+    except Exception as exc: raise HTTPException(503,"The boarding QR code is temporarily unavailable") from exc
+    return Response(output.getvalue(),media_type="image/svg+xml",headers={"Cache-Control":"private, max-age=300","Content-Disposition":f'inline; filename="{confirmation}-boarding-qr.svg"'})
 
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -756,9 +786,9 @@ async def admin_sync_flights(request:Request,csrf:str=Form(...),db:Session=Depen
 
 
 @app.post("/admin/flights/create")
-async def admin_create_flight(request:Request,flight_number:str=Form(""),departure_airport:str=Form(""),destination_airport:str=Form(""),name:str=Form(""),starts_at:str=Form(""),ends_at:str=Form(""),aircraft:str=Form(""),gate:str=Form(""),discord_event_url:str=Form(""),miles_reward:str=Form(""),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
+async def admin_create_flight(request:Request,flight_number:str=Form(""),departure_airport:str=Form(""),destination_airport:str=Form(""),name:str=Form(""),starts_at:str=Form(""),ends_at:str=Form(""),aircraft:str=Form(""),gate:str=Form(""),roblox_game_url:str=Form(""),discord_event_url:str=Form(""),miles_reward:str=Form(""),description:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
     check_csrf(request,csrf); actor=await require_admin(request,db)
-    submitted={"flight_number":flight_number,"departure_airport":departure_airport,"destination_airport":destination_airport,"name":name,"starts_at":starts_at,"ends_at":ends_at,"aircraft":aircraft,"gate":gate,"discord_event_url":discord_event_url,"miles_reward":miles_reward,"description":description}
+    submitted={"flight_number":flight_number,"departure_airport":departure_airport,"destination_airport":destination_airport,"name":name,"starts_at":starts_at,"ends_at":ends_at,"aircraft":aircraft,"gate":gate,"roblox_game_url":roblox_game_url,"discord_event_url":discord_event_url,"miles_reward":miles_reward,"description":description}
     def reject(message:str):
         request.session["flight_form"]=submitted; request.session["flight_form_error"]=message
         return RedirectResponse(panel_path(permission(actor,settings))+"#create-flight",303)
@@ -769,6 +799,8 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
     try: reward=int(miles_reward)
     except (TypeError,ValueError): return reject("Enter a whole-number SkyMiles reward.")
     if reward < 0 or reward > 100_000: return reject("SkyMiles reward must be between 0 and 100,000.")
+    try: game_url=validated_roblox_game_url(roblox_game_url)
+    except ValueError as exc: return reject(str(exc)+". This link becomes the boarding-pass QR code.")
     event_id=None; event=None
     if discord_event_url.strip():
         match=re.fullmatch(r"https://discord\.com/events/(\d+)/(\d+)/?",discord_event_url.strip())
@@ -788,7 +820,7 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
         except ValueError: return reject("Enter a valid arrival date and time.")
         if arrival_time and arrival_time<=departure_time: return reject("Arrival must be after departure.")
         location=f"{departure} → {destination}"
-    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,ends_at=arrival_time,aircraft=aircraft.strip()[:100] or None,gate=gate.strip()[:30] or None,miles_reward=reward,status=FlightStatus.SCHEDULED)
+    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,ends_at=arrival_time,aircraft=aircraft.strip()[:100] or None,gate=gate.strip()[:30] or None,roblox_game_url=game_url,miles_reward=reward,status=FlightStatus.SCHEDULED)
     db.add(flight); db.flush()
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
     db.commit()

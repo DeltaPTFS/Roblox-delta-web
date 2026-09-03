@@ -170,3 +170,22 @@ def test_terminal_flights_have_ten_minute_panel_grace_and_archive():
     assert "Flight.updated_at>terminal_cutoff" in source
     assert "Flight.updated_at<=terminal_cutoff" in source
     assert "Terminal flights move here ten minutes" in admin
+
+
+def test_roblox_game_links_are_validated_for_boarding_qr():
+    from website.app.main import validated_roblox_game_url
+    assert validated_roblox_game_url("https://www.roblox.com/games/12345/Delta") == "https://www.roblox.com/games/12345/Delta"
+    import pytest
+    for invalid in ("http://roblox.com/games/1","https://evil.example/game","javascript:alert(1)","https://roblox.com@evil.example/games/1"):
+        with pytest.raises(ValueError): validated_roblox_game_url(invalid)
+
+
+def test_boarding_pass_has_private_qr_and_assignment_fallbacks():
+    main=Path("website/app/main.py").read_text()
+    template=Path("website/templates/trip_detail.html").read_text()
+    admin=Path("website/templates/admin.html").read_text()
+    assert '@app.get("/trips/{confirmation}/qr.svg")' in main
+    assert 'Booking.user_id==user.id' in main
+    assert "Scan to join the Roblox game" in template
+    assert "To Be Assigned" in template
+    assert 'name="roblox_game_url"' in admin

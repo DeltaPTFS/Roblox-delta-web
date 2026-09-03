@@ -129,3 +129,7 @@ Staff moderation records the member, moderator, required reason, time, and optio
 Staff MQP and segment adjustments use a row lock and an explicit database update. The new totals are flushed, read back, committed with the audit record, displayed in the success notice, and shown beside the member in Staff Admin. This prevents a success message from being shown for an update that did not affect exactly one account.
 
 Cancelled and completed flights remain visible in Flight Operations and the member flight panel for ten minutes after the terminal status update. They are not bookable during this grace period. After ten minutes they leave the active panel and appear in the Staff Admin **Flight Logs** archive; member reservations remain permanently available in **My Trips**.
+
+## Roblox boarding-pass QR codes
+
+Staff Admin must provide an HTTPS `roblox.com` game or share link when creating a flight. The value is validated server-side, saved with the flight, and encoded into a unique booking's boarding-pass QR display. The QR endpoint requires the logged-in member to own the confirmation number, and the generated code contains only the staff-approved Roblox URL. Missing operational assignments are displayed as **To Be Assigned**.

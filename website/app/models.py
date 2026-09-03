@@ -126,6 +126,7 @@ class Flight(Base):
     destination_airport: Mapped[str] = mapped_column(String(8), default="TBA")
     aircraft: Mapped[str | None] = mapped_column(String(100))
     gate: Mapped[str | None] = mapped_column(String(30))
+    roblox_game_url: Mapped[str | None] = mapped_column(Text)
     miles_reward: Mapped[int] = mapped_column(BigInteger, default=0)
     name: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text, default="")
