@@ -22,6 +22,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
+from .discord_gateway import start_discord_gateway
 from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
@@ -59,11 +60,14 @@ async def lifespan(app):
     await expire_medallions_once()
     expiration_task = asyncio.create_task(medallion_expiration_worker())
     reminder_task = asyncio.create_task(flight_reminder_worker())
+    discord_gateway = await start_discord_gateway(settings)
     try:
         yield
     finally:
         expiration_task.cancel()
         reminder_task.cancel()
+        if discord_gateway:
+            await discord_gateway.close()
 
 
 app = FastAPI(title="Delta SkyMiles | Roblox", lifespan=lifespan)

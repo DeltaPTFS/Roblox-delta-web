@@ -19,6 +19,15 @@ _guild_role_cache: dict[str, tuple[float, list[dict]]] = {}
 _emoji_cache: tuple[float, dict[str,str]] | None = None
 
 
+async def discord_unverified_role_id(settings: Settings) -> str:
+    """Resolve the configured role, or the guild role named Unverified."""
+    if settings.discord_unverified_role_id:
+        return settings.discord_unverified_role_id
+    roles = await discord_guild_roles(settings)
+    role = next((item for item in roles if str(item.get("name", "")).casefold() == "unverified"), None)
+    return str(role["id"]) if role else ""
+
+
 def roblox_authorize(settings: Settings, state: str, challenge: str) -> str:
     return ROBLOX_AUTHORIZE + "?" + urlencode({"client_id": settings.roblox_client_id, "redirect_uri": settings.roblox_redirect_uri, "response_type": "code", "scope": "openid profile", "state": state, "code_challenge": challenge, "code_challenge_method": "S256"})
 
@@ -51,7 +60,7 @@ async def discord_identity(settings: Settings, code: str, verifier: str) -> dict
 
 
 async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_name: str | None = None) -> bool:
-    """Keep the base member role and replace provider-managed Medallion roles."""
+    """Verify a member by removing Unverified and applying exact SkyMiles roles."""
     if not settings.discord_bot_token:
         return False
     headers = {"Authorization": f"Bot {settings.discord_bot_token}"}
@@ -60,6 +69,12 @@ async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_nam
     async with httpx.AsyncClient(timeout=15) as client:
         member_url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=settings.discord_member_role_id)
         (await client.put(member_url, headers=headers)).raise_for_status()
+        unverified_role_id = await discord_unverified_role_id(settings)
+        if unverified_role_id:
+            unverified_url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=unverified_role_id)
+            response = await client.delete(unverified_url, headers=headers)
+            if response.status_code not in {204, 404}:
+                response.raise_for_status()
         for role_id in {role for role in settings.medallion_role_ids.values() if role}:
             url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=role_id)
             response = await (client.put(url, headers=headers) if role_id == desired else client.delete(url, headers=headers))
@@ -92,7 +107,7 @@ async def discord_sync_skymiles_roles(settings: Settings, user_id: str, tier_nam
 
 
 async def discord_remove_skymiles_roles(settings: Settings, user_id: str) -> bool:
-    """Remove base and Medallion roles when a member leaves the program."""
+    """Remove SkyMiles roles and restore Unverified when membership ends."""
     if not settings.discord_bot_token:
         return False
     headers = {"Authorization": f"Bot {settings.discord_bot_token}"}
@@ -102,6 +117,12 @@ async def discord_remove_skymiles_roles(settings: Settings, user_id: str) -> boo
             url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=role_id)
             response = await client.delete(url, headers=headers)
             if response.status_code not in {204, 404}:
+                response.raise_for_status()
+        unverified_role_id = await discord_unverified_role_id(settings)
+        if unverified_role_id:
+            url = DISCORD_GUILD_ROLE.format(guild_id=settings.discord_guild_id, user_id=user_id, role_id=unverified_role_id)
+            response = await client.put(url, headers=headers)
+            if response.status_code != 204:
                 response.raise_for_status()
     return True
 

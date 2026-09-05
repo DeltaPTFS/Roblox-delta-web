@@ -9,6 +9,7 @@ from website.app.models import Tier, TierConfig, User
 from website.app.config import Settings
 from website.app.security import permission
 from website.app.oauth import expected_skymiles_role_ids
+from website.app.discord_gateway import _staff_role_ids
 
 
 def test_render_postgres_url_uses_psycopg3():
@@ -49,6 +50,36 @@ def test_expected_discord_roles_keep_member_and_exact_medallion():
     settings=Settings()
     assert expected_skymiles_role_ids(settings)=={"1539005061609422849"}
     assert expected_skymiles_role_ids(settings,"GOLD")=={"1539005061609422849","1539005058686001275"}
+
+
+def test_unverified_role_and_gateway_staff_roles_are_configurable():
+    settings=Settings(DISCORD_UNVERIFIED_ROLE_ID="12345")
+    assert settings.discord_unverified_role_id=="12345"
+    assert _staff_role_ids(settings)=={
+        "1539005297417519205",
+        "1539005030189891684",
+        "1539005033020919828",
+        "1539968936681148456",
+    }
+
+
+def test_medallion_terms_use_numbered_markers_and_slate_family():
+    miles=Path("website/templates/miles.html").read_text()
+    detail=Path("website/templates/medallion_detail.html").read_text()
+    css=Path("website/static/style.css").read_text()
+    assert "Upgrades<sup>1</sup>" in miles and "Choice Benefits<sup>2</sup>" in miles
+    assert "<sup>1</sup>" in detail and "<sup>2</sup>" in detail
+    assert '--slate-font:"Slate Pro","Slate"' in css
+    assert "fonts.googleapis.com" not in css
+
+
+def test_discord_verification_replaces_unverified_role():
+    source=Path("website/app/oauth.py").read_text()
+    gateway=Path("website/app/discord_gateway.py").read_text()
+    assert "await discord_unverified_role_id(settings)" in source
+    assert "await client.delete(unverified_url" in source
+    assert "async def on_member_join" in gateway
+    assert 'item.name.casefold() == "unverified"' in gateway
 
 
 def test_member_discord_roles_display_real_guild_names_and_colors():

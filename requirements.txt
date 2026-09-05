@@ -10,3 +10,4 @@ python-multipart==0.0.20
 slowapi==0.1.9
 pydantic-settings==2.10.1
 qrcode==8.2
+discord.py==2.6.3

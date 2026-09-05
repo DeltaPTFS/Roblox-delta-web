@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     discord_bot_token: str = ""
     discord_booking_channel_id: str = ""
     discord_log_channel_id: str = "1539005101941850274"
+    discord_unverified_role_id: str = ""
     discord_member_role_id: str = "1539005061609422849"
     discord_silver_role_id: str = ""
     discord_gold_role_id: str = "1539005058686001275"

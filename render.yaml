@@ -26,6 +26,8 @@ services:
         sync: false
       - key: DISCORD_LOG_CHANNEL_ID
         value: "1539005101941850274"
+      - key: DISCORD_UNVERIFIED_ROLE_ID
+        sync: false
       - key: OWNER_DISCORD_ROLE_IDS
         value: "1539005297417519205"
       - key: STAFF_DISCORD_ROLE_IDS
