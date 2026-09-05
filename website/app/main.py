@@ -48,10 +48,10 @@ async def lifespan(app):
         if not db.scalar(select(TierConfig.id).limit(1)):
             tier_defaults = [
                 (Tier.MEMBER, 0, 0, 0, "Start earning toward Medallion Status with every eligible community journey.", ["Earn and redeem SkyMiles", "Member rewards catalog"]),
-                (Tier.SILVER, 20000, 4000, 1, "The stepping stone to Medallion Status, with elevated recognition on eligible community trips.", ["Complimentary upgrade eligibility", "Priority boarding"]),
-                (Tier.GOLD, 30000, 12000, 5, "Unlock a broader suite of priority services and recognition throughout the community.", ["Unlimited complimentary upgrade eligibility", "Sky Priority-style community services"]),
-                (Tier.PLATINUM, 40000, 20000, 10, "The final step before Diamond, with customizable benefits and premium community recognition.", ["Unlimited complimentary upgrade eligibility", "Choice Benefits", "Priority services"]),
-                (Tier.DIAMOND, 50000, 28000, 15, "Our highest roleplay Medallion tier, recognizing the community's most engaged travelers.", ["Highest upgrade priority", "Highest Medallion boarding priority", "Customizable Choice Benefits"]),
+                (Tier.SILVER, 0, 2500, 0, "The stepping stone to Medallion Status, with elevated recognition on eligible community trips.", ["Complimentary upgrade eligibility", "Priority boarding"]),
+                (Tier.GOLD, 0, 5000, 0, "Unlock a broader suite of priority services and recognition throughout the community.", ["Unlimited complimentary upgrade eligibility", "Sky Priority-style community services"]),
+                (Tier.PLATINUM, 0, 7500, 0, "The final step before Diamond, with customizable benefits and premium community recognition.", ["Unlimited complimentary upgrade eligibility", "Choice Benefits", "Priority services"]),
+                (Tier.DIAMOND, 0, 10000, 0, "Our highest roleplay Medallion tier, recognizing the community's most engaged travelers.", ["Highest upgrade priority", "Highest Medallion boarding priority", "Customizable Choice Benefits"]),
             ]
             for tier, miles, mqp, segments, description, benefits in tier_defaults:
                 db.add(TierConfig(tier=tier, miles_threshold=miles, mqp_threshold=mqp, segments_threshold=segments, description=description, benefits=benefits, enrollment_cost=miles))
@@ -89,8 +89,9 @@ async def cache_static_assets(request: Request, call_next):
 
 def context(request, **values):
     user=values.get("user")
+    show_tutorial=bool(user and (request.query_params.get("tutorial") == "1" or user.tutorial_completed_at is None))
     show_feedback=False
-    if user and not request.session.get("feedback_prompted") and secrets.randbelow(4)==0:
+    if user and not show_tutorial and not request.session.get("feedback_prompted") and secrets.randbelow(4)==0:
         request.session["feedback_prompted"]=True; show_feedback=True
     discord_roles=[]; discord_role_details=[]
     role_sync_state=getattr(user,"_discord_sync_state","unavailable") if user else "unavailable"
@@ -104,16 +105,18 @@ def context(request, **values):
             role_names.update({role_id:"Staff" for role_id in settings.ids(settings.staff_discord_role_ids)})
             discord_role_details=[{"id":role_id,"name":role_names[role_id],"color":0} for role_id in user.discord_role_ids or [] if role_id in role_names]
         discord_roles=[role["name"] for role in discord_role_details]
-    return {"request":request,"csrf":csrf_token(request),"settings":settings,"asset_version":ASSET_VERSION,"show_feedback":show_feedback,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
+    return {"request":request,"csrf":csrf_token(request),"settings":settings,"asset_version":ASSET_VERSION,"show_feedback":show_feedback,"show_tutorial":show_tutorial,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
 
 
 def qualifies_for_tier(user: User, tier: TierConfig) -> bool:
-    """Require every published qualification for Medallion enrollment."""
-    return (
-        user.lifetime_miles >= tier.miles_threshold
-        and user.medallion_qualifying_points >= tier.mqp_threshold
-        and user.segments_flown >= tier.segments_threshold
-    )
+    """Medallion Status is earned from the published MQP threshold."""
+    return user.medallion_qualifying_points >= tier.mqp_threshold
+
+
+def membership_is_one_day_old(user: User, now: datetime | None = None) -> bool:
+    joined=user.created_at
+    if joined.tzinfo is None: joined=joined.replace(tzinfo=timezone.utc)
+    return (now or datetime.now(timezone.utc)) >= joined + timedelta(days=1)
 
 
 TIER_ORDER = {Tier.MEMBER: 0, Tier.SILVER: 1, Tier.GOLD: 2, Tier.PLATINUM: 3, Tier.DIAMOND: 4}
@@ -271,6 +274,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     existing_discord = db.scalar(select(User).where(User.discord_user_id == identity["id"]))
     if existing_discord and (not existing_roblox or existing_discord.id != existing_roblox.id): return templates.TemplateResponse("error.html", context(request, title="Account Already Linked", message="That Discord account is already linked to another SkyMiles membership."), status_code=409)
     user = existing_roblox
+    created_new = user is None
     if user:
         user.discord_user_id=identity["id"]; user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc)
     else:
@@ -283,7 +287,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None); db.commit()
     except Exception: pass  # Account creation must survive a temporary Discord role outage.
     request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
-    return RedirectResponse("/dashboard",303)
+    return RedirectResponse("/dashboard?tutorial=1" if created_new else "/dashboard",303)
 
 
 async def refresh_discord_authorization(user: User, db: Session) -> str:
@@ -321,7 +325,7 @@ async def member_page(request: Request, template: str, db: Session):
         auth=await refresh_discord_authorization(user,db); request.session["discord_sync_checked_at"]=time()
     transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all() if template in {"dashboard.html","activity.html"} else []
     rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all() if template=="rewards.html" else []
-    tiers=db.scalars(select(TierConfig).order_by(TierConfig.miles_threshold)).all() if template=="miles.html" else []
+    tiers=db.scalars(select(TierConfig).order_by(TierConfig.mqp_threshold)).all() if template=="miles.html" else []
     return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=auth))
 
 
@@ -335,6 +339,14 @@ async def activity(request:Request,db:Session=Depends(get_db)): return await mem
 async def rewards(request:Request,db:Session=Depends(get_db)): return await member_page(request,"rewards.html",db)
 @app.get("/profile", response_class=HTMLResponse)
 async def profile(request:Request,db:Session=Depends(get_db)): return await member_page(request,"profile.html",db)
+
+
+@app.post("/tutorial/complete")
+@limiter.limit("10/minute")
+def tutorial_complete(request:Request,csrf:str=Form(...),db:Session=Depends(get_db)):
+    check_csrf(request,csrf); user=current_user(request,db)
+    user.tutorial_completed_at=datetime.now(timezone.utc); db.commit()
+    return RedirectResponse("/dashboard",303)
 
 
 @app.get("/trips",response_class=HTMLResponse)
@@ -430,7 +442,7 @@ async def medallion_detail(request:Request,tier_name:str,db:Session=Depends(get_
     tier=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
     if not tier: raise HTTPException(404,"Medallion tier not found")
     qualifies=qualifies_for_tier(user,tier)
-    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,can_upgrade=is_tier_upgrade(user.tier,desired),auth=auth))
+    return templates.TemplateResponse("medallion_detail.html",context(request,user=user,tier=tier,qualifies=qualifies,one_day_eligible=membership_is_one_day_old(user),can_upgrade=is_tier_upgrade(user.tier,desired),auth=auth))
 
 
 def eligible_amenities(user: User) -> list[dict]:
@@ -577,15 +589,15 @@ async def join_tier(request:Request,tier_name:str,csrf:str=Form(...),db:Session=
         user=db.scalar(select(User).where(User.id==user.id).with_for_update())
         config=db.scalar(select(TierConfig).where(TierConfig.tier==desired))
         if not is_tier_upgrade(user.tier,desired): raise HTTPException(409,"You can only upgrade to a higher Medallion level during the current status year")
-        if not config or not qualifies_for_tier(user,config): raise HTTPException(403,"You must meet the SkyMiles, MQP, and segment requirements for this Medallion level")
-        if user.miles_balance < config.enrollment_cost: raise HTTPException(400,"Not Enough Miles")
-        before=user.miles_balance; user.miles_balance-=config.enrollment_cost
+        if not membership_is_one_day_old(user): raise HTTPException(403,"Medallion Status becomes available after your first full day as a SkyMiles member")
+        if not config or not qualifies_for_tier(user,config): raise HTTPException(403,"You must meet the MQP requirement for this Medallion level")
+        previous_tier=user.tier.value
         user.tier=desired; user.medallion_expires_at=next_medallion_expiration()
-        db.add(Transaction(user_id=user.id,type="MEDALLION_ENROLLMENT",description=f"Joined {desired.value}",reference=desired.name,miles_change=-config.enrollment_cost,balance_before=before,balance_after=user.miles_balance,created_by=user.id))
+        db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEDALLION_ENROLLMENT",old_value={"tier":previous_tier},new_value={"tier":desired.value,"expires_at":user.medallion_expires_at.isoformat()},reason="Member activated eligible MQP status",security_metadata={"self_service":True}))
     try:
         if not await discord_set_medallion_roles(settings,user.discord_user_id,desired.name): raise HTTPException(503,"Discord role synchronization is not configured")
     except HTTPException: db.rollback(); raise
-    except Exception as exc: db.rollback(); raise HTTPException(502,"Could not assign the exact Discord Medallion role; no miles were spent") from exc
+    except Exception as exc: db.rollback(); raise HTTPException(502,"Could not assign the exact Discord Medallion role; status was not changed") from exc
     db.commit()
     return RedirectResponse(f"/medallions/{desired.name}?joined=1",303)
 

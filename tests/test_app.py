@@ -3,13 +3,13 @@ from pathlib import Path
 from datetime import datetime, timezone
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
 from fastapi.testclient import TestClient
-from website.app.main import app, display_discord_roles, is_tier_upgrade, next_medallion_expiration, qualifies_for_tier
+from website.app.main import app, display_discord_roles, is_tier_upgrade, membership_is_one_day_old, next_medallion_expiration, qualifies_for_tier
 from website.app.database import normalize_database_url
 from website.app.models import Tier, TierConfig, User
 from website.app.config import Settings
 from website.app.security import permission
 from website.app.oauth import expected_skymiles_role_ids
-from website.app.discord_gateway import _staff_role_ids
+from website.app.discord_gateway import _button_role_ids, _staff_role_ids
 
 
 def test_render_postgres_url_uses_psycopg3():
@@ -22,12 +22,19 @@ def test_medallion_expires_next_new_year_at_midnight_eastern():
     joined = datetime(2026, 3, 3, 18, 30, tzinfo=timezone.utc)
     assert next_medallion_expiration(joined) == datetime(2027, 1, 1, 5, 0, tzinfo=timezone.utc)
 
-def test_medallion_qualification_requires_all_three_metrics():
-    member = User(lifetime_miles=100_000, medallion_qualifying_points=0, segments_flown=0)
-    diamond = TierConfig(tier=Tier.DIAMOND, miles_threshold=50_000, mqp_threshold=28_000, segments_threshold=15)
+def test_medallion_qualification_uses_only_published_mqp():
+    member = User(lifetime_miles=0, medallion_qualifying_points=9_999, segments_flown=0)
+    diamond = TierConfig(tier=Tier.DIAMOND, miles_threshold=0, mqp_threshold=10_000, segments_threshold=0)
     assert not qualifies_for_tier(member, diamond)
-    member.medallion_qualifying_points=28_000; member.segments_flown=15
+    member.medallion_qualifying_points=10_000
     assert qualifies_for_tier(member, diamond)
+
+
+def test_medallion_enrollment_waits_one_full_day():
+    joined=datetime(2026,9,5,12,0,tzinfo=timezone.utc)
+    member=User(created_at=joined)
+    assert not membership_is_one_day_old(member,datetime(2026,9,6,11,59,tzinfo=timezone.utc))
+    assert membership_is_one_day_old(member,datetime(2026,9,6,12,0,tzinfo=timezone.utc))
 
 
 def test_medallion_changes_must_be_upgrades():
@@ -53,7 +60,7 @@ def test_expected_discord_roles_keep_member_and_exact_medallion():
 
 
 def test_unverified_role_and_gateway_staff_roles_are_configurable():
-    settings=Settings(DISCORD_UNVERIFIED_ROLE_ID="12345")
+    settings=Settings(discord_unverified_role_id="12345")
     assert settings.discord_unverified_role_id=="12345"
     assert _staff_role_ids(settings)=={
         "1539005297417519205",
@@ -61,6 +68,15 @@ def test_unverified_role_and_gateway_staff_roles_are_configurable():
         "1539005033020919828",
         "1539968936681148456",
     }
+    assert _button_role_ids(settings)=={"1539005297417519205"}
+
+
+def test_create_button_command_uses_real_ownership_role():
+    gateway=Path("website/app/discord_gateway.py").read_text()
+    assert '@tree.command(name="create-button"' in gateway
+    assert '<@&{role_id}>' in gateway
+    assert "Only {allowed} may create button messages" in gateway
+    assert "discord.ButtonStyle.link" in gateway
 
 
 def test_medallion_terms_use_numbered_markers_and_slate_family():
@@ -80,6 +96,15 @@ def test_discord_verification_replaces_unverified_role():
     assert "await client.delete(unverified_url" in source
     assert "async def on_member_join" in gateway
     assert 'item.name.casefold() == "unverified"' in gateway
+
+
+def test_mobile_title_channel_and_equal_tutorial_hosts():
+    base=Path("website/templates/base.html").read_text()
+    assert 'apple-mobile-web-app-title" content="DAL-roblox.com' in base
+    assert "1541156846579089519" in Settings().discord_skymiles_channel_url
+    assert base.count("speaker:'Gre1'")==3
+    assert base.count("speaker:'Cookie'")==3
+    assert "Start Tutorial" in base and "user.discord_display_name|tojson" in base
 
 
 def test_member_discord_roles_display_real_guild_names_and_colors():

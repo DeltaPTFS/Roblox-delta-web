@@ -31,6 +31,11 @@ def _staff_role_ids(settings: Settings) -> set[str]:
     )
 
 
+def _button_role_ids(settings: Settings) -> set[str]:
+    """Roles authorized to publish persistent link-button messages."""
+    return settings.ids(settings.button_command_role_ids)
+
+
 async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
     """Start member-join automation and the secured `/skymiles-add` command."""
     if not settings.discord_bot_token or not settings.discord_guild_id:
@@ -97,5 +102,39 @@ async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
             balance = target.miles_balance
         await interaction.response.send_message(f"SkyMiles applied! {member.mention} received **{amount:,}** miles. New balance: **{balance:,}**.", ephemeral=True)
         await send_log("SkyMiles applied", f"{interaction.user} added **{amount:,}** SkyMiles to {member}.\nReason: {reason}")
+
+    @tree.command(name="create-button", description="Publish an approved link button", guild=guild)
+    @app_commands.describe(label="Text displayed on the button", url="Secure destination URL", message="Message shown above the button", emoji="Optional Unicode or custom emoji", hex_color="Optional six-digit embed color")
+    async def create_button(interaction, label: str, url: str, message: str, emoji: str = "", hex_color: str = "5865F2"):
+        invoker_roles = {str(role.id) for role in interaction.user.roles}
+        allowed_roles = _button_role_ids(settings)
+        if not invoker_roles & allowed_roles:
+            allowed = " ".join(f"<@&{role_id}>" for role_id in sorted(allowed_roles)) or "the configured Ownership role"
+            await interaction.response.send_message(f"Only {allowed} may create button messages.", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+            return
+        label, url, message = label.strip(), url.strip(), message.strip()
+        if not (1 <= len(label) <= 80 and 1 <= len(message) <= 2000 and url.startswith("https://")):
+            await interaction.response.send_message("Use a 1–80 character label, a message, and a secure `https://` URL.", ephemeral=True)
+            return
+        try:
+            color_text = hex_color.strip().removeprefix("#")
+            if len(color_text) != 6:
+                raise ValueError
+            color = int(color_text, 16)
+        except ValueError:
+            await interaction.response.send_message("The color must be a six-digit hex value such as `5865F2`.", ephemeral=True)
+            return
+        button_kwargs = {"label": label, "url": url, "style": discord.ButtonStyle.link}
+        if emoji.strip():
+            button_kwargs["emoji"] = discord.PartialEmoji.from_str(emoji.strip())
+        view = discord.ui.View(timeout=None)
+        try:
+            view.add_item(discord.ui.Button(**button_kwargs))
+            await interaction.channel.send(embed=discord.Embed(description=message, color=color), view=view, allowed_mentions=discord.AllowedMentions.none())
+        except (TypeError, ValueError):
+            await interaction.response.send_message("That emoji is not valid for this bot. Try a standard emoji or an installed custom emoji.", ephemeral=True)
+            return
+        await interaction.response.send_message("Button message published successfully.", ephemeral=True)
+        await send_log("Button message published", f"{interaction.user} published **{label}** in {interaction.channel.mention}.\nDestination: {url}")
 
     return DiscordGateway(bot, asyncio.create_task(bot.start(settings.discord_bot_token)))

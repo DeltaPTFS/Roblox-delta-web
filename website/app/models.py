@@ -28,6 +28,7 @@ class User(Base):
     discord_avatar_url: Mapped[str | None] = mapped_column(Text)
     discord_role_ids: Mapped[list] = mapped_column(JSON, default=list)
     theme_preference: Mapped[str] = mapped_column(String(10), default="system")
+    tutorial_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     skymiles_number: Mapped[str] = mapped_column(String(16), unique=True, index=True)
     password_hash: Mapped[str | None] = mapped_column(String(255))
     miles_balance: Mapped[int] = mapped_column(BigInteger, default=0)

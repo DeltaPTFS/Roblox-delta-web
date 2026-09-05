@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     discord_redirect_uri: str = "http://localhost:8000/auth/discord/callback"
     discord_guild_id: str = ""
     discord_invite_url: str = "https://discord.gg/"
+    discord_skymiles_channel_url: str = "https://discord.com/channels/1538738611988467782/1541156846579089519"
     discord_bot_token: str = ""
     discord_booking_channel_id: str = ""
     discord_log_channel_id: str = "1539005101941850274"
@@ -30,6 +31,7 @@ class Settings(BaseSettings):
     admin_roblox_min_rank: int = 200
     owner_roblox_user_ids: str = ""
     owner_discord_role_ids: str = "1539005297417519205"
+    button_command_role_ids: str = "1539005297417519205"
     staff_discord_role_ids: str = "1539968936681148456"
     admin_discord_role_ids: str = "1539005030189891684,1539005033020919828"
     welcome_bonus_miles: int = 0
