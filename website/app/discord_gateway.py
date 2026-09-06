@@ -5,6 +5,7 @@ without the optional bot integration being configured.
 """
 
 import asyncio
+from time import monotonic
 
 from sqlalchemy import select
 
@@ -31,11 +32,6 @@ def _staff_role_ids(settings: Settings) -> set[str]:
     )
 
 
-def _button_role_ids(settings: Settings) -> set[str]:
-    """Roles authorized to publish persistent link-button messages."""
-    return settings.ids(settings.button_command_role_ids)
-
-
 async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
     """Start member-join automation and the secured `/skymiles-add` command."""
     if not settings.discord_bot_token or not settings.discord_guild_id:
@@ -50,6 +46,7 @@ async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
     bot = discord.Client(intents=intents)
     tree = app_commands.CommandTree(bot)
     guild = discord.Object(id=int(settings.discord_guild_id))
+    button_uses: dict[int, list[float]] = {}
 
     async def send_log(title: str, description: str) -> None:
         if not settings.discord_log_channel_id:
@@ -106,11 +103,10 @@ async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
     @tree.command(name="create-button", description="Publish an approved link button", guild=guild)
     @app_commands.describe(label="Text displayed on the button", url="Secure destination URL", message="Message shown above the button", emoji="Optional Unicode or custom emoji", hex_color="Optional six-digit embed color")
     async def create_button(interaction, label: str, url: str, message: str, emoji: str = "", hex_color: str = "5865F2"):
-        invoker_roles = {str(role.id) for role in interaction.user.roles}
-        allowed_roles = _button_role_ids(settings)
-        if not invoker_roles & allowed_roles:
-            allowed = " ".join(f"<@&{role_id}>" for role_id in sorted(allowed_roles)) or "the configured Ownership role"
-            await interaction.response.send_message(f"Only {allowed} may create button messages.", ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        now = monotonic()
+        recent = [used_at for used_at in button_uses.get(interaction.user.id, []) if now-used_at < 600]
+        if len(recent) >= 3:
+            await interaction.response.send_message("You can publish up to three button messages every ten minutes.", ephemeral=True)
             return
         label, url, message = label.strip(), url.strip(), message.strip()
         if not (1 <= len(label) <= 80 and 1 <= len(message) <= 2000 and url.startswith("https://")):
@@ -134,6 +130,8 @@ async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
         except (TypeError, ValueError):
             await interaction.response.send_message("That emoji is not valid for this bot. Try a standard emoji or an installed custom emoji.", ephemeral=True)
             return
+        recent.append(now)
+        button_uses[interaction.user.id] = recent
         await interaction.response.send_message("Button message published successfully.", ephemeral=True)
         await send_log("Button message published", f"{interaction.user} published **{label}** in {interaction.channel.mention}.\nDestination: {url}")
 

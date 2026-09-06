@@ -9,7 +9,7 @@ from website.app.models import Tier, TierConfig, User
 from website.app.config import Settings
 from website.app.security import permission
 from website.app.oauth import expected_skymiles_role_ids
-from website.app.discord_gateway import _button_role_ids, _staff_role_ids
+from website.app.discord_gateway import _staff_role_ids
 
 
 def test_render_postgres_url_uses_psycopg3():
@@ -68,14 +68,14 @@ def test_unverified_role_and_gateway_staff_roles_are_configurable():
         "1539005033020919828",
         "1539968936681148456",
     }
-    assert _button_role_ids(settings)=={"1539005297417519205"}
 
 
-def test_create_button_command_uses_real_ownership_role():
+def test_create_button_command_is_available_to_everyone_with_rate_limit():
     gateway=Path("website/app/discord_gateway.py").read_text()
     assert '@tree.command(name="create-button"' in gateway
-    assert '<@&{role_id}>' in gateway
-    assert "Only {allowed} may create button messages" in gateway
+    assert "button_uses" in gateway
+    assert "three button messages every ten minutes" in gateway
+    assert "Only {allowed} may create button messages" not in gateway
     assert "discord.ButtonStyle.link" in gateway
 
 

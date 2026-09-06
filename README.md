@@ -49,7 +49,6 @@ Copy `.env.example`; never commit `.env` or provider secrets.
 - `DISCORD_MEMBER_ROLE_ID` is retained for every member. Configure the Silver, Gold, Platinum, and Diamond role IDs separately; `DISCORD_SILVER_ROLE_ID` is intentionally blank until a Silver role ID is supplied.
 - `STAFF_ROBLOX_MIN_RANK`, `ADMIN_ROBLOX_MIN_RANK`, comma-separated `OWNER_ROBLOX_USER_IDS`, `STAFF_DISCORD_ROLE_IDS`, and `ADMIN_DISCORD_ROLE_IDS`.
 - Panel access is refreshed from Discord and defaults to Ownership role `1539005297417519205`, Staff Admin roles `1539005030189891684` and `1539005033020919828`, and Staff role `1539968936681148456`. Ownership includes all panels; Staff Admin includes SkyMiles and flights; Staff includes SkyMiles only.
-- `BUTTON_COMMAND_ROLE_IDS=1539005297417519205` authorizes the Ownership role to use `/create-button`. Unauthorized replies now show the real configured role mention instead of `@unknown-role`.
 - Optional `WELCOME_BONUS_MILES`; `COOKIE_SECURE=true` is required in production. Local password login remains disabled by default.
 
 The checked-in public community defaults target Roblox group `6661826`, Discord guild `1538738611988467782`, staff rank `241`, admin rank `255`, and a 150-mile welcome bonus. Replace the `example.onrender.com` callback hostname in both Render and the provider dashboard with the service's real Render hostname before deployment. Provider client IDs, client secrets, session secrets, and database credentials must still be supplied only through Render's Environment page.
@@ -68,7 +67,7 @@ On every authenticated page load, the server reads the member's authoritative Di
 
 The bot also exposes the guild-scoped `/skymiles-add` command. A linked Staff, Staff Admin, or Ownership member can select a verified Discord member, enter a positive amount and required reason, and update both available and lifetime SkyMiles. The command records the same transaction and immutable audit data as the Staff Panel and returns the confirmed balance privately. Install the application with the `bot` and `applications.commands` scopes so the command can be synchronized.
 
-The guild-scoped `/create-button` command lets authorized Ownership members publish a safe HTTPS link button with a label, message, optional emoji, and embed color. Button posts disable mention parsing, are recorded in the website log channel, and use Ownership role `1539005297417519205` by default.
+The guild-scoped `/create-button` command is available to every server member and publishes a safe HTTPS link button with a label, message, optional emoji, and embed color. Each member may publish at most three button messages every ten minutes. Button posts disable mention parsing and are recorded in the website log channel.
 
 The account menu and Profile page display every current Discord server role returned for the authenticated member, using the role names, hierarchy order, and colors from the guild's authoritative role catalog. The catalog is cached for five minutes to limit Discord API traffic; member role IDs themselves are still refreshed for authorization checks.
 

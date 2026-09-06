@@ -32,8 +32,6 @@ services:
         sync: false
       - key: OWNER_DISCORD_ROLE_IDS
         value: "1539005297417519205"
-      - key: BUTTON_COMMAND_ROLE_IDS
-        value: "1539005297417519205"
       - key: STAFF_DISCORD_ROLE_IDS
         value: "1539968936681148456"
       - key: ADMIN_DISCORD_ROLE_IDS
