@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Flight Confirmation{% endblock %}
+{% block content %}
+<section class="boarding-page">
+  <header class="boarding-route"><a href="/trips" aria-label="Close boarding pass">×</a><div><span>{{ flight.departure_airport }}</span><i>→</i><span>{{ flight.destination_airport }}</span></div><small>{{ booking.status|title }}</small></header>
+  <article class="mobile-boarding-pass">
+    <div class="pass-confirmation"><span>Confirmation #</span><strong>{{ booking.confirmation_number }}</strong></div>
+    <div class="pass-body">
+      <div class="pass-brand"><span class="pass-mark">▲</span><b>Delta</b></div>
+      <div class="pass-member"><span>{{ user.tier.value|title }}</span><b>{{ flight.flight_number }}</b><time data-local-time="{{ flight.starts_at.isoformat() }}">{{ flight.starts_at.strftime('%b %d, %Y') }}</time></div>
+      <div class="boarding-qr">
+        {% if flight.roblox_game_url %}<a href="{{ flight.roblox_game_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open the Roblox game"><img src="/trips/{{ booking.confirmation_number }}/qr.svg" alt="QR code to open the assigned Roblox game"><span>Scan to join the Roblox game</span></a>{% else %}<div class="qr-pending"><span>⌛</span><b>Game Link</b><small>To Be Assigned</small></div>{% endif %}
+      </div>
+      <div class="pass-seat"><div><small>Seat</small><strong>{{ booking.seat or 'To Be Assigned' }}</strong><span>{{ booking.cabin or 'To Be Assigned' }}</span></div><div><small>Zone</small><strong>{{ zone }}</strong></div></div>
+    </div>
+    <footer class="pass-ribbons"><span>✓ Touchless</span><span>◇ SkyMiles</span><span>▲ {{ booking.cabin or 'Cabin Pending' }}</span></footer>
+  </article>
+
+  <section class="boarding-operations">
+    <article class="boarding-info boarding-gate"><div><small>Departure Gate</small><strong>{{ flight.gate or 'To Be Assigned' }}</strong><span>{{ flight.departure_airport }} Terminal</span></div><i>⌖</i></article>
+    <article class="boarding-info"><small>Boarding Time</small><strong data-local-time="{{ boarding_time.isoformat() }}">{{ boarding_time.strftime('%H:%M UTC') }}</strong><span class="on-time">{{ flight.status.value|title }}</span></article>
+    <article class="boarding-info"><small>Departure Time</small><strong data-local-time="{{ flight.starts_at.isoformat() }}">{{ flight.starts_at.strftime('%H:%M UTC') }}</strong><span class="on-time">{{ flight.status.value|title }}</span></article>
+  </section>
+
+  <section class="confirmation-grid pass-details">
+    <article class="card confirmation-section"><h2>🎟️ Booking Information</h2><dl><dt>Passenger</dt><dd>{{ user.discord_display_name }}</dd><dt>SkyMiles Number</dt><dd>{{ user.skymiles_number }}</dd><dt>Booked</dt><dd data-local-time="{{ booking.created_at.isoformat() }}">{{ booking.created_at.strftime('%b %d, %Y · %H:%M UTC') }}</dd><dt>Aircraft</dt><dd>{{ flight.aircraft or 'To Be Assigned' }}</dd><dt>Arrival</dt><dd>{% if flight.ends_at %}<span data-local-time="{{ flight.ends_at.isoformat() }}">{{ flight.ends_at.strftime('%b %d, %Y · %H:%M UTC') }}</span>{% else %}To Be Assigned{% endif %}</dd></dl></article>
+    <article class="card confirmation-section"><h2>🧳 Baggage &amp; Amenities</h2><dl><dt>Carry-On</dt><dd>{{ booking.carry_on or 'To Be Assigned' }}</dd><dt>Checked Bags</dt><dd>{{ booking.checked_bags or 'To Be Assigned' }}</dd></dl><ul class="selected-amenities">{% for amenity in booking.amenities %}{% set item=amenity_catalog.get(amenity) %}<li>✦ {{ item.name if item else amenity.replace('_',' ')|title }}</li>{% else %}<li>No amenities selected.</li>{% endfor %}</ul></article>
+    <article class="card confirmation-section refund-section"><h2>💳 SkyMiles &amp; Cancellation</h2><dl><dt>SkyMiles Used</dt><dd>{{ "{:,}".format(booking.miles_used) }}</dd><dt>Remaining Balance</dt><dd>{{ "{:,}".format(user.miles_balance) }}</dd></dl><p>A full eligible refund is available within 24 hours of the exact booking time. Later cancellations before departure forfeit applied SkyMiles.</p><b>Refund Eligible Until</b><time data-local-time="{{ refund_until.isoformat() }}">{{ refund_until.strftime('%b %d, %Y · %H:%M UTC') }}</time>{% if booking.status=='CONFIRMED' %}<p class="{{ 'positive' if refund_eligible else 'negative' }}">{{ 'Eligible SkyMiles refund: '+booking.miles_used|string if refund_eligible else 'SkyMiles that will be forfeited: '+booking.miles_used|string }}</p>{% endif %}</article>
+  </section>
+  <div class="trip-actions"><a class="button outline" href="/trips">View My Trips</a><a class="button outline" href="/flights">Manage Booking</a>{% if booking.status=='CONFIRMED' %}<form method="post" action="/flights/{{ flight.id }}/cancel" onsubmit="return confirm('Cancel this flight? Review the refund or forfeiture amount shown above.')"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button danger-button">Cancel Flight</button></form>{% endif %}<a class="button primary" href="/dashboard">Return Home</a></div>
+</section>
+{% endblock %}
