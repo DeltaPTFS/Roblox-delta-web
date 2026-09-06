@@ -24,7 +24,7 @@ from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
 from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
-from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
+from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 
@@ -295,8 +295,14 @@ async def refresh_discord_authorization(user: User, db: Session) -> str:
         roles=None
         try:
             tier_name=user.tier.name if user.tier!=Tier.MEMBER else None
-            roles=await discord_member_roles(settings,user.discord_user_id)
+            member=await discord_guild_member(settings,user.discord_user_id)
+            roles=[str(role_id) for role_id in member.get("roles",[])] if member is not None else None
             if roles is None: raise RuntimeError("Discord roles could not be read")
+            if member.get("user"):
+                user.discord_display_name=discord_server_name(member["user"],member)
+            guild_avatar=member.get("avatar")
+            if guild_avatar:
+                user.discord_avatar_url=f"https://cdn.discordapp.com/guilds/{settings.discord_guild_id}/users/{user.discord_user_id}/avatars/{guild_avatar}.png"
             actual=set(roles); expected=expected_skymiles_role_ids(settings,tier_name); managed={settings.discord_member_role_id,*settings.medallion_role_ids.values()}-{""}
             user.discord_role_ids=roles if expected.issubset(actual) and not actual & (managed-expected) else await discord_sync_skymiles_roles(settings,user.discord_user_id,tier_name)
             user._discord_sync_state="synced"; db.commit()

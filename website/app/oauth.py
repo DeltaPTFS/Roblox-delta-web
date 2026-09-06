@@ -55,8 +55,15 @@ async def discord_identity(settings: Settings, code: str, verifier: str) -> dict
         user = (await client.get(DISCORD_ME, headers=headers)).raise_for_status().json()
         member_response = await client.get(DISCORD_MEMBER.format(guild_id=settings.discord_guild_id), headers=headers)
         member = member_response.json() if member_response.status_code == 200 else None
-        avatar = f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get("avatar") else None
-        return {"id":str(user["id"]),"username":user["username"],"display_name":user.get("global_name") or user["username"],"avatar":avatar,"member":member}
+        guild_avatar = member.get("avatar") if member else None
+        avatar = f"https://cdn.discordapp.com/guilds/{settings.discord_guild_id}/users/{user['id']}/avatars/{guild_avatar}.png" if guild_avatar else (f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get("avatar") else None)
+        return {"id":str(user["id"]),"username":user["username"],"display_name":discord_server_name(user,member),"avatar":avatar,"member":member}
+
+
+def discord_server_name(user: dict, member: dict | None) -> str:
+    """Resolve the name Discord displays inside the configured server."""
+    member_user=(member or {}).get("user") or {}
+    return (member or {}).get("nick") or member_user.get("global_name") or user.get("global_name") or member_user.get("username") or user["username"]
 
 
 async def discord_set_medallion_roles(settings: Settings, user_id: str, tier_name: str | None = None) -> bool:
@@ -138,6 +145,19 @@ async def discord_member_roles(settings: Settings, user_id: str) -> list[str] | 
             return []
         response.raise_for_status()
         return [str(role_id) for role_id in response.json().get("roles", [])]
+
+
+async def discord_guild_member(settings: Settings, user_id: str) -> dict | None:
+    """Fetch the authoritative server nickname, avatar and roles through the bot."""
+    if not settings.discord_bot_token:
+        return None
+    url = f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{user_id}"
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.get(url, headers={"Authorization": f"Bot {settings.discord_bot_token}"})
+        if response.status_code == 404:
+            return {}
+        response.raise_for_status()
+        return response.json()
 
 
 async def discord_guild_roles(settings: Settings) -> list[dict]:

@@ -8,8 +8,8 @@ from website.app.database import normalize_database_url
 from website.app.models import Tier, TierConfig, User
 from website.app.config import Settings
 from website.app.security import permission
-from website.app.oauth import expected_skymiles_role_ids
-from website.app.discord_gateway import _button_role_ids, _staff_role_ids
+from website.app.oauth import discord_server_name, expected_skymiles_role_ids
+from website.app.discord_gateway import _staff_role_ids
 
 
 def test_render_postgres_url_uses_psycopg3():
@@ -68,14 +68,14 @@ def test_unverified_role_and_gateway_staff_roles_are_configurable():
         "1539005033020919828",
         "1539968936681148456",
     }
-    assert _button_role_ids(settings)=={"1539005297417519205"}
 
 
-def test_create_button_command_uses_real_ownership_role():
+def test_create_button_command_is_available_to_everyone_with_rate_limit():
     gateway=Path("website/app/discord_gateway.py").read_text()
     assert '@tree.command(name="create-button"' in gateway
-    assert '<@&{role_id}>' in gateway
-    assert "Only {allowed} may create button messages" in gateway
+    assert "button_uses" in gateway
+    assert "three button messages every ten minutes" in gateway
+    assert "Only {allowed} may create button messages" not in gateway
     assert "discord.ButtonStyle.link" in gateway
 
 
@@ -105,6 +105,13 @@ def test_mobile_title_channel_and_equal_tutorial_hosts():
     assert base.count("speaker:'Gre1'")==3
     assert base.count("speaker:'Cookie'")==3
     assert "Start Tutorial" in base and "user.discord_display_name|tojson" in base
+    assert "tutorial-progress-bar" in base and "Follow the glowing highlight" in base
+
+
+def test_member_name_uses_discord_server_profile_name():
+    discord_user={"username":"account_name","global_name":"Global Name"}
+    assert discord_server_name(discord_user,{"nick":"Server Nickname"})=="Server Nickname"
+    assert discord_server_name(discord_user,{"nick":None})=="Global Name"
 
 
 def test_member_discord_roles_display_real_guild_names_and_colors():

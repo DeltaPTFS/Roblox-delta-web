@@ -31,7 +31,6 @@ class Settings(BaseSettings):
     admin_roblox_min_rank: int = 200
     owner_roblox_user_ids: str = ""
     owner_discord_role_ids: str = "1539005297417519205"
-    button_command_role_ids: str = "1539005297417519205"
     staff_discord_role_ids: str = "1539968936681148456"
     admin_discord_role_ids: str = "1539005030189891684,1539005033020919828"
     welcome_bonus_miles: int = 0
