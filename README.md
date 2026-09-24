@@ -107,12 +107,21 @@ The site occasionally shows a two-rating feedback dialog once per session. Ratin
 
 ## Render deployment
 
-1. Create a Blueprint from `render.yaml`, or a Python web service plus PostgreSQL.
+The Blueprint creates two public services:
+
+- `delta-skymiles-static` is an optional Render Static Site containing a fast, responsive public entry page. It has no secrets and sends login actions to the secure application service.
+- `delta-skymiles-roblox` is the required FastAPI web service. OAuth callbacks, sessions, Discord synchronization, PostgreSQL, bookings, balances, and every authenticated feature must run here; a static host cannot execute Python or securely perform these operations.
+
+Set `SKYMILES_BACKEND_URL` on the static service to the public HTTPS address of the FastAPI service. The default is `https://roblox-delta-web.onrender.com`. The static build validates HTTPS, copies its assets into `dist`, and replaces all backend placeholders. OAuth callback URLs must continue pointing to the FastAPI service, not the static site.
+
+1. Create a Blueprint from `render.yaml`, or create both the optional Static Site and the required Python web service plus PostgreSQL.
 2. Build command: `pip install -r requirements.txt && alembic upgrade head`.
 3. Start command: `uvicorn website.app.main:app --host 0.0.0.0 --port $PORT`.
 4. Health path: `/health`.
 5. Add every secret/config value listed above. Never use localhost callback URLs in production.
 6. Register exact production callbacks with both providers and set `COOKIE_SECURE=true`.
+
+For a manually created Render Static Site, use build command `sh scripts/build-static-site.sh` and publish directory `dist`.
 
 ## Troubleshooting
 

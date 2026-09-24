@@ -252,3 +252,14 @@ def test_boarding_pass_has_private_qr_and_assignment_fallbacks():
     assert "Scan to join the Roblox game" in template
     assert "To Be Assigned" in template
     assert 'name="roblox_game_url"' in admin
+
+
+def test_render_static_entry_preserves_secure_backend_boundary():
+    blueprint=Path("render.yaml").read_text()
+    build=Path("scripts/build-static-site.sh").read_text()
+    landing=Path("static-site/index.html").read_text()
+    assert "runtime: static" in blueprint
+    assert "staticPublishPath: ./dist" in blueprint
+    assert "SKYMILES_BACKEND_URL" in blueprint and "SKYMILES_BACKEND_URL must begin with https://" in build
+    assert "__SKYMILES_BACKEND_URL__/auth/roblox" in landing
+    assert "Not affiliated with or operated by Delta Air Lines, Inc." in landing
