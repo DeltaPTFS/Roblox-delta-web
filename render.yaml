@@ -1,14 +1,4 @@
 services:
-  # Optional public static entry point. Authentication and member data remain
-  # on the FastAPI service below because OAuth and PostgreSQL require a server.
-  - type: web
-    name: delta-skymiles-static
-    runtime: static
-    buildCommand: sh scripts/build-static-site.sh
-    staticPublishPath: ./dist
-    envVars:
-      - key: SKYMILES_BACKEND_URL
-        value: https://roblox-delta-web.onrender.com
   - type: web
     name: delta-skymiles-roblox
     runtime: python
