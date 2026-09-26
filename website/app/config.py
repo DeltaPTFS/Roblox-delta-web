@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -36,6 +37,19 @@ class Settings(BaseSettings):
     welcome_bonus_miles: int = 0
     local_password_login_enabled: bool = False
     cookie_secure: bool = True
+    # Optional, one-way integration with the Delta Main Bot. PostgreSQL remains
+    # authoritative; delivery failures are retained in the durable outbox.
+    delta_bot_internal_url: str = ""
+    delta_bot_internal_secret: str = ""
+    sheet_sync_interval_seconds: int = 15
+    # Vercel injects VERCEL=1. SERVERLESS_MODE is useful for local import tests
+    # and other function platforms without pretending a function is a daemon.
+    serverless_mode: bool = False
+    cron_secret: str = ""
+
+    @property
+    def is_serverless(self) -> bool:
+        return self.serverless_mode or os.getenv("VERCEL") == "1"
 
     @property
     def medallion_role_ids(self) -> dict[str, str]:

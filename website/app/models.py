@@ -198,3 +198,25 @@ class NotificationLog(Base):
     delivery_status: Mapped[str] = mapped_column(String(30))
     error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class SheetSyncEvent(Base):
+    """Durable, retryable events mirrored through the Delta Main Bot.
+
+    The event key and deterministic id make delivery idempotent across process
+    restarts.  Payloads are immutable snapshots, so Google Sheets can never
+    become an input to an authoritative website balance calculation.
+    """
+    __tablename__ = "sheet_sync_events"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    event_key: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    event_type: Mapped[str] = mapped_column(String(40), index=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)

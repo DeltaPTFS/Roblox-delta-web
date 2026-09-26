@@ -123,6 +123,118 @@ Set `SKYMILES_BACKEND_URL` on the static service to the public HTTPS address of 
 
 For a manually created Render Static Site, use build command `sh scripts/build-static-site.sh` and publish directory `dist`.
 
+## Vercel Deployment
+
+Vercel runs the existing FastAPI application through `api/index.py`. That file
+only imports `website.app.main:app`; it does not create another application.
+`vercel.json` rewrites every request to that function, after which FastAPI keeps
+handling all existing routes, OAuth callbacks, Jinja pages, `/static/*`, and
+`/health`. Keep the project **Root Directory** at the repository root.
+
+### Required Vercel environment variables
+
+Add these for **Production** and for any Preview environment that should boot:
+
+- `APP_URL=https://YOUR-PRODUCTION-DOMAIN`
+- `DATABASE_URL` — a PostgreSQL connection string. SQLite is deliberately
+  rejected whenever `VERCEL=1`.
+- `SESSION_SECRET` — a new random value of at least 32 characters.
+- `COOKIE_SECURE=true`
+- `ROBLOX_CLIENT_ID`, `ROBLOX_CLIENT_SECRET`, `ROBLOX_GROUP_ID`, and
+  `ROBLOX_GROUP_URL`
+- `ROBLOX_REDIRECT_URI=https://YOUR-PRODUCTION-DOMAIN/auth/roblox/callback`
+- `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_GUILD_ID`, and
+  `DISCORD_INVITE_URL`
+- `DISCORD_REDIRECT_URI=https://YOUR-PRODUCTION-DOMAIN/auth/discord/callback`
+- `DISCORD_BOT_TOKEN` for request-scoped role checks, role updates, scheduled
+  event reads, announcements, and DMs. It no longer starts a gateway on Vercel.
+- `DISCORD_MEMBER_ROLE_ID`, `DISCORD_SILVER_ROLE_ID`,
+  `DISCORD_GOLD_ROLE_ID`, `DISCORD_PLATINUM_ROLE_ID`, and
+  `DISCORD_DIAMOND_ROLE_ID`
+- `OWNER_DISCORD_ROLE_IDS`, `ADMIN_DISCORD_ROLE_IDS`, and
+  `STAFF_DISCORD_ROLE_IDS`
+- `STAFF_ROBLOX_MIN_RANK`, `ADMIN_ROBLOX_MIN_RANK`, and
+  `OWNER_ROBLOX_USER_IDS`
+- `CRON_SECRET` — a separate random 32+ character value used by the maintenance
+  endpoint.
+
+Add these when the related feature is enabled:
+
+- `DISCORD_BOOKING_CHANNEL_ID`, `DISCORD_LOG_CHANNEL_ID`,
+  `DISCORD_UNVERIFIED_ROLE_ID`, and `DISCORD_SKYMILES_CHANNEL_URL`
+- `WELCOME_BONUS_MILES` and `LOCAL_PASSWORD_LOGIN_ENABLED`
+- `DELTA_BOT_INTERNAL_URL` and `DELTA_BOT_INTERNAL_SECRET` for the Google Sheets
+  outbox bridge. `SHEET_SYNC_INTERVAL_SECONDS` is used only by always-on hosts;
+  Vercel processes a bounded outbox batch through scheduled maintenance.
+
+Vercel supplies `VERCEL=1`; do not add or override it. `SERVERLESS_MODE=true`
+is only needed when testing serverless behavior outside Vercel. Store all
+secrets in **Project Settings → Environment Variables**, never in GitHub.
+
+### Lifespan and background responsibilities
+
+Vercel functions cannot provide a permanent process. In serverless mode the
+FastAPI lifespan therefore does **not** run `Base.metadata.create_all`, the
+hourly Medallion loop, the 15-minute reminder loop, the Sheets outbox loop, or
+the Discord Gateway connection. Normal request-based Discord OAuth, Roblox
+OAuth, role synchronization, bookings, panels, templates, and static files are
+unchanged.
+
+The always-running Delta Main Bot should own Discord gateway listeners and slash
+commands. It should call `GET /api/cron/maintenance` every 15 minutes with:
+
+```text
+Authorization: Bearer <CRON_SECRET>
+```
+
+That authenticated endpoint performs one bounded, idempotent batch of Medallion
+expiration, flight reminders, and Sheets outbox delivery. It is also compatible
+with a Vercel Cron invocation because Vercel sends the configured `CRON_SECRET`
+as a Bearer authorization value. Notification event keys and outbox IDs prevent
+duplicate work when an invocation is retried.
+
+### Safe Alembic migration process
+
+Do **not** put `alembic upgrade head` in a Vercel function or run it during every
+request. Do not make it the Vercel Build Command either: concurrent Preview and
+Production builds can race. Before promoting a deployment:
+
+1. Back up PostgreSQL and use its direct/non-pooled migration URL if the provider
+   supplies separate pooled and direct URLs.
+2. From a trusted local machine or a single serialized CI release job, export
+   the production `DATABASE_URL` without committing it.
+3. Run `alembic current`, review the pending revisions, then run
+   `alembic upgrade head` exactly once.
+4. Run `alembic current` again and confirm it reports `0011`.
+5. Only then promote or redeploy the Vercel Production deployment.
+
+Revision `0011` seeds required tiers and rewards idempotently so a fresh Vercel
+database does not depend on application startup side effects.
+
+### Vercel dashboard steps after merge
+
+1. Open Vercel → **Roblox-delta-web** → **Settings → General**.
+2. Set **Framework Preset** to **Other** and **Root Directory** to `./`.
+3. Leave Build Command and Output Directory overrides disabled. Vercel detects
+   `api/index.py` and installs `requirements.txt`; there is no Uvicorn Start
+   Command on Vercel.
+4. Open **Settings → Environment Variables**, add the variables above, and make
+   sure `DATABASE_URL` is available to Production. Add the OAuth/provider
+   secrets to Preview only if Preview deployments are intended to support OAuth.
+5. Run the one-time Alembic procedure above against production PostgreSQL.
+6. Open **Deployments**, select the deployment created from the merged commit,
+   choose **Redeploy**, leave **Use existing Build Cache** off for the first
+   migration, and confirm.
+7. Visit `https://YOUR-PRODUCTION-DOMAIN/health` and confirm `{"status":"ok"}`.
+8. Add the exact Vercel callback URLs to Roblox Creator Hub and Discord Developer
+   Portal, then test both login flows. Callback strings must match the Vercel
+   variables exactly.
+9. Configure the Delta Main Bot scheduler to call the secured maintenance URL,
+   then verify reminders and the Sheets outbox from logs.
+10. Keep `render.yaml` and the Render service untouched until login, booking,
+    role synchronization, maintenance, and PostgreSQL writes are verified on
+    Vercel.
+
 ## Troubleshooting
 
 - **OAuth state validation failed:** use one hostname throughout, enable HTTPS, do not open callbacks directly, and check cookie/proxy configuration. Restart the flow rather than reusing a callback URL.
@@ -130,7 +242,7 @@ For a manually created Render Static Site, use build command `sh scripts/build-s
 - **Roblox group rejection:** confirm `ROBLOX_GROUP_ID`, confirm the authorized account is a current member, and verify Roblox group/thumbnail API availability. No account is created before this succeeds.
 - **Discord guild rejection:** confirm `DISCORD_GUILD_ID`, membership, and the `guilds.members.read` scope. Reauthorize after changing scopes.
 - **403 on staff tools:** refresh provider information/re-authenticate, check thresholds and comma-separated IDs, and verify that ranks/roles come from the configured group/guild.
-- **Database errors:** verify the PostgreSQL URL, connectivity, and that `alembic current` reports `0001`.
+- **Database errors:** verify the PostgreSQL URL, connectivity, and that `alembic current` reports `0011`.
 - **Provider changes:** consult current official documentation, update endpoints/scopes deliberately, and rerun OAuth integration tests in a staging application before production.
 
 ## Pre-launch acceptance checks
@@ -154,3 +266,98 @@ Cancelled and completed flights remain visible in Flight Operations and the memb
 ## Roblox boarding-pass QR codes
 
 Staff Admin must provide an HTTPS `roblox.com` game or share link when creating a flight. The value is validated server-side, saved with the flight, and encoded into a unique booking's boarding-pass QR display. The QR endpoint requires the logged-in member to own the confirmation number, and the generated code contains only the staff-approved Roblox URL. Missing operational assignments are displayed as **To Be Assigned**.
+
+## Delta Main Bot and Google Sheets mirror
+
+### Architecture
+
+The data path is strictly one way:
+
+```text
+Roblox-delta-web / PostgreSQL (source of truth)
+  -> durable sheet_sync_events outbox
+  -> authenticated Delta Main Bot endpoint
+  -> existing src/sheets.js bridge
+  -> existing Google Apps Script
+  -> Registration Logs / Mileage Ledger (mirror)
+```
+
+Registration, mileage transactions, tier changes, qualification updates, and
+membership-status changes enqueue an immutable event in the same PostgreSQL
+transaction as the authoritative change. A background worker sends due events
+only after that transaction commits. Google Sheets or bot failures therefore
+cannot reject, reverse, or alter a successful website registration or balance
+change. Failed events use bounded exponential backoff and retain attempts and
+the last error for operational review.
+
+Event IDs are deterministic. Member registration is keyed by internal website
+user ID, ledger entries by the permanent PostgreSQL transaction ID, and member
+snapshots by their relevant state. The bot verifies an HMAC-SHA256 signature,
+timestamp freshness, event type, IDs, SkyMiles number, and numeric bounds before
+forwarding an event. The Apps Script upserts `Registration Logs` by SkyMiles
+number and `Mileage Ledger` by website transaction ID, so restarts, retries, and
+reconciliation do not duplicate rows.
+
+Ownership can use **Reconcile Google Sheets** in the Ownership Panel. It replays
+canonical member and ledger snapshots after committing an audit log. Replaying
+is intentionally safe and backfills a row removed from a Sheet without using
+Sheet values to update PostgreSQL.
+
+### Environment variables
+
+Website service:
+
+- `DELTA_BOT_INTERNAL_URL`: HTTPS base URL of the Delta Main Bot service. The
+  website posts to `/internal/website-sync` below this URL.
+- `DELTA_BOT_INTERNAL_SECRET`: random shared secret of at least 32 characters.
+- `SHEET_SYNC_INTERVAL_SECONDS`: outbox polling interval; defaults to 15.
+
+Delta Main Bot service:
+
+- `WEBSITE_SYNC_SECRET`: exact same value as `DELTA_BOT_INTERNAL_SECRET`.
+- Existing `GOOGLE_SHEETS_WEBHOOK_URL` and `GOOGLE_SHEETS_WEBHOOK_SECRET` remain
+  the only credentials used between the bot and Apps Script.
+
+Generate the shared secret with `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+Store it only in the two Render services. Never place it in GitHub or Apps
+Script source. The bot-side review package is under
+`integrations/deltaptfs-bot/`; because this workspace cannot access the private
+bot repository, apply and review it there before deployment.
+
+No Raven/Sentry setting is required by this integration. If the bot already
+uses Raven or Sentry, keep its existing DSN and configure request scrubbing so
+`X-Website-Signature`, `WEBSITE_SYNC_SECRET`, Google webhook secrets, and full
+member payloads are never captured. On Render, add the variables above to the
+respective **Environment** pages; they are not shared automatically between two
+services.
+
+### Exact deployment order
+
+1. Back up PostgreSQL and the Google spreadsheet.
+2. Merge the supplied Apps Script extension into the existing
+   `integrations/google-apps-script.gs`, preserving the current authenticated
+   `doPost`, `balance`, `leaderboard`, and `award` behavior. Deploy a new Apps
+   Script web-app version.
+3. Extend the bot's existing `src/sheets.js` and mount the authenticated handler
+   as described in `integrations/deltaptfs-bot/README.md`. Set
+   `WEBSITE_SYNC_SECRET`; retain its current Google webhook variables. Deploy
+   the Delta Main Bot and verify a signed staging event.
+4. Deploy the website migration with `alembic upgrade head`. This creates only
+   the durable `sheet_sync_events` table and does not rewrite members or
+   transactions.
+5. Set the website's `DELTA_BOT_INTERNAL_URL`,
+   `DELTA_BOT_INTERNAL_SECRET`, and optional polling interval, then redeploy.
+6. Make one test adjustment, verify PostgreSQL first, then verify the bot log and
+   `Mileage Ledger`. Finally run Ownership reconciliation and verify no duplicate
+   registration or ledger rows appear.
+
+### Rollback
+
+Unset `DELTA_BOT_INTERNAL_URL` and `DELTA_BOT_INTERNAL_SECRET` (or roll back the
+website release) to stop deliveries immediately. Website registration and miles
+continue normally because sync is optional. Roll back the bot route and Apps
+Script deployment independently; do not delete PostgreSQL transactions. The
+`0010` downgrade intentionally retains the outbox for audit and safe later
+replay. After repairing the integration, redeploy in the order above and use
+Ownership reconciliation. Never import Sheet balances into the website as a
+rollback mechanism.

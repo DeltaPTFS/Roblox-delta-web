@@ -11,7 +11,8 @@ from sqlalchemy import select
 
 from .config import Settings
 from .database import SessionLocal
-from .models import AuditLog, Status, Transaction, User
+from .models import AuditLog, Status, User
+from .sheet_sync import add_transaction
 
 
 class DiscordGateway:
@@ -93,7 +94,7 @@ async def start_discord_gateway(settings: Settings) -> DiscordGateway | None:
             before = target.miles_balance
             target.miles_balance += amount
             target.lifetime_miles += amount
-            db.add(Transaction(user_id=target.id, type="MILES_ADDED", description=reason, reference="DISCORD-COMMAND", miles_change=amount, balance_before=before, balance_after=target.miles_balance, created_by=actor.id))
+            add_transaction(db,target,type="MILES_ADDED",description=reason,reference="DISCORD-COMMAND",miles_change=amount,balance_before=before,balance_after=target.miles_balance,actor=actor)
             db.add(AuditLog(staff_user_id=actor.id, target_user_id=target.id, action="MILES_ADDED", old_value={"balance": before}, new_value={"balance": target.miles_balance}, reason=reason, security_metadata={"source": "discord_slash_command"}))
             db.commit()
             balance = target.miles_balance

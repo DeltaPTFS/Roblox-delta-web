@@ -17,16 +17,17 @@ from starlette.middleware.gzip import GZipMiddleware
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
-from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, Status, Tier, TierConfig, Transaction, User, WebSession
+from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, Status, Tier, TierConfig, Transaction, User, WebSession
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
 from .session import DatabaseSessionMiddleware
+from .sheet_sync import add_transaction, enqueue_member_update, enqueue_registration, process_outbox_once, reconcile_outbox
 
 ROOT = Path(__file__).resolve().parents[1]
 # Any application, template, or stylesheet change creates a new release notice key.
@@ -43,6 +44,12 @@ FLIGHT_TERMINAL_GRACE = timedelta(minutes=10)
 
 @asynccontextmanager
 async def lifespan(app):
+    # Vercel functions are short-lived and may start concurrently. Schema
+    # migrations, daemon loops, and a permanent Discord Gateway must run in a
+    # release job or the always-on Delta Main Bot—not during function startup.
+    if settings.is_serverless:
+        yield
+        return
     Base.metadata.create_all(engine)
     with Session(engine) as db:
         if not db.scalar(select(TierConfig.id).limit(1)):
@@ -60,12 +67,14 @@ async def lifespan(app):
     await expire_medallions_once()
     expiration_task = asyncio.create_task(medallion_expiration_worker())
     reminder_task = asyncio.create_task(flight_reminder_worker())
+    sheet_sync_task = asyncio.create_task(sheet_sync_worker())
     discord_gateway = await start_discord_gateway(settings)
     try:
         yield
     finally:
         expiration_task.cancel()
         reminder_task.cancel()
+        sheet_sync_task.cancel()
         if discord_gateway:
             await discord_gateway.close()
 
@@ -150,7 +159,8 @@ def validated_roblox_game_url(value:str) -> str:
 
 def release_expired_restriction(user:User,db:Session) -> None:
     if user.account_status!=Status.ACTIVE and not user.permanent_ban and user.restricted_until and user.restricted_until<=datetime.now(timezone.utc):
-        user.account_status=Status.ACTIVE; user.restricted_until=None; user.restriction_reason=None; db.commit()
+        user.account_status=Status.ACTIVE; user.restricted_until=None; user.restriction_reason=None
+        enqueue_member_update(db,user,"Temporary restriction expired",user); db.commit()
 
 
 async def notify_member(db:Session,user:User,flight:Flight|None,booking:Booking|None,kind:str,content:str,event_key:str):
@@ -175,6 +185,21 @@ def em(emojis:dict,name:str,fallback:str) -> str:
 
 @app.get("/health")
 def health(): return JSONResponse({"status":"ok"},headers={"Cache-Control":"no-store"})
+
+
+@app.get("/api/cron/maintenance")
+async def serverless_maintenance(request:Request):
+    """Run bounded maintenance from Vercel Cron or the always-on Delta bot."""
+    if len(settings.cron_secret) < 32:
+        raise HTTPException(503,"CRON_SECRET must contain at least 32 characters")
+    authorization=request.headers.get("authorization","")
+    expected=f"Bearer {settings.cron_secret}"
+    if not secrets.compare_digest(authorization,expected):
+        raise HTTPException(401,"Invalid maintenance authorization")
+    expired=await expire_medallions_once(limit=5)
+    reminders=await send_flight_reminders_once(limit=5)
+    sheet_sync=await process_outbox_once(settings,limit=5)
+    return JSONResponse({"status":"ok","medallions_expired":expired,"reminders_processed":reminders,"sheet_sync":sheet_sync},headers={"Cache-Control":"no-store"})
 
 
 @app.get("/api/discord-emojis")
@@ -280,6 +305,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     else:
         user=User(roblox_user_id=pending["id"],roblox_username=pending["username"],roblox_display_name=pending["display_name"],roblox_avatar_url=pending["avatar"],roblox_group_role=pending["role"],roblox_group_rank=pending["rank"],discord_user_id=identity["id"],discord_username=identity["username"],discord_display_name=identity["display_name"],discord_avatar_url=identity["avatar"],discord_role_ids=identity["member"].get("roles",[]),skymiles_number=next_number(db),miles_balance=settings.welcome_bonus_miles,lifetime_miles=max(0,settings.welcome_bonus_miles))
         db.add(user)
+        db.flush()
+        enqueue_registration(db,user)
+        if settings.welcome_bonus_miles:
+            add_transaction(db,user,type="WELCOME_BONUS",description="SkyMiles welcome bonus",reference="WEBSITE-REGISTRATION",miles_change=settings.welcome_bonus_miles,balance_before=0,balance_after=settings.welcome_bonus_miles)
     try: db.commit()
     except IntegrityError: db.rollback(); raise HTTPException(409,"Account link conflict")
     db.refresh(user)
@@ -425,9 +454,10 @@ async def quit_skymiles(request:Request,confirmation:str=Form(...),csrf:str=Form
     if confirmation.strip().upper() != "QUIT": raise HTTPException(422,"Type QUIT to confirm")
     old_balance=user.miles_balance; old_tier=user.tier.value
     if old_balance:
-        db.add(Transaction(user_id=user.id,type="MEMBERSHIP_ENDED",description="SkyMiles forfeited when membership ended",reference="MEMBERSHIP-QUIT",miles_change=-old_balance,balance_before=old_balance,balance_after=0,created_by=user.id))
+        add_transaction(db,user,type="MEMBERSHIP_ENDED",description="SkyMiles forfeited when membership ended",reference="MEMBERSHIP-QUIT",miles_change=-old_balance,balance_before=old_balance,balance_after=0,actor=user)
     user.miles_balance=0; user.lifetime_miles=0; user.medallion_qualifying_points=0; user.segments_flown=0
     user.tier=Tier.MEMBER; user.medallion_expires_at=None; user.account_status=Status.DISABLED
+    enqueue_member_update(db,user,"Member voluntarily left SkyMiles",user)
     db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEMBERSHIP_ENDED",old_value={"status":"ACTIVE","tier":old_tier,"miles_balance":old_balance},new_value={"status":"DISABLED","tier":Tier.MEMBER.value,"miles_balance":0},reason="Member voluntarily left the SkyMiles program",security_metadata={"ip":request.client.host if request.client else None,"self_service":True}))
     try:
         if not await discord_remove_skymiles_roles(settings,user.discord_user_id): raise HTTPException(503,"Discord role synchronization is not configured")
@@ -465,15 +495,18 @@ def next_medallion_expiration(now: datetime | None = None) -> datetime:
     return datetime(current.year + 1, 1, 1, 0, 0, tzinfo=eastern).astimezone(timezone.utc)
 
 
-async def expire_medallions_once() -> int:
+async def expire_medallions_once(limit:int|None=None) -> int:
     now = datetime.now(timezone.utc)
     with SessionLocal() as db:
-        expired = db.scalars(select(User).where(User.tier != Tier.MEMBER, User.medallion_expires_at.is_not(None), User.medallion_expires_at <= now)).all()
+        query=select(User).where(User.tier != Tier.MEMBER, User.medallion_expires_at.is_not(None), User.medallion_expires_at <= now).order_by(User.medallion_expires_at)
+        if limit is not None: query=query.limit(limit)
+        expired = db.scalars(query).all()
         for user in expired:
             old_tier = user.tier.value
             user.tier = Tier.MEMBER
             user.medallion_expires_at = None
             db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEDALLION_EXPIRED",old_value={"tier":old_tier},new_value={"tier":Tier.MEMBER.value},reason="Annual Medallion term ended at midnight Eastern on January 1",security_metadata={"automatic":True}))
+            enqueue_member_update(db,user,"Medallion status expired",user)
         db.commit()
         identities = [(user.discord_user_id, user.id) for user in expired]
     for discord_user_id, _ in identities:
@@ -488,16 +521,34 @@ async def medallion_expiration_worker():
         await expire_medallions_once()
 
 
-async def flight_reminder_worker():
-    """Notify confirmed passengers once when departure enters the next 24 hours."""
+async def sheet_sync_worker():
+    """Drain the durable outbox without delaying or rolling back web writes."""
     while True:
-        now=datetime.now(timezone.utc)
-        with SessionLocal() as db:
-            rows=db.execute(select(Booking,Flight,User).join(Flight,Booking.flight_id==Flight.id).join(User,Booking.user_id==User.id).where(Booking.status=="CONFIRMED",Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.starts_at>now,Flight.starts_at<=now+timedelta(hours=24))).all()
-            emojis=await emoji_map()
-            for booking,flight,user in rows:
-                content=f"{em(emojis,'Timer','⏱️')} Delta Air Lines | Flight Reminder\n\nYour upcoming flight is approaching.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Parking','🅿️')} Gate: {assigned(flight.gate)}\n{em(emojis,'Nametag','🏷️')} Seat: {assigned(booking.seat)}\n{em(emojis,{'Delta Main':'DeltaMain','Delta Comfort':'Comfort','First Class':'FirstClass','Delta One':'DeltaOne'}.get(booking.cabin,'DeltaMain'),'💺')} Cabin: {assigned(booking.cabin)}\n\nPlease be ready before the scheduled departure time.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
-                await notify_member(db,user,flight,booking,"FLIGHT_REMINDER",content,f"booking:{booking.id}:reminder:24h")
+        try:
+            await process_outbox_once(settings)
+        except Exception:
+            # Individual delivery errors are recorded on each outbox row.  This
+            # catch keeps an unexpected worker error from stopping later retries.
+            pass
+        await asyncio.sleep(max(5, settings.sheet_sync_interval_seconds))
+
+
+async def send_flight_reminders_once(limit:int=100) -> int:
+    """Send one idempotent reminder batch; safe for a scheduled invocation."""
+    now=datetime.now(timezone.utc)
+    with SessionLocal() as db:
+        rows=db.execute(select(Booking,Flight,User).join(Flight,Booking.flight_id==Flight.id).join(User,Booking.user_id==User.id).outerjoin(NotificationLog,and_(NotificationLog.booking_id==Booking.id,NotificationLog.notification_type=="FLIGHT_REMINDER")).where(Booking.status=="CONFIRMED",Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.starts_at>now,Flight.starts_at<=now+timedelta(hours=24),NotificationLog.id.is_(None)).order_by(Flight.starts_at).limit(limit)).all()
+        emojis=await emoji_map()
+        for booking,flight,user in rows:
+            content=f"{em(emojis,'Timer','⏱️')} Delta Air Lines | Flight Reminder\n\nYour upcoming flight is approaching.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Parking','🅿️')} Gate: {assigned(flight.gate)}\n{em(emojis,'Nametag','🏷️')} Seat: {assigned(booking.seat)}\n{em(emojis,{'Delta Main':'DeltaMain','Delta Comfort':'Comfort','First Class':'FirstClass','Delta One':'DeltaOne'}.get(booking.cabin,'DeltaMain'),'💺')} Cabin: {assigned(booking.cabin)}\n\nPlease be ready before the scheduled departure time.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
+            await notify_member(db,user,flight,booking,"FLIGHT_REMINDER",content,f"booking:{booking.id}:reminder:24h")
+    return len(rows)
+
+
+async def flight_reminder_worker():
+    """Always-on deployment worker; disabled automatically on Vercel."""
+    while True:
+        await send_flight_reminders_once()
         await asyncio.sleep(900)
 
 
@@ -573,7 +624,9 @@ async def cancel_booking(request:Request,flight_id:int,csrf:str=Form(...),db:Ses
     if flight.starts_at<=datetime.now(timezone.utc): raise HTTPException(409,"This flight has already departed and can no longer be cancelled")
     eligible=datetime.now(timezone.utc)<=booking.created_at+timedelta(hours=24)
     refunded=booking.miles_used if eligible else 0; forfeited=booking.miles_used-refunded
-    if refunded: user.miles_balance+=refunded
+    if refunded:
+        before=user.miles_balance; user.miles_balance+=refunded
+        add_transaction(db,user,type="BOOKING_REFUND",description=f"Refund for cancelled flight {flight.flight_number}",reference=booking.confirmation_number,miles_change=refunded,balance_before=before,balance_after=user.miles_balance,actor=user)
     booking.status="CANCELLED"; booking.amenities=[]; booking.cancelled_at=datetime.now(timezone.utc); booking.miles_refunded=refunded; db.commit()
     try: await discord_announce_update(settings,title="Flight Booking Cancelled",description=f"{user.discord_display_name} left {flight.flight_number}. Their flight-only amenities were returned.")
     except Exception: pass
@@ -600,6 +653,7 @@ async def join_tier(request:Request,tier_name:str,csrf:str=Form(...),db:Session=
         previous_tier=user.tier.value
         user.tier=desired; user.medallion_expires_at=next_medallion_expiration()
         db.add(AuditLog(staff_user_id=user.id,target_user_id=user.id,action="MEDALLION_ENROLLMENT",old_value={"tier":previous_tier},new_value={"tier":desired.value,"expires_at":user.medallion_expires_at.isoformat()},reason="Member activated eligible MQP status",security_metadata={"self_service":True}))
+        enqueue_member_update(db,user,"Medallion tier changed",user)
     try:
         if not await discord_set_medallion_roles(settings,user.discord_user_id,desired.name): raise HTTPException(503,"Discord role synchronization is not configured")
     except HTTPException: db.rollback(); raise
@@ -620,7 +674,7 @@ def redeem(request:Request,reward_id:int,csrf:str=Form(...),db:Session=Depends(g
         if reward.quantity is not None and reward.quantity < 1: raise HTTPException(400,"Reward unavailable")
         before=locked.miles_balance; locked.miles_balance-=reward.miles_cost
         if reward.quantity is not None: reward.quantity-=1
-        db.add(Transaction(user_id=locked.id,type="REWARD_REDEMPTION",description=reward.name,reference=f"REWARD-{reward.id}",miles_change=-reward.miles_cost,balance_before=before,balance_after=locked.miles_balance,created_by=locked.id)); db.add(Redemption(user_id=locked.id,reward_id=reward.id,miles_cost=reward.miles_cost))
+        add_transaction(db,locked,type="REWARD_REDEMPTION",description=reward.name,reference=f"REWARD-{reward.id}",miles_change=-reward.miles_cost,balance_before=before,balance_after=locked.miles_balance,actor=locked); db.add(Redemption(user_id=locked.id,reward_id=reward.id,miles_cost=reward.miles_cost))
     db.commit(); return RedirectResponse("/rewards?redeemed=1",303)
 
 
@@ -676,13 +730,17 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     audit_logs=db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
     moderation_logs=db.scalars(select(ModerationAction).order_by(ModerationAction.created_at.desc()).limit(200)).all() if required=="OWNER" else []
     notification_logs=db.scalars(select(NotificationLog).order_by(NotificationLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
+    sheet_sync_counts={}; sheet_sync_logs=[]
+    if required=="OWNER":
+        sheet_sync_counts={status:count for status,count in db.execute(select(SheetSyncEvent.status,func.count()).group_by(SheetSyncEvent.status)).all()}
+        sheet_sync_logs=db.scalars(select(SheetSyncEvent).order_by(SheetSyncEvent.updated_at.desc()).limit(100)).all()
     directory_users=db.scalars(select(User)).all() if required=="OWNER" else []
     user_map={item.id:item for item in directory_users}
     member_bookings={member.id:db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id).where(Booking.user_id==member.id).order_by(Booking.created_at.desc()).limit(10)).all() for member in users}
     moderation={member.id:db.scalars(select(ModerationAction).where(ModerationAction.user_id==member.id).order_by(ModerationAction.created_at.desc()).limit(20)).all() for member in users}
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -697,6 +755,19 @@ async def admin(request:Request,q:str="",db:Session=Depends(get_db)): return awa
 async def owner_panel(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"OWNER")
 
 
+@app.post("/owner/sheet-sync/reconcile")
+@limiter.limit("2/hour")
+async def owner_reconcile_sheet(request:Request,csrf:str=Form(...),db:Session=Depends(get_db)):
+    """Replay canonical snapshots so the bot can upsert missing Sheet rows."""
+    check_csrf(request,csrf); actor=await require_owner(request,db)
+    counts=reconcile_outbox(db)
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="SHEET_RECONCILIATION",old_value=None,new_value=counts,reason="Ownership requested Google Sheets reconciliation",security_metadata={"ip":request.client.host if request.client else None}))
+    db.commit()
+    # The background worker delivers after this authoritative commit; the
+    # owner request never waits on Google Sheets or the bot.
+    return RedirectResponse(f"/owner?sheet_reconciled=1&members={counts['members']}&transactions={counts['transactions']}",303)
+
+
 @app.post("/admin/members/{user_id}/miles")
 @limiter.limit("20/minute")
 async def adjust(request:Request,user_id:int,action:str=Form(...),amount:int=Form(...),reason:str=Form(...),reference:str=Form(""),csrf:str=Form(...),db:Session=Depends(get_db)):
@@ -709,7 +780,7 @@ async def adjust(request:Request,user_id:int,action:str=Form(...),amount:int=For
         if not target: raise HTTPException(404,"Member not found")
         before=target.miles_balance; target.miles_balance=max(0,before+signed_amount); actual=target.miles_balance-before
         if actual>0: target.lifetime_miles+=actual
-        db.add(Transaction(user_id=target.id,type="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",description=reason.strip(),reference=reference[:100],miles_change=actual,balance_before=before,balance_after=target.miles_balance,created_by=actor.id)); db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",old_value={"balance":before},new_value={"balance":target.miles_balance},reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None}))
+        add_transaction(db,target,type="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",description=reason.strip(),reference=reference[:100],miles_change=actual,balance_before=before,balance_after=target.miles_balance,actor=actor); db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="MILES_ADDED" if actual>0 else "MILES_DEDUCTED",old_value={"balance":before},new_value={"balance":target.miles_balance},reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None}))
     db.commit()
     try: await discord_announce_update(settings,title="SkyMiles Adjustment",description=f"{actor.discord_display_name} adjusted {target.discord_display_name} by {actual:+,} SkyMiles.",fields=[{"name":"Reason","value":reason.strip()[:1024]},{"name":"New balance","value":f"{target.miles_balance:,}","inline":True}])
     except Exception: pass
@@ -723,7 +794,7 @@ async def adjust_qualifications(request:Request,user_id:int,mqp:int=Form(0),segm
     if not reason.strip() or mqp<0 or segments<0 or (mqp==0 and segments==0) or mqp>1_000_000 or segments>10_000:
         raise HTTPException(422,"Enter a positive MQP or segment amount and a reason")
     target,before,after=persist_qualification_adjustment(db,user_id,mqp,segments)
-    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="QUALIFICATIONS_ADDED",old_value=before,new_value=after,reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None,"reference":reference[:100]})); db.commit(); db.refresh(target)
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action="QUALIFICATIONS_ADDED",old_value=before,new_value=after,reason=reason.strip(),security_metadata={"ip":request.client.host if request.client else None,"reference":reference[:100]})); enqueue_member_update(db,target,"Medallion qualification updated",actor); db.commit(); db.refresh(target)
     try: await discord_announce_update(settings,title="Medallion Qualifications Added",description=f"{actor.discord_display_name} updated {target.discord_display_name}.",fields=[{"name":"MQP added","value":str(mqp),"inline":True},{"name":"Segments added","value":str(segments),"inline":True},{"name":"Reason","value":reason.strip()[:1024]}])
     except Exception: pass
     return RedirectResponse(f"{panel_path(permission(actor,settings))}?q={target.skymiles_number}&qualifications_applied=1&mqp_total={after['mqp']}&segments_total={after['segments']}",303)
@@ -750,14 +821,16 @@ async def moderate_member(request:Request,user_id:int,action:str=Form(...),reaso
         target.account_status=Status.DISABLED; target.permanent_ban=True; target.restricted_until=None; target.restriction_reason=reason
         if action=="REMOVE":
             before=target.miles_balance; target.miles_balance=0
-            if before: db.add(Transaction(user_id=target.id,type="MEMBERSHIP_REMOVED",description=reason,reference="OWNERSHIP-REMOVAL",miles_change=-before,balance_before=before,balance_after=0,created_by=actor.id))
+            if before: add_transaction(db,target,type="MEMBERSHIP_REMOVED",description=reason,reference="OWNERSHIP-REMOVAL",miles_change=-before,balance_before=before,balance_after=0,actor=actor)
     elif action=="RESTORE": target.account_status=Status.ACTIVE; target.permanent_ban=False; target.restricted_until=None; target.restriction_reason=None
     elif action=="REVERSE_WARNING":
         previous=db.get(ModerationAction,int(moderation_id)) if moderation_id.isdigit() else None
         if not previous or previous.user_id!=target.id or previous.action not in {"WARN","NO_SHOW"} or previous.reversed_at: raise HTTPException(422,"Choose an active warning to reverse")
         previous.reversed_at=datetime.now(timezone.utc); previous.reversed_by=actor.id
     record=ModerationAction(user_id=target.id,moderator_id=actor.id,flight_id=flight.id if flight else None,action=action,reason=reason); db.add(record); db.flush()
-    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action=f"MODERATION_{action}",old_value=None,new_value={"restriction_until":target.restricted_until.isoformat() if target.restricted_until else None},reason=reason,security_metadata={"flight_id":flight.id if flight else None,"ip":request.client.host if request.client else None})); db.commit()
+    db.add(AuditLog(staff_user_id=actor.id,target_user_id=target.id,action=f"MODERATION_{action}",old_value=None,new_value={"restriction_until":target.restricted_until.isoformat() if target.restricted_until else None},reason=reason,security_metadata={"flight_id":flight.id if flight else None,"ip":request.client.host if request.client else None}))
+    if action in owner_actions: enqueue_member_update(db,target,f"Membership moderation: {action}",actor)
+    db.commit()
     emojis=await emoji_map(); count=db.scalar(select(func.count()).select_from(ModerationAction).where(ModerationAction.user_id==target.id,ModerationAction.action=="WARN",ModerationAction.reversed_at.is_(None))) or 0
     title="SkyMiles Warning" if action in {"WARN","NO_SHOW"} else "SkyMiles Account Banned" if action in {"BAN_PERMANENT","REMOVE"} else "SkyMiles Account Suspended" if action in {"SUSPEND","BAN_TEMPORARY"} else "SkyMiles Restriction Reversed"
     content=f"{em(emojis,'Warning','⚠️')} Delta Air Lines | {title}\n\n{em(emojis,'Warning','⚠️')} Reason: {reason}\n{em(emojis,'Plane','✈️')} Related Flight: {flight.flight_number if flight else 'Not Applicable'}\n{em(emojis,'Schedule','📅')} Issued: {datetime.now(timezone.utc).strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Warning','⚠️')} Current Warning Count: {count}\n{em(emojis,'Timer','⏱️')} Restriction Ends: {target.restricted_until.strftime('%b %d, %Y at %H:%M UTC') if target.restricted_until else 'Permanent' if target.permanent_ban else 'Not Applicable'}\n\n{em(emojis,'Support','🛟')} Contact Delta Support if you believe this is incorrect.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
@@ -792,6 +865,7 @@ async def owner_member_access(request:Request,user_id:int,action:str=Form(...),r
         try:
             if not await discord_set_medallion_roles(settings,target.discord_user_id,target.tier.name if target.tier!=Tier.MEMBER else None): raise RuntimeError("Discord bot role synchronization is not configured")
         except Exception as exc: db.rollback(); raise HTTPException(502,"Discord roles could not be restored; the account was not restored") from exc
+    enqueue_member_update(db,target,f"Ownership access action: {action}",actor)
     db.commit()
     try: await discord_announce_update(settings,title=f"Member {action.title()}",description=f"{actor.discord_display_name} applied **{action}** to {target.discord_display_name}.",fields=[{"name":"Reason","value":reason[:1024]}])
     except Exception: pass
@@ -873,7 +947,8 @@ async def admin_flight_status(request:Request,flight_id:int,status:str=Form(...)
         rows=db.execute(select(Booking,User).join(User,Booking.user_id==User.id).where(Booking.flight_id==flight.id,Booking.status=="CONFIRMED")).all(); emojis=await emoji_map()
         for booking,member in rows:
             if new_status==FlightStatus.CANCELLED:
-                refund=booking.miles_used; member.miles_balance+=refund; booking.miles_refunded+=refund; booking.status="CANCELLED"; booking.cancelled_at=datetime.now(timezone.utc)
+                refund=booking.miles_used; before=member.miles_balance; member.miles_balance+=refund; booking.miles_refunded+=refund; booking.status="CANCELLED"; booking.cancelled_at=datetime.now(timezone.utc)
+                if refund: add_transaction(db,member,type="FLIGHT_CANCELLATION_REFUND",description=f"Refund for cancelled flight {flight.flight_number}",reference=booking.confirmation_number,miles_change=refund,balance_before=before,balance_after=member.miles_balance,actor=actor)
                 content=f"{em(emojis,'Warning','⚠️')} Delta Air Lines | Flight Cancelled\n\nYour upcoming Delta flight has been cancelled.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Original Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Ticket','🎟️')} Confirmation Number: {booking.confirmation_number}\n\nReason:\n{flight.status_message or 'Operational update'}\n\n{em(emojis,'CreditCard','💳')} SkyMiles Refunded: {refund:,}\n\nWe apologize for the inconvenience.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."
             elif new_status==FlightStatus.DELAYED:
                 content=f"{em(emojis,'Timer','⏱️')} Delta Air Lines | Flight Delayed\n\nThere has been an update to your upcoming flight.\n\n{em(emojis,'Plane','✈️')} Flight: Delta {flight.flight_number}\n{em(emojis,'Maps','🗺️')} Route: {flight.departure_airport} → {flight.destination_airport}\n{em(emojis,'Schedule','📅')} Departure: {flight.starts_at.strftime('%b %d, %Y at %H:%M UTC')}\n{em(emojis,'Parking','🅿️')} Gate: {assigned(flight.gate)}\n\nReason:\n{flight.status_message or 'Operational update'}\n\nPlease check My Trips for the latest information.\n\n{em(emojis,'WingPinLogo','🔺')} Keep Climbing, Delta Air Lines."

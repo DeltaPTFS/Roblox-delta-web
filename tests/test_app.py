@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from datetime import datetime, timezone
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
@@ -263,3 +264,32 @@ def test_render_static_entry_preserves_secure_backend_boundary():
     assert "SKYMILES_BACKEND_URL" in blueprint and "SKYMILES_BACKEND_URL must begin with https://" in build
     assert "__SKYMILES_BACKEND_URL__/auth/roblox" in landing
     assert "Not affiliated with or operated by Delta Air Lines, Inc." in landing
+
+
+def test_vercel_entry_reuses_canonical_fastapi_app_and_routes_everything():
+    from api.index import app as vercel_app
+    assert vercel_app is app
+    config=json.loads(Path("vercel.json").read_text())
+    assert config["rewrites"]==[{"source":"/(.*)","destination":"/api/index"}]
+    assert config["functions"]["api/index.py"]["includeFiles"]==["website/templates/**","website/static/**"]
+
+
+def test_vercel_serverless_mode_disables_daemons_and_exposes_secured_maintenance(monkeypatch):
+    settings=Settings(serverless_mode=False)
+    monkeypatch.setenv("VERCEL","1")
+    assert settings.is_serverless
+    source=Path("website/app/main.py").read_text()
+    assert "if settings.is_serverless:" in source
+    assert '@app.get("/api/cron/maintenance")' in source
+    assert 'secrets.compare_digest(authorization,expected)' in source
+    assert "send_flight_reminders_once(limit=5)" in source
+
+
+def test_vercel_migrations_seed_defaults_without_request_startup():
+    migration=Path("migrations/versions/0011_seed_program_defaults.py").read_text()
+    assert 'down_revision = "0010"' in migration
+    assert 'if tier not in existing_tiers' in migration
+    assert 'if name not in existing_rewards' in migration
+    readme=Path("README.md").read_text()
+    assert "## Vercel Deployment" in readme
+    assert "Do **not** put `alembic upgrade head` in a Vercel function" in readme

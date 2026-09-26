@@ -15,7 +15,10 @@ def normalize_database_url(url: str) -> str:
     return url
 
 
-url = normalize_database_url(get_settings().database_url)
+settings = get_settings()
+url = normalize_database_url(settings.database_url)
+if settings.is_serverless and url.startswith("sqlite"):
+    raise RuntimeError("DATABASE_URL must use PostgreSQL in serverless production; SQLite is not supported")
 engine = create_engine(url, pool_pre_ping=True, connect_args={"check_same_thread": False} if url.startswith("sqlite") else {})
 SessionLocal = sessionmaker(engine, expire_on_commit=False)
 
