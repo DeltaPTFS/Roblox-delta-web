@@ -125,11 +125,13 @@ For a manually created Render Static Site, use build command `sh scripts/build-s
 
 ## Vercel Deployment
 
-Vercel runs the existing FastAPI application through `api/index.py`. That file
-only imports `website.app.main:app`; it does not create another application.
-`vercel.json` rewrites every request to that function, after which FastAPI keeps
-handling all existing routes, OAuth callbacks, Jinja pages, `/static/*`, and
-`/health`. Keep the project **Root Directory** at the repository root.
+Vercel discovers the root-level `app.py` through its native, zero-configuration
+FastAPI support. That file only imports `website.app.main:app`; it does not
+create another application. There is deliberately no catch-all rewrite and no
+`api/index.py`, so FastAPI receives the original request path for `/`, OAuth
+callbacks, profiles, SkyMiles pages, `/static/*`, and `/health`. The existing
+`StaticFiles` mount and Jinja template paths therefore behave exactly as they do
+outside Vercel. Keep the project **Root Directory** at the repository root.
 
 ### Required Vercel environment variables
 
@@ -216,8 +218,8 @@ database does not depend on application startup side effects.
 1. Open Vercel → **Roblox-delta-web** → **Settings → General**.
 2. Set **Framework Preset** to **Other** and **Root Directory** to `./`.
 3. Leave Build Command and Output Directory overrides disabled. Vercel detects
-   `api/index.py` and installs `requirements.txt`; there is no Uvicorn Start
-   Command on Vercel.
+   the root `app.py` FastAPI application and installs `requirements.txt`; there
+   is no Uvicorn Start Command and no catch-all rewrite on Vercel.
 4. Open **Settings → Environment Variables**, add the variables above, and make
    sure `DATABASE_URL` is available to Production. Add the OAuth/provider
    secrets to Preview only if Preview deployments are intended to support OAuth.

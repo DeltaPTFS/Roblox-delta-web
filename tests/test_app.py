@@ -1,5 +1,4 @@
 import os
-import json
 from pathlib import Path
 from datetime import datetime, timezone
 os.environ.update(DATABASE_URL="sqlite://",COOKIE_SECURE="false",SESSION_SECRET="test-secret-at-least-thirty-two-characters")
@@ -266,12 +265,25 @@ def test_render_static_entry_preserves_secure_backend_boundary():
     assert "Not affiliated with or operated by Delta Air Lines, Inc." in landing
 
 
-def test_vercel_entry_reuses_canonical_fastapi_app_and_routes_everything():
-    from api.index import app as vercel_app
+def test_vercel_zero_config_entry_reuses_canonical_fastapi_app():
+    from app import app as vercel_app
     assert vercel_app is app
-    config=json.loads(Path("vercel.json").read_text())
-    assert config["rewrites"]==[{"source":"/(.*)","destination":"/api/index"}]
-    assert config["functions"]["api/index.py"]["includeFiles"]==["website/templates/**","website/static/**"]
+    assert not Path("vercel.json").exists()
+    assert not Path("api/index.py").exists()
+
+
+def test_native_fastapi_paths_and_static_mount_are_preserved():
+    paths={getattr(route,"path",None) for route in app.routes}
+    assert {"/","/health","/auth/roblox","/auth/discord","/profile","/miles"}.issubset(paths)
+    assert "/static" in paths
+    with TestClient(app) as client:
+        assert client.get("/").status_code==200
+        assert client.get("/health").status_code==200
+        assert client.get("/static/style.css").status_code==200
+        assert client.get("/auth/roblox").status_code==503  # Route reached; test OAuth is intentionally unconfigured.
+        assert client.get("/auth/discord").status_code==401
+        assert client.get("/profile").status_code==401
+        assert client.get("/miles").status_code==401
 
 
 def test_vercel_serverless_mode_disables_daemons_and_exposes_secured_maintenance(monkeypatch):
