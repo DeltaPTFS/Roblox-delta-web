@@ -168,6 +168,11 @@ def test_invalid_flight_form_preserves_submitted_values():
 def test_release_update_notice_and_uncached_health():
     base_template = Path("website/templates/base.html").read_text()
     assert "Website update in progress" in base_template
+    assert "WEBSITE UPDATE" in base_template
+    assert "We’re publishing the latest SkyMiles improvements." in base_template
+    assert "The website update is now live." in base_template
+    assert "Render brings the new release live" not in base_template
+    assert "live on Render" not in base_template
     assert "skymiles-release-{{ asset_version }}" in base_template
     with TestClient(app) as client:
         response = client.get("/health")
@@ -274,14 +279,23 @@ def test_vercel_zero_config_entry_reuses_canonical_fastapi_app():
 
 def test_native_fastapi_paths_and_static_mount_are_preserved():
     paths={getattr(route,"path",None) for route in app.routes}
-    assert {"/","/health","/auth/roblox","/auth/discord","/profile","/miles"}.issubset(paths)
+    assert {"/","/health","/auth/roblox","/auth/discord/login","/auth/roblox/callback","/auth/discord/callback","/profile","/miles"}.issubset(paths)
     assert "/static" in paths
     with TestClient(app) as client:
         assert client.get("/").status_code==200
         assert client.get("/health").status_code==200
-        assert client.get("/static/style.css").status_code==200
+        css=client.get("/static/style.css")
+        assert css.status_code==200
+        assert css.headers["content-type"].startswith("text/css")
+        assert "--navy:" in css.text and "<html" not in css.text.lower()
+        emblem=client.get("/static/delta-emblem.svg")
+        assert emblem.status_code==200
+        assert emblem.headers["content-type"].startswith("image/svg+xml")
+        assert "<svg" in emblem.text and "<html" not in emblem.text.lower()
         assert client.get("/auth/roblox").status_code==503  # Route reached; test OAuth is intentionally unconfigured.
-        assert client.get("/auth/discord").status_code==401
+        assert client.get("/auth/discord/login").status_code==503
+        assert client.get("/auth/roblox/callback").status_code==422
+        assert client.get("/auth/discord/callback").status_code==422
         assert client.get("/profile").status_code==401
         assert client.get("/miles").status_code==401
 
