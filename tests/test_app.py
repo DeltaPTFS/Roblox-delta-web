@@ -137,11 +137,16 @@ def test_login_has_safe_oauth_and_disclaimer():
         assert "Verify with Roblox" in response.text
         assert "Continue with Discord" in response.text
         assert "COMMUNITY OPERATIONS" in response.text
+        assert 'id="route-transition"' in response.text
+        assert "Preparing your next destination" in response.text
         assert '<html lang="en" class="theme-light">' in response.text
         assert "/static/style.css?v=" in response.text
         assert "ROLEPLAY COMMUNITY</small>" not in response.text
         assert "Roblox Password" not in response.text
         assert "Not affiliated with or operated by Delta Air Lines, Inc." in response.text
+        css=client.get("/static/style.css").text
+        assert "@keyframes routeTakeoff" in css
+        assert "@media(prefers-reduced-motion:reduce)" in css
 
 def test_admin_requires_session():
     with TestClient(app) as client:
