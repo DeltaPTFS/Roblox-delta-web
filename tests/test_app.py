@@ -272,9 +272,12 @@ def test_render_static_entry_preserves_secure_backend_boundary():
 
 def test_vercel_zero_config_entry_reuses_canonical_fastapi_app():
     from app import app as vercel_app
+    entrypoint=Path("app.py").read_text()
     assert vercel_app is app
+    assert "from website.app.main import app" in entrypoint
+    assert "FastAPI(" not in entrypoint
     assert not Path("vercel.json").exists()
-    assert not Path("api/index.py").exists()
+    assert not Path("api").exists()
 
 
 def test_native_fastapi_paths_and_static_mount_are_preserved():
