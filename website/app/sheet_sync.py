@@ -148,6 +148,8 @@ def add_transaction(db: Session, user: User, *, type: str, description: str, ref
     db.add(transaction)
     db.flush()
     enqueue_transaction(db, transaction, user, actor, replay=False)
+    # Keep the Members tab's current balance in sync with the immutable ledger.
+    enqueue_member_update(db, user, f"Ledger changed: {type}", actor)
     return transaction
 
 
