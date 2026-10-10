@@ -11,9 +11,12 @@ backend_url="${backend_url%/}"
 escaped_url=$(printf '%s' "$backend_url" | sed 's/[&|]/\\&/g')
 rm -rf dist
 mkdir -p dist
-cp static-site/style.css dist/style.css
+cp website/static/community.css dist/style.css
+if [ -d website/static/gallery ]; then cp -R website/static/gallery dist/gallery; fi
 cp website/static/delta-emblem.svg dist/favicon.svg
-sed "s|__SKYMILES_BACKEND_URL__|$escaped_url|g" static-site/index.html > dist/index.html
+discord_invite="${DISCORD_INVITE_URL:-https://discord.gg/}"
+escaped_discord=$(printf '%s' "$discord_invite" | sed 's/[&|]/\\&/g')
+sed -e "s|__SKYMILES_BACKEND_URL__|$escaped_url|g" -e "s|__DISCORD_INVITE_URL__|$escaped_discord|g" static-site/index.html > dist/index.html
 
 if grep -q '__SKYMILES_BACKEND_URL__' dist/index.html; then
   echo "Static-site backend placeholder was not replaced" >&2
