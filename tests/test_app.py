@@ -150,7 +150,9 @@ def test_login_has_safe_oauth_and_disclaimer():
 
 def test_admin_requires_session():
     with TestClient(app) as client:
-        assert client.get("/admin").status_code==401
+        response=client.get("/admin", follow_redirects=False)
+        assert response.status_code==303
+        assert response.headers["location"]=="/login"
 
 
 def test_flight_management_is_manual_and_local_time_enabled():
