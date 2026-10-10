@@ -220,3 +220,31 @@ class SheetSyncEvent(Base):
     last_error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class CommunityForm(Base):
+    """Form definitions are not coupled to SkyMiles enrollment."""
+    __tablename__ = "community_forms"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    slug: Mapped[str] = mapped_column(String(90), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(180))
+    description: Mapped[str] = mapped_column(Text, default="")
+    questions: Mapped[list] = mapped_column(JSON, default=list)
+    allowed_roles: Mapped[dict] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(16), default="DRAFT")
+    is_flight_form: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_by_discord_id: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class CommunityFormResponse(Base):
+    __tablename__ = "community_form_responses"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    submission_key: Mapped[str] = mapped_column(String(64), unique=True)
+    form_id: Mapped[int] = mapped_column(ForeignKey("community_forms.id"), index=True)
+    flight_id: Mapped[int | None] = mapped_column(ForeignKey("flights.id"), nullable=True, index=True)
+    discord_user_id: Mapped[str] = mapped_column(String(32), index=True)
+    discord_display_name: Mapped[str] = mapped_column(String(100))
+    answers: Mapped[dict] = mapped_column(JSON, default=dict)
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
