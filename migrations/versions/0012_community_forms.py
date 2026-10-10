@@ -9,6 +9,7 @@ depends_on = None
 
 
 def upgrade():
+    op.add_column("flights", sa.Column("hosted_by_discord_id", sa.String(32), nullable=True))
     op.create_table(
         "community_forms",
         sa.Column("id", sa.Integer, primary_key=True),
@@ -41,5 +42,6 @@ def upgrade():
 
 
 def downgrade():
+    op.drop_column("flights", "hosted_by_discord_id")
     op.drop_table("community_form_responses")
     op.drop_table("community_forms")
