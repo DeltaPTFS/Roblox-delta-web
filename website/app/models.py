@@ -123,6 +123,7 @@ class Flight(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     discord_event_id: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     flight_number: Mapped[str] = mapped_column(String(20), default="DAL 0000")
+    hosted_by_discord_id: Mapped[str | None] = mapped_column(String(32))
     departure_airport: Mapped[str] = mapped_column(String(8), default="TBA")
     destination_airport: Mapped[str] = mapped_column(String(8), default="TBA")
     aircraft: Mapped[str | None] = mapped_column(String(100))
