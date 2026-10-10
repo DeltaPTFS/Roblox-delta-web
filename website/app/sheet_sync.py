@@ -1,4 +1,4 @@
-"""Reliable one-way mirroring from the website database to the Delta Main Bot.
+"""Reliable one-way mirroring from the website database to the deltaptfs-bot.
 
 PostgreSQL is the source of truth.  This module only writes immutable outbox
 records in the same transaction as website changes, then delivers them after
@@ -180,7 +180,7 @@ def signed_headers(secret: str, body: bytes, timestamp: int) -> dict[str, str]:
 
 async def deliver_event(settings: Settings, event: SheetSyncEvent) -> str:
     if not settings.delta_bot_internal_url or not settings.delta_bot_internal_secret:
-        raise RuntimeError("Delta Main Bot sheet sync is not configured")
+        raise RuntimeError("deltaptfs-bot sheet sync is not configured")
     if len(settings.delta_bot_internal_secret) < 32:
         raise RuntimeError("DELTA_BOT_INTERNAL_SECRET must contain at least 32 characters")
     parsed = urlparse(settings.delta_bot_internal_url)
