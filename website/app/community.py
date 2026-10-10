@@ -162,6 +162,7 @@ def enqueue_flight(db: Session, flight: Flight):
     data = {"flight_id": flight.id, "flight_number": flight.flight_number,
             "departure": flight.departure_airport, "destination": flight.destination_airport,
             "aircraft": flight.aircraft or "", "gate": flight.gate or "",
+            "host_discord_id": flight.hosted_by_discord_id or "",
             "starts_at": flight.starts_at.isoformat(), "ends_at": flight.ends_at.isoformat() if flight.ends_at else "",
             "status": flight.status.value, "name": flight.name}
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:18]
@@ -390,6 +391,7 @@ async def hosted_flight(request: Request, db: Session = Depends(get_db)):
                         starts_at=starts, location=departure + " → " + destination)
         db.add(flight)
     flight.flight_number = number
+    flight.hosted_by_discord_id = str(data.get("host_discord_id") or "")[:32] or None
     flight.name = str(data.get("name") or number)[:120]
     flight.departure_airport, flight.destination_airport = departure, destination
     flight.aircraft = str(data.get("aircraft") or "")[:100] or None
