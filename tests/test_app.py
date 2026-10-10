@@ -133,7 +133,7 @@ def test_static_assets_are_cached_and_compressed():
 
 def test_login_has_safe_oauth_and_disclaimer():
     with TestClient(app) as client:
-        response=client.get("/")
+        response=client.get("/login")
         assert "Verify with Roblox" in response.text
         assert "Continue with Discord" in response.text
         assert "COMMUNITY OPERATIONS" in response.text
@@ -327,3 +327,21 @@ def test_vercel_migrations_seed_defaults_without_request_startup():
     readme=Path("README.md").read_text()
     assert "## Vercel Deployment" in readme
     assert "Do **not** put `alembic upgrade head` in a Vercel function" in readme
+
+
+
+def test_public_homepage_is_not_a_login_wall():
+    with TestClient(app) as client:
+        response = client.get("/")
+        assert response.status_code == 200
+        assert "Every flight" in response.text
+        assert "Delta Air Lines" in response.text
+        assert 'href="/forms"' in response.text
+        assert 'href="/dashboard"' in response.text
+
+
+def test_guest_form_navigation_starts_discord_oauth():
+    with TestClient(app) as client:
+        response=client.get("/forms", follow_redirects=False)
+        assert response.status_code == 303
+        assert response.headers["location"].startswith("/auth/discord/forms")
