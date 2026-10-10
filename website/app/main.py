@@ -954,7 +954,7 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
     db.commit()
     try: await discord_announce_update(settings,title="Flight Created",description=f"{actor.discord_display_name} created {number}: {departure} → {destination}.",fields=[{"name":"SkyMiles reward","value":f"{reward:,}","inline":True},{"name":"Discord event","value":discord_event_url.strip() or "Manual flight"}])
     except Exception: pass
-    return RedirectResponse(f"{panel_path(permission(actor,settings))}?flight_created=1",303)
+    return RedirectResponse(f"{panel_path(permission(actor,settings))}?flight_created=1&flight_id={flight.id}",303)
 
 
 @app.post("/admin/flights/{flight_id}/status")
