@@ -20,6 +20,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from .community import router as community_router, ensure_flight_form, enqueue_flight, memberships
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
@@ -85,6 +86,7 @@ app.add_exception_handler(RateLimitExceeded, lambda r, e: JSONResponse({"detail"
 app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max_age=86400)
 app.add_middleware(GZipMiddleware, minimum_size=800)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
+app.include_router(community_router)
 
 
 @app.middleware("http")
@@ -210,6 +212,13 @@ async def web_discord_emojis(request:Request,db:Session=Depends(get_db)):
 
 
 @app.get("/", response_class=HTMLResponse)
+def homepage(request: Request, db: Session = Depends(get_db)):
+    user=db.get(User, request.session["user_id"]) if request.session.get("user_id") else None
+    viewer={"id": user.discord_user_id, "name": user.discord_display_name} if user else request.session.get("forms_identity")
+    return templates.TemplateResponse("homepage.html", context(request, viewer=viewer))
+
+
+@app.get("/login", response_class=HTMLResponse)
 def login(request: Request):
     if request.session.get("user_id"): return RedirectResponse("/dashboard", 303)
     return templates.TemplateResponse("login.html", context(request))
@@ -260,6 +269,17 @@ def start_discord(request: Request):
     return RedirectResponse(discord_authorize(settings, state, challenge))
 
 
+@app.get("/auth/discord/forms")
+@limiter.limit("10/minute")
+def start_discord_forms_login(request: Request, next: str = "/forms"):
+    if not settings.discord_client_id or not settings.discord_bot_token: raise HTTPException(503, "Discord OAuth is not configured")
+    target=next if next.startswith("/") and not next.startswith("//") and not next.startswith("/\\") else "/forms"
+    request.session["discord_login_for_forms"]=True
+    request.session["forms_login_return"]=target[:300]
+    state, challenge=oauth_values(request,"discord")
+    return RedirectResponse(discord_authorize(settings,state,challenge))
+
+
 @app.get("/auth/discord/login")
 @limiter.limit("10/minute")
 def start_discord_login(request: Request):
@@ -279,10 +299,20 @@ def next_number(db):
 async def discord_callback(request: Request, code: str, state: str, db: Session=Depends(get_db)):
     pending = request.session.get("pending_roblox")
     direct_login = bool(request.session.pop("discord_login_only",False))
-    if not pending and not direct_login: raise HTTPException(401, "Verification session expired")
+    forms_login = bool(request.session.pop("discord_login_for_forms",False))
+    if not pending and not direct_login and not forms_login: raise HTTPException(401, "Verification session expired")
     verifier = consume_oauth(request, "discord", state)
     try: identity = await discord_identity(settings, code, verifier)
     except Exception: return RedirectResponse("/error?kind=discord",303)
+    if forms_login:
+        roles=await memberships(identity["id"])
+        if not roles:
+            request.session.clear()
+            return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
+        target=request.session.pop("forms_login_return","/forms")
+        request.session.clear()
+        request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+        return RedirectResponse(target,303)
     if not identity["member"]: return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
     if direct_login:
         user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
@@ -918,6 +948,8 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
         location=f"{departure} → {destination}"
     flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,ends_at=arrival_time,aircraft=aircraft.strip()[:100] or None,gate=gate.strip()[:30] or None,roblox_game_url=game_url,miles_reward=reward,status=FlightStatus.SCHEDULED)
     db.add(flight); db.flush()
+    ensure_flight_form(db, actor.discord_user_id)
+    enqueue_flight(db, flight)
     db.add(AuditLog(staff_user_id=actor.id,target_user_id=None,action="FLIGHT_CREATED",old_value=None,new_value={"flight_id":flight.id,"number":number,"route":f"{departure}-{destination}","miles_reward":reward},reason="Staff-created community flight",security_metadata={"ip":request.client.host if request.client else None}))
     db.commit()
     try: await discord_announce_update(settings,title="Flight Created",description=f"{actor.discord_display_name} created {number}: {departure} → {destination}.",fields=[{"name":"SkyMiles reward","value":f"{reward:,}","inline":True},{"name":"Discord event","value":discord_event_url.strip() or "Manual flight"}])
