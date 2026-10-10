@@ -1,0 +1,16 @@
+{% extends "community_base.html" %}{% block title %}Community Forms{% endblock %}
+{% block content %}
+<section class="community-page">
+<div class="page-heading"><div><span class="eyebrow">DELTA AIR LINES · FORM CENTER</span><h1>Forms & Applications</h1>
+<p>Welcome, {{ viewer.name }}. Browse open applications, flight fillouts, and community opportunities.</p></div>
+{% if access != "MEMBER" %}<a class="community-btn primary" href="/forms/new">+ Create a new form</a>{% endif %}</div>
+{% if request.query_params.get('submitted') %}<div class="success-note">Your response was submitted successfully. Thank you!</div>{% endif %}
+<div class="form-list">{% for form in forms %}
+<article class="form-card"><div class="form-card-top"><span class="eyebrow">{{ "FLIGHT FILLOUT" if form.is_flight_form else "COMMUNITY APPLICATION" }}</span>
+<span class="status-tag {{ form.status|lower }}">{{ form.status|title }}</span></div>
+<h2>{{ form.title }}</h2><p>{{ form.description }}</p><div class="form-card-foot">
+{% if form.status == "PUBLISHED" %}<a class="community-btn primary" href="/forms/{{ form.slug }}">Open form →</a>{% endif %}
+{% if access != "MEMBER" %}<a href="/forms/{{ form.slug }}/edit">Edit form</a><a href="/forms/{{ form.slug }}/responses">Responses</a>{% endif %}
+</div></article>
+{% else %}<div class="form-empty"><h2>No forms available right now.</h2><p>Published forms that match your Discord server roles will appear here.</p></div>{% endfor %}</div>
+</section>{% endblock %}

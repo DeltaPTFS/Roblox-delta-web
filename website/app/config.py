@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     discord_client_secret: str = ""
     discord_redirect_uri: str = "http://localhost:8000/auth/discord/callback"
     discord_guild_id: str = ""
+    discord_crew_guild_id: str = ""
+    crew_owner_role_ids: str = ""
+    crew_admin_role_ids: str = ""
+    crew_staff_role_ids: str = ""
+    delta_flight_api_secret: str = ""
+    google_sheets_webhook_url: str = ""
+    google_sheets_webhook_secret: str = ""
     discord_invite_url: str = "https://discord.gg/"
     discord_skymiles_channel_url: str = "https://discord.com/channels/1538738611988467782/1541156846579089519"
     discord_bot_token: str = ""
@@ -37,7 +44,7 @@ class Settings(BaseSettings):
     welcome_bonus_miles: int = 0
     local_password_login_enabled: bool = False
     cookie_secure: bool = True
-    # Optional, one-way integration with the Delta Main Bot. PostgreSQL remains
+    # Optional, one-way integration with the deltaptfs-bot. PostgreSQL remains
     # authoritative; delivery failures are retained in the durable outbox.
     delta_bot_internal_url: str = ""
     delta_bot_internal_secret: str = ""

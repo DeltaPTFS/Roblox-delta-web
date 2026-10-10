@@ -1,0 +1,25 @@
+{% extends "community_base.html" %}{% block title %}{{ form.title }}{% endblock %}
+{% block content %}<section class="community-page narrow">
+<a class="back-link" href="/forms">← All forms</a><div class="form-answer"><span class="eyebrow">DELTA AIR LINES FORM</span><h1>{{ form.title }}</h1><p>{{ form.description }}</p>
+{% if flight %}<div class="flight-note">Flight {{ flight.flight_number }} · {{ flight.departure_airport }} → {{ flight.destination_airport }} · {{ flight.starts_at.strftime("%b %d, %Y at %H:%M UTC") }}</div>{% endif %}
+<p class="signed-as">Signed in securely through Discord as <strong>{{ viewer.name }}</strong>. SkyMiles membership is not required.</p>
+{% if form.is_flight_form and not flight %}
+<div class="form-list" style="grid-template-columns:1fr">
+{% for available in open_flights %}<div class="form-card"><h2>{{ available.flight_number }} · {{ available.departure_airport }} → {{ available.destination_airport }}</h2>
+<p>{{ available.starts_at.strftime("%b %d, %Y at %H:%M UTC") }} · {{ available.aircraft or "Aircraft to be assigned" }}</p>
+<a class="community-btn primary" href="/forms/{{ form.slug }}?flight={{ available.id }}">Complete fillout for this flight →</a></div>
+{% else %}<p>No flights are currently accepting fillouts.</p>{% endfor %}</div>
+{% else %}
+<form method="post" action="/forms/{{ form.slug }}/submit">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="submission_key" value="{{ submission_key }}">
+<input type="hidden" name="flight_id" value="{{ flight.id if flight else '' }}">
+{% for q in form.questions %}<div class="answer-field">
+<label for="field-{{ q.id }}">{{ loop.index }}. {{ q.label }} {% if q.required %}<span class="required">*</span>{% endif %}</label>
+{% if q.type == "textarea" %}<textarea id="field-{{ q.id }}" name="answer_{{ q.id }}" rows="4" maxlength="2000" {% if q.required %}required{% endif %}></textarea>
+{% elif q.type == "select" %}<select id="field-{{ q.id }}" name="answer_{{ q.id }}" {% if q.required %}required{% endif %}><option value="">Choose an option</option>{% for choice in q.options %}<option value="{{ choice }}">{{ choice }}</option>{% endfor %}</select>
+{% elif q.type == "radio" %}<fieldset>{% for choice in q.options %}<label class="choice"><input type="radio" name="answer_{{ q.id }}" value="{{ choice }}" {% if q.required %}required{% endif %}>{{ choice }}</label>{% endfor %}</fieldset>
+{% elif q.type == "checkbox" %}<fieldset>{% for choice in (q.options or ["Yes"]) %}<label class="choice"><input type="checkbox" name="answer_{{ q.id }}" value="{{ choice }}">{{ choice }}</label>{% endfor %}</fieldset>
+{% else %}<input type="{{ q.type }}" id="field-{{ q.id }}" name="answer_{{ q.id }}" maxlength="2000" {% if q.required %}required{% endif %}>{% endif %}
+</div>{% endfor %}<button class="community-btn primary" type="submit">Submit response →</button></form>
+{% endif %}
+</div></section>{% endblock %}

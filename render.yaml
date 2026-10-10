@@ -9,6 +9,8 @@ services:
     envVars:
       - key: SKYMILES_BACKEND_URL
         value: https://roblox-delta-web.onrender.com
+      - key: DISCORD_INVITE_URL
+        sync: false
   - type: web
     name: delta-skymiles-roblox
     runtime: python
@@ -38,6 +40,18 @@ services:
         value: https://www.roblox.com/communities/6661826/Delta-Air-Lines-RBLX#!/about
       - key: DISCORD_GUILD_ID
         value: "1538738611988467782"
+      - key: DISCORD_CREW_GUILD_ID
+        sync: false
+      - key: CREW_OWNER_ROLE_IDS
+        sync: false
+      - key: CREW_ADMIN_ROLE_IDS
+        sync: false
+      - key: CREW_STAFF_ROLE_IDS
+        sync: false
+      - key: DELTA_FLIGHT_API_SECRET
+        sync: false
+      - key: DISCORD_INVITE_URL
+        sync: false
       - key: DISCORD_SKYMILES_CHANNEL_URL
         value: https://discord.com/channels/1538738611988467782/1541156846579089519
       - key: DISCORD_BOOKING_CHANNEL_ID

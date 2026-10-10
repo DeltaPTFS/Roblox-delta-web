@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Delta Air Lines{% endblock %} · Roblox Roleplay</title>
+<meta name="description" content="Delta Air Lines Roblox roleplay community — flights, SkyMiles, crew applications and events.">
+<link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
+<link rel="stylesheet" href="/static/community.css"></head>
+<body>
+<header class="community-header">
+  <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
+  <nav aria-label="Primary navigation">
+    <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
+    <a href="/dashboard">SkyMiles</a><a href="/admin">Admin</a>
+  </nav>
+  {% if viewer %}
+    <a class="community-account" href="/forms">{{ viewer.name }} <span>↗</span></a>
+  {% else %}
+    <a class="community-account" href="/login">Sign in <span>→</span></a>
+  {% endif %}
+</header>
+<main>{% block content %}{% endblock %}</main>
+<footer class="community-footer"><div><strong>DELTA AIR LINES</strong><p>Keep Climbing.</p></div>
+<div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
+<a href="{{ settings.discord_invite_url }}">Join our Discord →</a></div></footer>
+</body></html>
