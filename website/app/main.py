@@ -47,7 +47,7 @@ FLIGHT_TERMINAL_GRACE = timedelta(minutes=10)
 async def lifespan(app):
     # Vercel functions are short-lived and may start concurrently. Schema
     # migrations, daemon loops, and a permanent Discord Gateway must run in a
-    # release job or the always-on Delta Main Bot—not during function startup.
+    # release job or the always-on deltaptfs-bot—not during function startup.
     if settings.is_serverless:
         yield
         return
