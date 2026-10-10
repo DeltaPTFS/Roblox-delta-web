@@ -308,7 +308,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         roles=await memberships(identity["id"])
         if not roles:
             request.session.clear()
-            return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
+            return templates.TemplateResponse("restricted.html", context(request, kind="forms"), status_code=403)
         target=request.session.pop("forms_login_return","/forms")
         request.session.clear()
         request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
