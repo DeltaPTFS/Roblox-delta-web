@@ -281,9 +281,10 @@ async def open_form(request: Request, slug: str, flight: int | None = None,
     related = db.get(Flight, flight) if flight and form.is_flight_form else None
     if flight and not related:
         raise HTTPException(404, "Flight not found")
+    open_flights = db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.SCHEDULED, FlightStatus.DELAYED])).order_by(Flight.starts_at)).all() if form.is_flight_form and related is None else []
     return templates.TemplateResponse("forms/answer.html",
         page_context(request, viewer, roles, form=form, flight=related,
-                     submission_key=uuid4().hex))
+                     open_flights=open_flights, submission_key=uuid4().hex))
 
 
 @router.post("/forms/{slug}/submit")
