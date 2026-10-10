@@ -1013,6 +1013,9 @@ def error(request:Request,kind:str="authentication"): return templates.TemplateR
 
 @app.exception_handler(HTTPException)
 async def http_error(request, exc):
+    if (exc.status_code == 401 and request.method == "GET" and
+            not request.url.path.startswith(("/api/", "/internal/", "/auth/"))):
+        return RedirectResponse("/login", 303)
     titles={401:"Session Expired",403:"Access Denied",404:"Page Not Found"}
     return templates.TemplateResponse("error.html",context(request,title=titles.get(exc.status_code,"Something Went Wrong"),message=str(exc.detail)),status_code=exc.status_code)
 
