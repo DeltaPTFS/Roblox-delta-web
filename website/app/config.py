@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     welcome_bonus_miles: int = 0
     local_password_login_enabled: bool = False
     cookie_secure: bool = True
-    # Optional, one-way integration with the Delta Main Bot. PostgreSQL remains
+    # Optional, one-way integration with the deltaptfs-bot. PostgreSQL remains
     # authoritative; delivery failures are retained in the durable outbox.
     delta_bot_internal_url: str = ""
     delta_bot_internal_secret: str = ""
