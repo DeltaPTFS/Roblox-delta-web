@@ -946,7 +946,7 @@ async def admin_create_flight(request:Request,flight_number:str=Form(""),departu
         except ValueError: return reject("Enter a valid arrival date and time.")
         if arrival_time and arrival_time<=departure_time: return reject("Arrival must be after departure.")
         location=f"{departure} → {destination}"
-    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,ends_at=arrival_time,aircraft=aircraft.strip()[:100] or None,gate=gate.strip()[:30] or None,roblox_game_url=game_url,miles_reward=reward,status=FlightStatus.SCHEDULED)
+    flight=Flight(discord_event_id=event_id or f"manual-{uuid4().hex[:24]}",flight_number=number,departure_airport=departure,destination_airport=destination,name=name[:120],description=description[:1000],location=location,starts_at=departure_time,ends_at=arrival_time,aircraft=aircraft.strip()[:100] or None,gate=gate.strip()[:30] or None,roblox_game_url=game_url,miles_reward=reward,status=FlightStatus.SCHEDULED,hosted_by_discord_id=actor.discord_user_id)
     db.add(flight); db.flush()
     ensure_flight_form(db, actor.discord_user_id)
     enqueue_flight(db, flight)
