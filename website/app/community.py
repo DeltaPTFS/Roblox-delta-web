@@ -24,7 +24,7 @@ from .config import get_settings
 from .database import get_db
 from .models import CommunityForm, CommunityFormResponse, Flight, FlightStatus, User
 from .security import check_csrf, csrf_token, current_user
-from .sheet_sync import enqueue_event
+from .sheet_sync import enqueue_event, add_transaction
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).resolve().parents[1] / "templates")
@@ -334,7 +334,7 @@ async def submit_form(request: Request, slug: str, csrf: str = Form(...),
     enqueue_event(db, "forms:response:" + submission_key, "form_response",
                   {"response_id": response.id, "form_id": form.id, "form_title": form.title,
                    "discord_user_id": viewer["id"], "discord_display_name": viewer["name"],
-                   "flight_id": response.flight_id, "answers": answers,
+                   "flight_id": response.flight_id, "is_flight_form": form.is_flight_form, "roles": roles, "answers": answers,
                    "submitted_at": datetime.now(timezone.utc).isoformat()})
     try:
         db.commit()
@@ -405,3 +405,50 @@ async def hosted_flight(request: Request, db: Session = Depends(get_db)):
     return JSONResponse({"ok": True, "flight_id": flight.id,
                          "form_url": base_url + "/forms/" + form.slug + "?flight=" + str(flight.id),
                          "booking_url": base_url + "/flights", "flight_number": number})
+
+
+def internal_secret(request: Request):
+    secret = settings.delta_flight_api_secret
+    supplied = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    if len(secret) < 32 or not secrets.compare_digest(secret, supplied):
+        raise HTTPException(401, "Unauthorized")
+
+
+@router.post("/internal/skymiles/{action}")
+async def internal_skymiles(request: Request, action: str, db: Session = Depends(get_db)):
+    """One authoritative balance for bot and website; Sheets is a mirror."""
+    internal_secret(request)
+    if action not in {"balance", "leaderboard", "award"}:
+        raise HTTPException(404, "Unknown SkyMiles action")
+    data = await request.json()
+    if action == "leaderboard":
+        users = db.scalars(select(User).order_by(User.miles_balance.desc()).limit(10)).all()
+        return {"leaders": [{"userId": user.discord_user_id, "displayName": user.discord_display_name,
+                             "balance": user.miles_balance} for user in users]}
+    discord_id = str(data.get("user_id") or "")
+    if not re.fullmatch(r"\d{15,22}", discord_id):
+        raise HTTPException(422, "Invalid Discord ID")
+    user = db.scalar(select(User).where(User.discord_user_id == discord_id).with_for_update())
+    if not user:
+        raise HTTPException(404, "This member must enroll in SkyMiles before their balance can be changed")
+    if action == "balance":
+        return {"userId": discord_id, "balance": user.miles_balance}
+    amount = data.get("miles")
+    reason = str(data.get("reason") or "").strip()[:255]
+    actor_id = str(data.get("awarded_by_id") or "")
+    if isinstance(amount, bool) or not isinstance(amount, int) or not -1000000 <= amount <= 1000000 or amount == 0 or not reason:
+        raise HTTPException(422, "Provide a nonzero amount and reason")
+    if not re.fullmatch(r"\d{15,22}", actor_id):
+        raise HTTPException(422, "Invalid award author")
+    actor = db.scalar(select(User).where(User.discord_user_id == actor_id))
+    before = user.miles_balance
+    after = max(0, before + amount)
+    changed = after - before
+    user.miles_balance = after
+    if changed > 0:
+        user.lifetime_miles += changed
+    add_transaction(db, user, type="BOT_AWARD" if changed > 0 else "BOT_CORRECTION",
+                    description=reason, reference=str(data.get("flight_id") or "")[:100],
+                    miles_change=changed, balance_before=before, balance_after=after, actor=actor)
+    db.commit()
+    return {"userId": discord_id, "balance": after, "actual_change": changed}
