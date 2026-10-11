@@ -46,3 +46,26 @@
   .community-header .community-brand small{font-size:7px!important}
   .community-header .community-account{max-width:115px;padding:9px!important}
 }
+
+/* Real photographs shipped with the site as a compact fallback sprite.
+   Full-resolution staff uploads automatically display over each fallback. */
+.community-hero .hero-photo{
+  background-image:url('/static/gallery/photo-sprite.svg');
+  background-repeat:no-repeat;
+  background-size:300% 200%;
+  background-position:0% 0%;
+  background-color:#09295a;
+}
+.community-hero .hero-photo img.image-unavailable{display:none}
+.showcase .gallery-card{
+  background-image:url('/static/gallery/photo-sprite.svg');
+  background-size:300% 200%;
+  background-repeat:no-repeat;
+  background-color:#09295a;
+}
+.showcase .gallery-card:nth-child(1){background-position:50% 0%}
+.showcase .gallery-card:nth-child(2){background-position:100% 0%}
+.showcase .gallery-card:nth-child(3){background-position:0% 100%}
+.showcase .gallery-card:nth-child(4){background-position:50% 100%}
+.showcase .gallery-card:nth-child(5){background-position:100% 100%}
+.showcase .gallery-card img[hidden]{display:none!important}
