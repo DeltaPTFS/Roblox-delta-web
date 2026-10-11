@@ -53,8 +53,10 @@ def test_join_button_uses_discord_oauth_and_not_raw_invitation():
     home=Path("website/templates/homepage.html").read_text()
     main=Path("website/app/main.py").read_text()
     oauth=Path("website/app/oauth.py").read_text()
-    assert 'href="/join"' in home
-    assert 'href="/join"' in base
+    assert '"Go to Discord" if main_discord_member' in home
+    assert '"Join our Discord"' in home
+    assert '"Go to Discord" if main_discord_member is defined' in base
+    assert "'/join'" in home and "'/join'" in base
     assert 'Gallery</a>' not in base
     assert '@app.get("/join")' in main
     assert '@app.get("/welcome", response_class=HTMLResponse)' in main
@@ -98,7 +100,8 @@ def test_homepage_prioritizes_main_image_and_defers_gallery_decode():
     html = Path("website/templates/homepage.html").read_text()
     assert 'fetchpriority="high"' in html
     assert 'loading="lazy" decoding="async"' in html
-    assert 'href="/join">Join Delta Air Lines on Discord' in html
+    assert '"Join Delta Air Lines on Discord"' in html
+    assert 'discord_href if main_discord_member else' in html
 
 
 

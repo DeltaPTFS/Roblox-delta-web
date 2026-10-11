@@ -59,28 +59,16 @@
       Discord authentication confirmed · Server membership may still need verification
       {% endif %}
     </div>
-    <div class="success-footer">
-      <div class="progress-caption">
-        <span id="loading-copy">Preparing your Delta experience</span>
-        <span id="progress-seconds">00:04</span>
-      </div>
-      <div class="success-progress" role="progressbar" aria-label="Redirecting to your account" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="success-progress">
-        <span id="progress-fill"></span>
-      </div>
-      <div class="success-actions" id="success-actions">
-        <button class="sound-button" type="button" id="sound-button" hidden>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9a5 5 0 0 1 0 6M18 6a9 9 0 0 1 0 12"/></svg>
-          Play Welcome Sound
-        </button>
-        <a id="continue-link" class="continue-link" href="{{ destination }}">Continue now <span aria-hidden="true">→</span></a>
-      </div>
-      <p class="success-muted-note" id="autoplay-note" hidden>
-        Your browser blocked automatic sound. Tap <b>Play Welcome Sound</b> to hear it, or continue without audio.
-      </p>
+    <div class="success-finish" id="success-finish" aria-live="polite">
+      <span class="success-finish-eyebrow">IDENTITY CONNECTED · WELCOME ABOARD</span>
+      <a class="success-return-home" href="/signin/finish">
+        <span>Return to Homepage</span>
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
     </div>
   </main>
   <footer class="success-page-footer"><span>KEEP CLIMBING, DELTA AIR LINES.</span><span>INDEPENDENT ROBLOX AVIATION ROLEPLAY COMMUNITY</span></footer>
   <audio id="signin-sound" src="/static/audio/delta-signin.mp3" preload="auto"></audio>
-  <script type="application/json" id="signin-event">{{ {"destination":destination,"display_name":display_name,"kind":event.kind,"event_id":event.event_id} | tojson }}</script>
+  
 </body>
 </html>

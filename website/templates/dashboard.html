@@ -1,1 +1,86 @@
-{% extends "base.html" %}{% block content %}{% include "_dashboard_nav.html" %}<section class="dashboard-clock flight-local-clock" data-live-clock><span>YOUR LOCAL TIME</span><strong>--:--:--</strong><small>Detecting your timezone…</small></section><section class="program-banner premium-banner"><div class="banner-copy"><span class="eyebrow light">YOUR JOURNEY · ELEVATED</span><h2>Welcome aboard, {{ user.discord_display_name }}.</h2><p>Every community flight moves you closer to your next Medallion milestone and a more rewarding journey.</p><div class="banner-pills"><span><i></i> {% if role_sync_state == 'synced' %}Discord synchronized{% elif role_sync_state == 'error' %}Discord retry scheduled{% else %}Discord bot setup required{% endif %}</span><span>◆ {{ user.tier.value }}</span><span>✦ {{ "{:,}".format(user.miles_balance) }} available</span></div></div><div class="banner-route" aria-hidden="true"><b>ATL</b><span><i>✈</i></span><b>SKY</b></div><a href="/miles" class="text-link">EXPLORE STATUS <b>→</b></a></section><section class="grid dashboard-grid"><article class="hero-card"><span>SKYMILES</span><b>{{ user.skymiles_number }}</b><strong>{{ "{:,}".format(user.miles_balance) }}</strong><small>AVAILABLE MILES</small><em>{{ user.tier.value }}</em></article><article class="card qualification-card"><span class="eyebrow">MEDALLION QUALIFICATION</span><div class="qualification qualification-mqp"><div><strong>{{ "{:,}".format(user.medallion_qualifying_points) }}</strong><small>MEDALLION QUALIFYING POINTS</small></div></div><p>Medallion Status is based exclusively on your MQP total. Status enrollment opens after your first full membership day.</p></article><article class="card"><span class="eyebrow">ROBLOX</span><div class="identity"><img class="avatar" src="{{ user.roblox_avatar_url or '/static/avatar.svg' }}" alt=""><div><h3>{{ user.roblox_display_name }}</h3><p>@{{ user.roblox_username }}</p></div></div><strong class="verified-text">✓ VERIFIED COMMUNITY MEMBER</strong></article><article class="card span3"><div class="section-head"><div><span class="eyebrow">RECENT ACTIVITY</span><h2>Your latest miles</h2></div><a href="/activity">View all →</a></div>{% for t in transactions[:3] %}<div class="row"><div><b>{{ t.description }}</b><small>{{ t.reference or t.type }}</small></div><strong class="{{ 'positive' if t.miles_change > 0 else 'negative' }}">{{ '+' if t.miles_change > 0 else '' }}{{ "{:,}".format(t.miles_change) }} Miles</strong></div>{% else %}<p class="empty">Your first miles activity will appear here.</p>{% endfor %}</article><article class="book-home-card span3"><div><span class="eyebrow light">YOUR NEXT JOURNEY</span><h2>Ready to take off?</h2><p>Explore upcoming community flights, choose eligible amenities and reserve your place.</p></div><a class="button primary" href="/flights">Book a Flight!</a></article></section>{% endblock %}
+{% extends "base.html" %}
+{% block title %}My SkyMiles Dashboard{% endblock %}
+{% block content %}
+{% include "_dashboard_nav.html" %}
+<div class="delta-dashboard-v2">
+  <section class="delta-dash-hero program-banner premium-banner" aria-label="SkyMiles overview">
+    <div class="delta-dash-hero-body">
+      <span class="eyebrow light"><span class="delta-status-light"></span> YOUR JOURNEY · ELEVATED</span>
+      <h1>Welcome aboard,<br><em>{{ user.discord_display_name }}.</em></h1>
+      <p>Your flights, miles, Medallion progress and community experiences—all in one personal flight deck.</p>
+      <div class="delta-dash-hero-tags">
+        <span><i></i> {% if role_sync_state == "synced" %}Discord synchronized{% elif role_sync_state == "error" %}Discord status cached{% else %}Discord connection pending{% endif %}</span>
+        <span>{{ user.tier.value }}</span>
+        <span>{{ "{:,}".format(user.miles_balance) }} miles ready</span>
+      </div>
+      <div class="delta-dash-hero-actions">
+        <a class="delta-premium-btn" href="/flights">Explore Flights <span aria-hidden="true">→</span></a>
+        <a class="delta-premium-outline" href="/miles">View My Status <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="delta-dash-hero-side" aria-hidden="true">
+      <img src="/static/delta-emblem.svg" alt="">
+      <div class="delta-flight-route"><b>ATL</b><span><i></i></span><b>SKY</b></div>
+      <span class="delta-route-caption">KEEP CLIMBING</span>
+    </div>
+  </section>
+
+  <section class="delta-dashboard-clock dashboard-clock flight-local-clock" data-live-clock aria-label="Your local time">
+    <div><span class="eyebrow">LOCAL OPERATIONS TIME</span><p>Your journey is always on schedule.</p></div>
+    <div class="delta-live-clock"><strong>--:--:--</strong><small>Detecting your timezone…</small></div>
+  </section>
+
+  <section class="dashboard-v2-grid grid dashboard-grid" aria-label="Your SkyMiles">
+    <article class="hero-card delta-balance-card">
+      <div class="delta-stat-upper"><span class="eyebrow light">YOUR SKYMILES</span><span class="delta-stat-emblem"><img src="/static/delta-emblem.svg" alt=""></span></div>
+      <div class="delta-stat-number">{{ "{:,}".format(user.miles_balance) }}</div>
+      <span class="delta-stat-label">AVAILABLE MILES</span>
+      <div class="delta-stat-card-foot"><span>{{ user.skymiles_number }}</span><strong>{{ user.tier.value }}</strong></div>
+      <a class="delta-card-link" href="/miles">View SkyMiles details <span aria-hidden="true">→</span></a>
+    </article>
+
+    <article class="card qualification-card delta-qualification-card">
+      <div class="delta-stat-upper"><span class="eyebrow">MEDALLION PROGRESS</span><span class="delta-progress-glyph" aria-hidden="true">◇</span></div>
+      <div class="delta-qualification-value qualification qualification-mqp"><div><strong>{{ "{:,}".format(user.medallion_qualifying_points) }}</strong><small>MEDALLION QUALIFYING POINTS</small></div></div>
+      <p>Your Medallion Status is based on your MQP total. Status enrollment opens after your first full membership day.</p>
+      <a class="delta-card-link" href="/miles">See qualification details <span aria-hidden="true">→</span></a>
+    </article>
+
+    <article class="card delta-identity-card">
+      <div class="delta-stat-upper"><span class="eyebrow">VERIFIED IDENTITY</span><span class="delta-verified-icon" aria-hidden="true">✓</span></div>
+      <div class="identity">
+        <img class="avatar" src="{{ user.roblox_avatar_url or '/static/avatar.svg' }}" alt="">
+        <div><h3>{{ user.roblox_display_name }}</h3><p>@{{ user.roblox_username }}</p></div>
+      </div>
+      <strong class="verified-text"><span aria-hidden="true">✓</span> VERIFIED COMMUNITY MEMBER</strong>
+      <a class="delta-card-link" href="/profile">Review linked accounts <span aria-hidden="true">→</span></a>
+    </article>
+  </section>
+
+  <section class="delta-dashboard-lower">
+    <article class="card delta-activity-card">
+      <div class="section-head">
+        <div><span class="eyebrow">YOUR ACTIVITY</span><h2>Latest SkyMiles activity</h2><p>Every mile and reward is recorded on your account.</p></div>
+        <a class="delta-view-all" href="/activity">View all <span aria-hidden="true">→</span></a>
+      </div>
+      {% for t in transactions[:4] %}
+      <div class="row delta-activity-row">
+        <span class="delta-timeline-dot" aria-hidden="true"></span>
+        <div><b>{{ t.description }}</b><small>{{ t.reference or t.type }}</small></div>
+        <strong class="{{ 'positive' if t.miles_change > 0 else 'negative' }}">{{ '+' if t.miles_change > 0 else '' }}{{ "{:,}".format(t.miles_change) }} Miles</strong>
+      </div>
+      {% else %}<p class="empty">Your first miles activity will appear here after your next journey.</p>{% endfor %}
+    </article>
+    <article class="book-home-card delta-next-flight">
+      <div class="delta-next-flight-art" aria-hidden="true"></div>
+      <div><span class="eyebrow light">READY FOR DEPARTURE</span>
+        <h2>Where to next?</h2><p>Explore upcoming hosted flights, reserve your seat and keep climbing through the skies.</p>
+      </div>
+      <div class="delta-next-flight-actions">
+        <a class="button primary" href="/flights">Book a Flight</a>
+        <a href="/trips" class="delta-premium-outline">My Trips <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+  </section>
+</div>
+{% endblock %}

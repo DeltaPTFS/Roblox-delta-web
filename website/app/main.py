@@ -1,4 +1,5 @@
 import asyncio
+import httpx
 import io
 import re
 import secrets
@@ -120,7 +121,86 @@ def context(request, **values):
             role_names.update({role_id:"Staff" for role_id in settings.ids(settings.staff_discord_role_ids)})
             discord_role_details=[{"id":role_id,"name":role_names[role_id],"color":0} for role_id in user.discord_role_ids or [] if role_id in role_names]
         discord_roles=[role["name"] for role in discord_role_details]
+    # Rendering cached Crew display roles never grants access. Form/admin access is
+    # determined separately by live Discord membership checks.
+    cached=request.session.get("crew_profile_roles")
+    if user and isinstance(cached,dict) and cached.get("user_id")==user.discord_user_id:
+        values.setdefault("crew_role_details",cached.get("roles",[]))
+        values.setdefault("crew_member",bool(cached.get("member")))
+        values.setdefault("crew_roles_status","verified" if time()-float(cached.get("checked_at",0))<180 else "stale")
     return {"request":request,"csrf":csrf_token(request),"settings":settings,"asset_version":ASSET_VERSION,"show_feedback":show_feedback,"show_tutorial":show_tutorial,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
+
+
+# Decorative role labels only. Staff/Form authorization continues to use Discord checks.
+CREW_DISPLAY_NAMES={
+    "1554665018690248714":"Board of Directors",
+    "1554666461644197988":"Leadership",
+    "1554666482988875788":"Human Resources",
+    "1554669633573888010":"Delta Crew",
+    "1554671178893885480":"Awaiting Verification",
+}
+MAIN_DISPLAY_NAMES={
+    "1539005297417519205":"Founders",
+    "1539005030189891684":"Leadership",
+    "1539016506216812567":"Human Resources",
+    "1539968936681148456":"Delta Crew",
+    "1539005061609422849":"SkyMiles",
+    "1539005068916031518":"Customers",
+}
+
+
+def main_role_labels(role_ids: list[str] | None) -> list[dict]:
+    return [{"name":MAIN_DISPLAY_NAMES[role],"id":role,"color":0}
+            for role in (role_ids or []) if role in MAIN_DISPLAY_NAMES]
+
+
+async def main_roles_for_display(request: Request, user: User) -> list[dict]:
+    """Display the member's entire known guild-role catalog, not only staff badges."""
+    fallback=main_role_labels(user.discord_role_ids)
+    cached=request.session.get("main_profile_roles")
+    if isinstance(cached,dict) and cached.get("user_id")==user.discord_user_id:
+        if time()-float(cached.get("checked_at",0))<300:
+            return cached.get("roles",fallback)
+    roles=fallback
+    if settings.discord_bot_token and settings.discord_guild_id:
+        try:
+            catalog=await asyncio.wait_for(discord_guild_roles(settings),timeout=3)
+            roles=display_discord_roles(user.discord_role_ids or [],catalog) or fallback
+        except Exception:
+            pass
+    request.session["main_profile_roles"]={"user_id":user.discord_user_id,
+                                           "roles":roles,"checked_at":time()}
+    return roles
+
+
+async def crew_roles_for_display(request: Request, discord_id: str) -> dict:
+    """Fetch real Crew guild membership, caching it for 180 seconds only for display."""
+    empty={"roles":[],"member":False,"status":"unavailable"}
+    if not (settings.discord_crew_guild_id and settings.discord_crew_bot_token):
+        return {**empty,"status":"not_configured"}
+    cache=request.session.get("crew_profile_roles")
+    if isinstance(cache,dict) and cache.get("user_id")==str(discord_id):
+        if time()-float(cache.get("checked_at",0))<180:
+            return {"roles":cache.get("roles",[]),"member":bool(cache.get("member")),"status":"verified"}
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            response=await client.get(
+                f"https://discord.com/api/v10/guilds/{settings.discord_crew_guild_id}/members/{discord_id}",
+                headers={"Authorization":"Bot "+settings.discord_crew_bot_token})
+        if response.status_code==404:
+            result={"roles":[],"member":False,"status":"verified"}
+        elif response.status_code==200:
+            ids=set(map(str,response.json().get("roles",[])))
+            details=[{"name":name,"id":role_id,"color":0}
+                     for role_id,name in CREW_DISPLAY_NAMES.items() if role_id in ids]
+            result={"roles":details,"member":True,"status":"verified"}
+        else:
+            return {**empty,"status":"unavailable"}
+    except (httpx.HTTPError,ValueError):
+        return {**empty,"status":"unavailable"}
+    request.session["crew_profile_roles"]={"user_id":str(discord_id),"checked_at":time(),
+                                            "roles":result["roles"],"member":result["member"]}
+    return result
 
 
 def qualifies_for_tier(user: User, tier: TierConfig) -> bool:
@@ -216,10 +296,22 @@ async def web_discord_emojis(request:Request,db:Session=Depends(get_db)):
 
 
 @app.get("/", response_class=HTMLResponse)
-def homepage(request: Request, db: Session = Depends(get_db)):
+async def homepage(request: Request, db: Session = Depends(get_db)):
     user=linked_user_from_session(request,db)
-    viewer={"id": user.discord_user_id, "name": user.discord_display_name} if user else request.session.get("forms_identity")
-    return templates.TemplateResponse("homepage.html", context(request, viewer=viewer))
+    guest=request.session.get("forms_identity")
+    viewer={"id":user.discord_user_id,"name":user.discord_display_name} if user else guest
+    member_main=bool((user and user.discord_verified_at and user.discord_role_ids) or
+                     (isinstance(guest,dict) and guest.get("main_member")) or
+                     request.session.get("discord_join_status") in ("joined","already_member"))
+    crew=await crew_roles_for_display(request,viewer["id"]) if isinstance(viewer,dict) and viewer.get("id") else {"roles":[],"member":False,"status":"unavailable"}
+    main_roles=await main_roles_for_display(request,user) if user else []
+    return templates.TemplateResponse("homepage.html", context(
+        request,viewer=viewer,profile_user=user,profile_main_roles=main_roles,
+        crew_role_details=crew["roles"],crew_member=crew["member"],crew_roles_status=crew["status"],
+        main_discord_member=member_main,
+        discord_href="https://discord.com/channels/"+settings.discord_guild_id if member_main and settings.discord_guild_id else settings.discord_invite_url,
+        auth=permission(user,settings) if user else "MEMBER"
+    ))
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -352,13 +444,13 @@ def queue_signin_success(request: Request, *, display_name: str, destination: st
 
 @app.get("/signin/success", response_class=HTMLResponse)
 def signin_success(request: Request, db: Session=Depends(get_db)):
-    event=request.session.pop("signin_celebration",None)
+    event=request.session.get("signin_celebration")
     user=linked_user_from_session(request,db)
     guest=request.session.get("forms_identity")
     if not event:
-        return RedirectResponse("/dashboard" if user else "/forms" if guest else "/login",303)
+        return RedirectResponse("/dashboard" if user else "/forms" if guest else "/",303)
     if not user and not isinstance(guest,dict):
-        return RedirectResponse("/login",303)
+        return RedirectResponse("/",303)
     destination=str(event.get("destination") or "/forms")
     if not destination.startswith("/") or destination.startswith("//") or destination.startswith("/\\"):
         destination="/dashboard" if user else "/forms"
@@ -368,6 +460,13 @@ def signin_success(request: Request, db: Session=Depends(get_db)):
         display_name=event.get("name") or (viewer or {}).get("name","Member"),
         has_skymiles=bool(user)
     ),headers={"Cache-Control":"private, no-store"})
+
+
+@app.get("/signin/finish")
+def finish_signin_celebration(request: Request):
+    """Only dismiss the verification screen after the member clicks home."""
+    request.session.pop("signin_celebration",None)
+    return RedirectResponse("/",303)
 
 
 def next_number(db):
@@ -514,6 +613,10 @@ async def member_page(request: Request, template: str, db: Session):
         auth=permission(user,settings)
     else:
         auth=await refresh_discord_authorization(user,db); request.session["discord_sync_checked_at"]=time()
+    if getattr(user,"_discord_role_details",None):
+        request.session["main_profile_roles"]={"user_id":user.discord_user_id,
+            "roles":user._discord_role_details,"checked_at":time()}
+    await crew_roles_for_display(request,user.discord_user_id)
     transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all() if template in {"dashboard.html","activity.html"} else []
     rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all() if template=="rewards.html" else []
     tiers=db.scalars(select(TierConfig).order_by(TierConfig.mqp_threshold)).all() if template=="miles.html" else []
@@ -872,6 +975,7 @@ def persist_qualification_adjustment(db:Session,user_id:int,mqp:int,segments:int
 
 async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     actor=await ({"STAFF":require_staff,"ADMIN":require_admin,"OWNER":require_owner}[required])(request,db); users=[]
+    await crew_roles_for_display(request,actor.discord_user_id)
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
     terminal_cutoff=datetime.now(timezone.utc)-FLIGHT_TERMINAL_GRACE
     flights=db.scalars(select(Flight).where(or_(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.updated_at>terminal_cutoff)).order_by(Flight.starts_at.desc()).limit(20)).all() if required in {"ADMIN","OWNER"} else []

@@ -104,7 +104,7 @@ def test_mobile_title_channel_and_equal_tutorial_hosts():
     assert "1541156846579089519" in Settings().discord_skymiles_channel_url
     assert base.count("speaker:'Gre1'")==3
     assert base.count("speaker:'Cookie'")==3
-    assert "Start Tutorial" in base and "user.discord_display_name|tojson" in base
+    assert "Start Tutorial" in Path("website/templates/_account_panel.html").read_text() and "user.discord_display_name|tojson" in base
     assert "tutorial-progress-bar" in base and "Follow the glowing highlight" in base
 
 

@@ -1,0 +1,98 @@
+/* DELTA ACCOUNT HUB — unified between community and SkyMiles screens */
+.topbar,.community-header{overflow:visible!important}
+.community-account-slot{display:flex;align-items:center;margin-left:auto;min-width:0;z-index:140}
+.topbar>.delta-account-menu{margin-left:auto;z-index:160}
+.delta-account-menu{position:relative!important;z-index:150!important;color:#f6f8ff!important;font-family:inherit}
+.delta-account-menu>summary.delta-account-trigger{list-style:none;cursor:pointer;display:flex!important;align-items:center;
+  gap:11px;min-height:55px;min-width:180px;max-width:min(340px,33vw);padding:8px 13px!important;
+  background:#132748d9!important;border:1px solid #6983ad6e!important;border-radius:12px!important;
+  color:#f6f9ff!important;box-shadow:0 8px 25px #01091836;transition:background .2s ease,border-color .2s ease;
+  user-select:none}
+.delta-account-menu>summary.delta-account-trigger:hover,.delta-account-menu[open]>summary.delta-account-trigger{background:#203c64!important;border-color:#fc547d99!important}
+.delta-account-menu summary::-webkit-details-marker{display:none}
+.delta-account-trigger>img{flex:none;width:39px;height:39px;object-fit:cover;border-radius:50%;border:2px solid #718fb6}
+.delta-account-trigger-label{display:flex;flex-direction:column;min-width:0;align-items:flex-start;gap:3px}
+.delta-account-menu summary .delta-account-trigger-label strong{font-size:12px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:195px;color:#fff}
+.delta-account-menu summary .delta-account-trigger-label small{font-size:10px;letter-spacing:.04em;color:#b0c4e2;white-space:nowrap}
+.delta-account-caret{margin-left:auto;flex:none;color:#ff6b8b;transition:transform .2s ease}
+.delta-account-menu[open] .delta-account-caret{transform:rotate(180deg)}
+.delta-account-panel.account-dropdown{position:absolute!important;right:0!important;top:calc(100% + 12px)!important;
+  z-index:250!important;display:block!important;width:min(440px,calc(100vw - 28px))!important;
+  padding:0!important;max-height:min(78dvh,790px)!important;overflow-y:auto!important;overscroll-behavior:contain;
+  scrollbar-width:thin;box-shadow:0 30px 80px #000b,0 0 0 1px #6288b638!important;
+  border:1px solid #54769d!important;border-top:1px solid #54769d!important;border-radius:18px!important;
+  background:linear-gradient(150deg,#102a50 0%,#091b37 56%,#08142b 100%)!important;color:#f2f7ff!important;
+  animation:deltaHubReveal .22s cubic-bezier(.2,.8,.2,1) both}
+.delta-account-panel.account-dropdown::before{display:none!important}
+@keyframes deltaHubReveal{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.delta-account-panel.account-dropdown>div{border:0!important;margin:0!important;padding:0}
+.delta-account-cover{height:82px;display:flex;justify-content:space-between;align-items:flex-start;
+  padding:18px 22px!important;background:radial-gradient(circle at 88% -10%,#5584c262,transparent 56%),linear-gradient(120deg,#15345b,#10213e);
+  border-bottom:1px solid #9abae629!important}
+.delta-account-cover span{color:#d3ddf0;font-size:10px;font-weight:900;letter-spacing:.18em}
+.delta-account-cover img{width:33px;height:33px;opacity:.75}
+.delta-account-identity{display:flex;align-items:center;gap:15px;padding:0 22px 17px!important;margin-top:-23px!important}
+.delta-account-avatar{height:62px;width:62px;border:3px solid #193c60;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 3px #4d739f66;background:#0f1f3a}
+.delta-account-identity div{min-width:0;padding-top:24px}
+.delta-account-identity small{font-size:9px;font-weight:900;letter-spacing:.17em;color:#ff8ca3!important}
+.delta-account-identity h3{font-size:20px;line-height:1.2;letter-spacing:-.02em;color:#fff;margin:4px 0 4px;
+  overflow-wrap:anywhere}
+.delta-account-identity p{font-size:12px;color:#c1d2ed;margin:0}
+.delta-account-facts{display:flex;gap:8px;padding:0 22px 17px!important;flex-wrap:wrap}
+.delta-access-badge,.delta-member-tier{font-size:10px;font-weight:850;letter-spacing:.08em;
+  border-radius:30px;border:1px solid #6a8bb379;padding:7px 11px;background:#244466;color:#eaf3ff}
+.delta-access-badge{background:#562c44;border-color:#d55e88;color:#ffc3d4}
+.delta-account-balance{margin:0 20px 16px!important;padding:15px 17px!important;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;border:1px solid #5887a95b!important;border-radius:12px;
+  background:linear-gradient(125deg,#183861,#102c4e)}
+.delta-account-balance div{display:flex;flex-direction:column;gap:3px}
+.delta-account-balance small{font-size:9px;letter-spacing:.16em;font-weight:850;color:#c0d6ed}
+.delta-account-balance strong{font-size:28px;line-height:1.1;letter-spacing:-.04em;color:#fff}
+.delta-account-panel.account-dropdown .delta-account-balance a{width:auto!important;display:inline-flex!important;
+  color:#b4f5db!important;font-size:11px;font-weight:800;padding:8px!important;white-space:nowrap}
+.delta-account-roles{padding:0 21px 18px!important}
+.delta-role-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:0 0 10px;padding-top:12px;border-top:1px solid #ffffff1b}
+.delta-role-heading strong{font-size:13px;font-weight:850;color:#fff}
+.delta-role-heading small{color:#9fbbda!important;font-size:9px;letter-spacing:.12em;font-weight:800}
+.delta-role-heading.crew-heading{margin-top:18px}
+.delta-role-tags{display:flex;flex-wrap:wrap;gap:7px}
+.delta-role-chip{font-size:11px;line-height:1.2;font-weight:750;color:#d8e9ff;border:1px solid #5e83b166;
+  background:#17365b;border-radius:30px;padding:7px 11px}
+.delta-role-chip.crew{color:#b8f5df;background:#14524765;border-color:#4ee4b45b}
+.delta-role-empty{font-size:11px;line-height:1.5;color:#aebfd7;margin:7px 0}
+.delta-account-links{display:grid;gap:2px;padding:8px 14px 14px!important;margin:0 12px!important;
+  border-top:1px solid #ffffff20!important}
+.delta-account-panel.account-dropdown .delta-account-links a{display:flex!important;align-items:center;justify-content:space-between;
+  width:100%!important;gap:10px;border-radius:9px!important;font-size:13px!important;font-weight:700;
+  color:#dce7f8!important;padding:11px 13px!important;transition:background .2s ease,transform .2s ease}
+.delta-account-panel.account-dropdown .delta-account-links a:hover,.delta-account-panel.account-dropdown .delta-account-links a:focus-visible{
+  color:#fff!important;background:#234568!important;transform:translateX(2px)}
+.delta-account-panel.account-dropdown .delta-account-links a span:last-child{font-size:20px;color:#9ec6f0}
+.delta-account-subheading{font-size:9px;font-weight:900;letter-spacing:.14em;color:#ff9daf;margin:16px 11px 7px}
+.delta-account-logout{padding:12px 20px 17px;border-top:1px solid #ffffff1b!important;background:#07152a}
+.delta-account-panel.account-dropdown .delta-account-logout button{display:flex!important;align-items:center;justify-content:space-between;
+  width:100%!important;text-align:left;padding:10px 13px!important;color:#ffb6c7!important;
+  border:1px solid #ba567c4d!important;background:#5e2c4240!important;
+  border-radius:9px!important;font-size:12px!important;font-weight:800}
+.delta-account-panel.account-dropdown .delta-account-logout button:hover{background:#7a364e85!important;color:#fff!important}
+.delta-account-menu>summary:focus-visible,.delta-account-panel a:focus-visible,.delta-account-panel button:focus-visible{
+  outline:2px solid #80e8bc!important;outline-offset:3px}
+@media(max-width:950px){
+ .delta-account-menu>summary.delta-account-trigger{min-width:0;max-width:280px}
+ .delta-account-panel.account-dropdown{max-height:min(77dvh,740px)!important}
+}
+@media(max-width:620px){
+ .delta-account-menu>summary.delta-account-trigger{min-height:47px;padding:6px 9px!important;gap:7px;max-width:min(210px,41vw)}
+ .delta-account-trigger>img{width:31px;height:31px}
+ .delta-account-menu summary .delta-account-trigger-label strong{font-size:10px;max-width:110px}
+ .delta-account-menu summary .delta-account-trigger-label small{font-size:8px}
+ .delta-account-caret{width:14px;height:14px}
+ .delta-account-panel.account-dropdown{right:-2px!important;width:min(410px,calc(100vw - 20px))!important}
+ .community-account-slot{margin-left:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .delta-account-panel.account-dropdown{animation:none!important}
+ .delta-account-menu *{transition:none!important}
+}

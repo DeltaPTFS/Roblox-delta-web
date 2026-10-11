@@ -144,8 +144,38 @@ async def role_catalog() -> dict:
 
 
 def page_context(request: Request, viewer: dict, roles: dict, **kwargs):
-    return {"request": request, "viewer": viewer, "access": access_level(roles),
-            "csrf": csrf_token(request), "settings": settings, **kwargs}
+    # Show both server memberships on Forms screens using roles already verified
+    # by the two Discord bots. These labels do not affect access decisions.
+    crew_names={
+        "1554665018690248714":"Board of Directors",
+        "1554666461644197988":"Leadership",
+        "1554666482988875788":"Human Resources",
+        "1554669633573888010":"Delta Crew",
+        "1554671178893885480":"Awaiting Verification",
+    }
+    main_names={
+        "1539005297417519205":"Founders",
+        "1539005030189891684":"Leadership",
+        "1539016506216812567":"Human Resources",
+        "1539968936681148456":"Delta Crew",
+        "1539005061609422849":"SkyMiles",
+        "1539005068916031518":"Customers",
+    }
+    crew_ids=set(map(str,roles.get("crew",[])))
+    airline_ids=set(map(str,roles.get("airlines",[])))
+    join_confirmed="airlines" in roles
+    defaults={
+        "request":request,"viewer":viewer,"access":access_level(roles),
+        "csrf":csrf_token(request),"settings":settings,
+        "crew_role_details":[{"id":rid,"name":name} for rid,name in crew_names.items() if rid in crew_ids],
+        "crew_member":"crew" in roles,
+        "crew_roles_status":"verified" if settings.discord_crew_bot_token and settings.discord_crew_guild_id else "not_configured",
+        "profile_main_roles":[{"id":rid,"name":name} for rid,name in main_names.items() if rid in airline_ids],
+        "main_discord_member":join_confirmed,
+        "discord_href":"https://discord.com/channels/"+settings.discord_guild_id if join_confirmed else settings.discord_invite_url,
+    }
+    defaults.update(kwargs)
+    return defaults
 
 
 def ensure_flight_form(db: Session, creator: str = "system") -> CommunityForm:
