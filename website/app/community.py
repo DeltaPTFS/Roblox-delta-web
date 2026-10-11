@@ -191,7 +191,7 @@ async def forms_index(request: Request, db: Session = Depends(get_db)):
     all_forms = db.scalars(select(CommunityForm).order_by(CommunityForm.updated_at.desc())).all()
     visible = all_forms if level != "MEMBER" else [form for form in all_forms if can_see(form, roles)]
     return templates.TemplateResponse("forms/index.html",
-                                      page_context(request, viewer, roles, forms=visible))
+                                      page_context(request, viewer, roles, forms=visible, open_forms_count=sum(1 for form in visible if can_see(form, roles))))
 
 
 @router.get("/forms/new", response_class=HTMLResponse)
