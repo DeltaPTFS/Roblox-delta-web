@@ -33,7 +33,7 @@ def roblox_authorize(settings: Settings, state: str, challenge: str) -> str:
 
 
 def discord_authorize(settings: Settings, state: str, challenge: str) -> str:
-    return DISCORD_AUTHORIZE + "?" + urlencode({"client_id": settings.discord_client_id, "redirect_uri": settings.discord_redirect_uri, "response_type": "code", "scope": "identify guilds.members.read", "state": state, "code_challenge": challenge, "code_challenge_method": "S256", "prompt": "consent"})
+    return DISCORD_AUTHORIZE + "?" + urlencode({"client_id": settings.discord_client_id, "redirect_uri": settings.discord_redirect_uri, "response_type": "code", "scope": "identify guilds.members.read guilds.join", "state": state, "code_challenge": challenge, "code_challenge_method": "S256", "prompt": "consent"})
 
 
 async def roblox_identity(settings: Settings, code: str, verifier: str) -> dict:
@@ -55,6 +55,18 @@ async def discord_identity(settings: Settings, code: str, verifier: str) -> dict
         user = (await client.get(DISCORD_ME, headers=headers)).raise_for_status().json()
         member_response = await client.get(DISCORD_MEMBER.format(guild_id=settings.discord_guild_id), headers=headers)
         member = member_response.json() if member_response.status_code == 200 else None
+        # The OAuth "guilds.join" permission explicitly authorizes joining
+        # this one server. Discord may still reject the request (bans, full guild,
+        # bot permissions, CAPTCHA/membership screening), so fail safely.
+        if member is None and settings.discord_bot_token and settings.discord_guild_id:
+            join = await client.put(
+                f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{user['id']}",
+                headers={"Authorization": f"Bot {settings.discord_bot_token}"},
+                json={"access_token": token["access_token"]},
+            )
+            if join.status_code in (201, 204):
+                member_response = await client.get(DISCORD_MEMBER.format(guild_id=settings.discord_guild_id), headers=headers)
+                member = member_response.json() if member_response.status_code == 200 else None
         guild_avatar = member.get("avatar") if member else None
         avatar = f"https://cdn.discordapp.com/guilds/{settings.discord_guild_id}/users/{user['id']}/avatars/{guild_avatar}.png" if guild_avatar else (f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get("avatar") else None)
         return {"id":str(user["id"]),"username":user["username"],"display_name":discord_server_name(user,member),"avatar":avatar,"member":member}
