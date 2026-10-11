@@ -3,7 +3,7 @@
 <title>{% block title %}Delta Air Lines{% endblock %} · Roblox Roleplay</title>
 <meta name="description" content="Delta Air Lines Roblox roleplay community — flights, SkyMiles, crew applications and events.">
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
-<link rel="stylesheet" href="/static/community.css?v=visual-11"></head>
+<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"></head>
 <body>
 <header class="community-header">
   <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
@@ -14,10 +14,10 @@
   <details class="community-mobile-menu"><summary aria-label="Open menu"><span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span></summary>
     <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
     <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
-    <a href="/join">Join Discord</a></div>
+    <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
   </details>
   {% if viewer %}
-    <a class="community-account" href="/forms"><span class="account-name">{{ viewer.name }}</span><span class="account-chevron" aria-hidden="true"></span></a>
+    <div class="community-account-slot">{% include "_account_panel.html" %}</div>
   {% else %}
     <a class="community-account" href="/auth/discord/forms?next=/forms">Sign in <span class="account-chevron" aria-hidden="true"></span></a>
   {% endif %}
@@ -25,6 +25,6 @@
 <main>{% block content %}{% endblock %}</main>
 <footer class="community-footer"><div><div class="community-footer-brand"><img src="/static/delta-emblem.svg" alt="" width="60" height="54" decoding="async"><div class="community-footer-copy"><strong>DELTA AIR LINES</strong><p>Keep Climbing.</p></div></div></div>
 <div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
-<a href="/join" class="footer-discord-link">Join our Discord <span class="link-chevron" aria-hidden="true"></span></a></div></footer>
-<script src="/static/community-motion.js?v=visual-11" defer></script>
+<a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}" class="footer-discord-link" {% if main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join our Discord" }} <span class="link-chevron" aria-hidden="true"></span></a></div></footer>
+<script src="/static/community-motion.js?v={{ asset_version }}" defer></script><script src="/static/account-hub.js?v={{ asset_version }}" defer></script>
 </body></html>
