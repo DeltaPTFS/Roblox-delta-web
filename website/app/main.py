@@ -286,8 +286,9 @@ def join_discord(request: Request):
 
 
 @app.get("/welcome", response_class=HTMLResponse)
-def welcome_discord(request: Request):
+def welcome_discord(request: Request, db: Session=Depends(get_db)):
     """Only report main-server membership when Discord actually confirmed it."""
+    member=linked_user_from_session(request,db)
     guest = request.session.get("forms_identity")
     if not guest and not request.session.get("user_id"):
         return RedirectResponse("/join", 303)
@@ -298,7 +299,7 @@ def welcome_discord(request: Request):
         title, message = "Welcome Back!", "You're already a member of our Delta Air Lines Discord community."
     else:
         title, message = "Discord Authorization Complete", "Your server membership could not be confirmed. Open Discord using the invite below and finish joining before completing forms."
-    viewer = {"name": guest.get("name", "Member")} if isinstance(guest, dict) else None
+    viewer = {"name":member.discord_display_name} if member else ({"name": guest.get("name", "Member")} if isinstance(guest, dict) else None)
     return templates.TemplateResponse("welcome.html", {
         "request": request, "viewer": viewer, "title": title, "message": message,
         "joined": join_status in {"joined", "already_member"},
@@ -311,8 +312,14 @@ def welcome_discord(request: Request):
 def start_discord_forms_login(request: Request, next: str = "/forms", force: bool=False, db: Session=Depends(get_db)):
     if not settings.discord_client_id or not settings.discord_bot_token: raise HTTPException(503, "Discord OAuth is not configured")
     target=next if next.startswith("/") and not next.startswith("//") and not next.startswith("/\\") and "\\" not in next and not any(c in next for c in ("\r","\n")) else "/forms"
-    if not force and (linked_user_from_session(request,db) or request.session.get("forms_identity")):
-        return RedirectResponse(target,303)
+    if not force:
+        linked=linked_user_from_session(request,db)
+        if linked and linked.account_status==Status.ACTIVE:
+            return RedirectResponse(target,303)
+        if request.session.get("forms_identity"):
+            if target.startswith(("/dashboard","/miles","/trips","/rewards","/settings")):
+                return RedirectResponse("/login?discord_connected=1",303)
+            return RedirectResponse(target,303)
     request.session["discord_login_for_forms"]=True
     request.session["forms_login_return"]=target[:300]
     state, challenge=oauth_values(request,"discord")
@@ -391,7 +398,9 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         target=request.session.pop("forms_login_return","/forms")
         sky_user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
         account_linked=bool(sky_user and sky_user.account_status==Status.ACTIVE
-                            and not sky_user.permanent_ban and "airlines" in roles)
+                            and not sky_user.permanent_ban
+                            and (not sky_user.restricted_until or sky_user.restricted_until<=datetime.now(timezone.utc))
+                            and "airlines" in roles)
         if account_linked:
             sky_user.discord_username=identity["username"]
             sky_user.discord_display_name=identity["display_name"]
