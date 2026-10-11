@@ -134,7 +134,7 @@
   }
   function button(text,callback,cls='text-button'){
     const btn=document.createElement('button');btn.type='button';btn.className=cls;
-    btn.textContent=text;btn.addEventListener('click',callback);return btn;
+    btn.textContent=text;if(typeof callback==='function')btn.addEventListener('click',callback);return btn;
   }
   function newQuestion(type='text'){
     return {id:'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),
