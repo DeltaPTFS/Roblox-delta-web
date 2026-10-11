@@ -273,7 +273,7 @@ def test_render_static_entry_preserves_secure_backend_boundary():
     assert "runtime: static" in blueprint
     assert "staticPublishPath: ./dist" in blueprint
     assert "SKYMILES_BACKEND_URL" in blueprint and "SKYMILES_BACKEND_URL must begin with https://" in build
-    assert "__SKYMILES_BACKEND_URL__/auth/roblox" in landing
+    assert "__SKYMILES_BACKEND_URL__/forms" in landing and "__SKYMILES_BACKEND_URL__/login" in landing
     assert "Not affiliated with or operated by Delta Air Lines, Inc." in landing
 
 
@@ -284,7 +284,7 @@ def test_vercel_zero_config_entry_reuses_canonical_fastapi_app():
     assert "from website.app.main import app" in entrypoint
     assert "FastAPI(" not in entrypoint
     assert not Path("vercel.json").exists()
-    assert not Path("api").exists()
+    assert Path("api/__init__.py").exists()  # Vercel Python function package
 
 
 def test_native_fastapi_paths_and_static_mount_are_preserved():
@@ -306,8 +306,8 @@ def test_native_fastapi_paths_and_static_mount_are_preserved():
         assert client.get("/auth/discord/login").status_code==503
         assert client.get("/auth/roblox/callback").status_code==422
         assert client.get("/auth/discord/callback").status_code==422
-        assert client.get("/profile").status_code==401
-        assert client.get("/miles").status_code==401
+        assert client.get("/profile", follow_redirects=False).status_code==303
+        assert client.get("/miles", follow_redirects=False).status_code==303
 
 
 def test_vercel_serverless_mode_disables_daemons_and_exposes_secured_maintenance(monkeypatch):
