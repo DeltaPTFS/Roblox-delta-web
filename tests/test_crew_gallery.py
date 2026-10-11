@@ -67,3 +67,18 @@ def test_customer_navigation_does_not_link_to_protected_gallery_editor():
     nav=Path("website/templates/community_base.html").read_text()
     assert '/gallery/manage' not in nav
     assert '{% if access is defined' in nav
+
+
+def test_forms_empty_state_is_role_aware_and_uses_modal():
+    from pathlib import Path
+    page=Path("website/templates/forms/index.html").read_text()
+    endpoint=Path("website/app/community.py").read_text()
+    styles=Path("website/static/community.css").read_text()
+    assert 'open_forms_count' in endpoint
+    assert 'if not open_forms_count' in page
+    assert 'showModal()' in page
+    assert 'There aren\'t any forms open for you.' in page
+    assert 'href="/forms/new"' in page
+    assert 'class="community-btn primary create-form-fab"' in page
+    assert 'if access != "MEMBER"' in page
+    assert 'position:fixed' in styles
