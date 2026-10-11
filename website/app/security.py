@@ -1,6 +1,7 @@
 import base64, hashlib, secrets
 from fastapi import HTTPException, Request
 from datetime import datetime, timezone
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from .config import Settings
 from .models import Status, User
@@ -40,9 +41,37 @@ def permission(user: User, settings: Settings) -> str:
     return "MEMBER"
 
 
-def current_user(request: Request, db: Session) -> User:
+def linked_user_from_session(request: Request, db: Session) -> User | None:
+    """Recognize an existing SkyMiles member without asking the same Discord
+    account to authenticate a second time.
+
+    A forms-only identity comes from validated Discord OAuth and is stored in
+    an opaque, server-side session; the Discord ID is NEVER accepted from a
+    request parameter or untrusted browser-supplied profile field.
+    """
     user_id = request.session.get("user_id")
-    user = db.get(User, user_id) if user_id else None
+    if isinstance(user_id, int):
+        return db.get(User, user_id)
+    if user_id:
+        return None
+    guest = request.session.get("forms_identity")
+    if not isinstance(guest, dict):
+        return None
+    discord_id = str(guest.get("id", ""))
+    if not discord_id.isdecimal() or not 15 <= len(discord_id) <= 22:
+        return None
+    user = db.scalar(select(User).where(User.discord_user_id == discord_id))
+    if not user or user.account_status != Status.ACTIVE or user.permanent_ban:
+        return None
+    if user.restricted_until and user.restricted_until > datetime.now(timezone.utc):
+        return None
+    request.session["user_id"] = user.id
+    request.session.pop("forms_identity", None)
+    return user
+
+
+def current_user(request: Request, db: Session) -> User:
+    user = linked_user_from_session(request, db)
     if not user: raise HTTPException(401, "Session expired")
     if user.account_status.value != "ACTIVE" and not user.permanent_ban and user.restricted_until and user.restricted_until <= datetime.now(timezone.utc):
         user.account_status=Status.ACTIVE; user.restricted_until=None; user.restriction_reason=None; db.commit()
