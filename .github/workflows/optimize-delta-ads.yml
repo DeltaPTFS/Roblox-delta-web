@@ -1,0 +1,57 @@
+name: Optimize Delta Advertisements
+on:
+  push:
+    branches:
+      - feat/rotating-delta-ads-five-seconds
+    paths:
+      - "_ad_source/**"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/rotating-delta-ads-five-seconds
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install Pillow==11.3.0
+      - name: Optimize original PNG advertisements for production
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          source = Path("_ad_source")
+          output = Path("website/static/ads")
+          output.mkdir(parents=True, exist_ok=True)
+          names = {
+            "delta-lax": "delta-lax.webp",
+            "delta-new-york": "delta-new-york.webp",
+            "delta-centennial-ad": "delta-centennial-ad.webp",
+            "delta-tech-ops": "delta-tech-ops.webp",
+            "delta-engine": "delta-engine.webp",
+            "delta-skipping": "delta-skipping.webp",
+          }
+          for name, target in names.items():
+              original=source / (name + ".png")
+              if not original.exists(): continue
+              with Image.open(original) as im:
+                  im=im.convert("RGB")
+                  im.thumbnail((2048, 1400),Image.Resampling.LANCZOS)
+                  im.save(output / target, "WEBP", quality=85, method=6)
+                  print(original.name, "=>", target, im.size, (output / target).stat().st_size)
+          PY
+      - name: Commit optimized ads, remove uncompressed originals
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add website/static/ads
+          git rm -r -f _ad_source || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Optimize six Delta Google Drive ads into static WebP assets"
+            git push origin HEAD:feat/rotating-delta-ads-five-seconds
+          fi
