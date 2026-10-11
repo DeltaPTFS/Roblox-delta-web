@@ -45,16 +45,17 @@ GUILDS = ("airlines", "crew")
 async def memberships(discord_id: str) -> dict:
     """Fail closed when role verification is impossible; never trust saved role IDs."""
     if not settings.discord_bot_token:
-        raise HTTPException(503, "Discord role verification is not configured")
+        raise HTTPException(503, "Main Discord role verification is not configured")
     ids = {"airlines": settings.discord_guild_id, "crew": settings.discord_crew_guild_id}
     result = {}
     async with httpx.AsyncClient(timeout=10) as client:
         for name, guild_id in ids.items():
             if not guild_id:
                 continue
+            bot_token = settings.discord_bot_token if name == "airlines" else (settings.discord_crew_bot_token or settings.discord_bot_token)
             response = await client.get(
                 "https://discord.com/api/v10/guilds/" + guild_id + "/members/" + discord_id,
-                headers={"Authorization": "Bot " + settings.discord_bot_token},
+                headers={"Authorization": "Bot " + bot_token},
             )
             if response.status_code == 404:
                 continue
@@ -123,8 +124,9 @@ async def role_catalog() -> dict:
         for guild, guild_id in guilds.items():
             if not guild_id:
                 continue
+            bot_token = settings.discord_bot_token if guild == "airlines" else (settings.discord_crew_bot_token or settings.discord_bot_token)
             response = await client.get("https://discord.com/api/v10/guilds/" + guild_id + "/roles",
-                                        headers={"Authorization": "Bot " + settings.discord_bot_token})
+                                        headers={"Authorization": "Bot " + bot_token})
             if response.status_code != 200:
                 raise HTTPException(503, "Unable to load Discord roles")
             result[guild] = [{"id": str(r["id"]), "name": r["name"]} for r in response.json()
