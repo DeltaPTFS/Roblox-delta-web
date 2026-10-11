@@ -10,16 +10,67 @@
 <a class="community-btn primary" href="/forms/{{ form.slug }}?flight={{ available.id }}">Complete fillout for this flight →</a></div>
 {% else %}<p>No flights are currently accepting fillouts.</p>{% endfor %}</div>
 {% else %}
-<form method="post" action="/forms/{{ form.slug }}/submit">
+<form method="post" action="/forms/{{ form.slug }}/submit" id="public-form">
 <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="submission_key" value="{{ submission_key }}">
 <input type="hidden" name="flight_id" value="{{ flight.id if flight else '' }}">
-{% for q in form.questions %}<div class="answer-field">
-<label for="field-{{ q.id }}">{{ loop.index }}. {{ q.label }} {% if q.required %}<span class="required">*</span>{% endif %}</label>
-{% if q.type == "textarea" %}<textarea id="field-{{ q.id }}" name="answer_{{ q.id }}" rows="4" maxlength="2000" {% if q.required %}required{% endif %}></textarea>
-{% elif q.type == "select" %}<select id="field-{{ q.id }}" name="answer_{{ q.id }}" {% if q.required %}required{% endif %}><option value="">Choose an option</option>{% for choice in q.options %}<option value="{{ choice }}">{{ choice }}</option>{% endfor %}</select>
-{% elif q.type == "radio" %}<fieldset>{% for choice in q.options %}<label class="choice"><input type="radio" name="answer_{{ q.id }}" value="{{ choice }}" {% if q.required %}required{% endif %}>{{ choice }}</label>{% endfor %}</fieldset>
-{% elif q.type == "checkbox" %}<fieldset>{% for choice in (q.options or ["Yes"]) %}<label class="choice"><input type="checkbox" name="answer_{{ q.id }}" value="{{ choice }}">{{ choice }}</label>{% endfor %}</fieldset>
-{% else %}<input type="{{ q.type }}" id="field-{{ q.id }}" name="answer_{{ q.id }}" maxlength="2000" {% if q.required %}required{% endif %}>{% endif %}
-</div>{% endfor %}<button class="community-btn primary" type="submit">Submit response →</button></form>
+{% for q in form.questions %}
+{% if q.type == "section" %}
+<div class="answer-section-heading">
+  <span class="eyebrow">SECTION {{ loop.index }}</span><h2>{{ q.label }}</h2>
+  {% if q.help_text %}<p>{{ q.help_text }}</p>{% endif %}
+</div>
+{% else %}
+<div class="answer-field" data-question-type="{{ q.type }}">
+<label for="field-{{ q.id }}">{{ q.label }} {% if q.required %}<span class="required" aria-label="required">*</span>{% endif %}</label>
+{% if q.help_text %}<p class="question-help">{{ q.help_text }}</p>{% endif %}
+{% if q.type == "textarea" %}
+  <textarea id="field-{{ q.id }}" name="answer_{{ q.id }}" rows="4" maxlength="2000" placeholder="Your answer" {% if q.required %}required{% endif %}></textarea>
+{% elif q.type == "select" %}
+  <select id="field-{{ q.id }}" name="answer_{{ q.id }}" {% if q.required %}required{% endif %}>
+    <option value="">Choose an option</option>{% for choice in q.options %}<option value="{{ choice }}">{{ choice }}</option>{% endfor %}
+  </select>
+{% elif q.type == "radio" %}
+  <fieldset aria-label="{{ q.label }}">
+    {% for choice in q.options %}<label class="choice"><input type="radio" name="answer_{{ q.id }}" value="{{ choice }}" {% if q.required %}required{% endif %}>{{ choice }}</label>{% endfor %}
+  </fieldset>
+{% elif q.type == "checkbox" %}
+  <fieldset aria-label="{{ q.label }}" {% if q.required %}data-required-checkboxes="answer_{{ q.id }}"{% endif %}>
+    {% for choice in (q.options or ["Yes"]) %}<label class="choice"><input type="checkbox" name="answer_{{ q.id }}" value="{{ choice }}">{{ choice }}</label>{% endfor %}
+  </fieldset>
+{% elif q.type == "scale" %}
+  <fieldset class="answer-scale" aria-label="{{ q.label }}">
+    <div class="answer-scale-endpoints"><span>{{ q.min_label or "Low" }}</span><span>{{ q.max_label or "High" }}</span></div>
+    <div class="answer-scale-grid">
+    {% for value in range(q.scale_min|default(1), (q.scale_max|default(5)) + 1) %}
+      <label class="answer-scale-choice"><input type="radio" name="answer_{{ q.id }}" value="{{ value }}" {% if q.required %}required{% endif %}><span>{{ value }}</span></label>
+    {% endfor %}
+    </div>
+  </fieldset>
+{% elif q.type == "email" %}
+  <input type="email" id="field-{{ q.id }}" name="answer_{{ q.id }}" placeholder="name@example.com" maxlength="254" {% if q.required %}required{% endif %}>
+{% elif q.type == "url" %}
+  <input type="url" id="field-{{ q.id }}" name="answer_{{ q.id }}" placeholder="https://example.com" maxlength="2000" {% if q.required %}required{% endif %}>
+{% else %}
+  <input type="{{ q.type }}" id="field-{{ q.id }}" name="answer_{{ q.id }}" {% if q.type in ["text","number"] %}maxlength="2000"{% endif %} {% if q.required %}required{% endif %}>
+{% endif %}
+</div>
+{% endif %}
+{% endfor %}
+<button class="community-btn primary" type="submit">Submit response →</button></form>
+<script>
+(function(){
+  const form=document.getElementById('public-form');if(!form)return;
+  form.addEventListener('submit',event=>{
+    for(const fieldset of form.querySelectorAll('[data-required-checkboxes]')){
+      const name=fieldset.dataset.requiredCheckboxes;
+      const choices=Array.from(fieldset.querySelectorAll('input[type="checkbox"]'));
+      if(!choices.some(c=>c.checked)){
+        event.preventDefault();fieldset.scrollIntoView({behavior:'smooth',block:'center'});
+        choices[0]?.focus();alert('Please select at least one option for each required checkbox question.');return;
+      }
+    }
+  });
+})();
+</script>
 {% endif %}
 </div></section>{% endblock %}

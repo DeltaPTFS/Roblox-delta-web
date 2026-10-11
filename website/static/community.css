@@ -69,3 +69,19 @@
 .showcase .gallery-card:nth-child(4){background-position:50% 100%}
 .showcase .gallery-card:nth-child(5){background-position:100% 100%}
 .showcase .gallery-card img[hidden]{display:none!important}
+
+/* Form section headings, readable help text, and accessible linear rating scales. */
+.answer-section-heading{margin:35px 0 20px;padding:25px 22px;border-left:4px solid #df294f;
+  border-radius:0 12px 12px 0;background:linear-gradient(120deg,#192d56,#101c37);border-top:1px solid #345475}
+.answer-section-heading h2{font-size:clamp(22px,3vw,32px);margin:9px 0 8px}
+.answer-section-heading p{color:#bcd0ec;font-size:13px;line-height:1.6}
+.question-help{font-size:12px;color:#b7c6dc;margin:2px 0 14px;line-height:1.65}
+.answer-scale{border:1px solid #3f567b;border-radius:12px;padding:16px}
+.answer-scale-endpoints{display:flex;justify-content:space-between;gap:12px;color:#c5d4eb;
+  font-size:12px;margin-bottom:12px}
+.answer-scale-grid{display:flex;flex-wrap:wrap;align-items:center;gap:11px}
+.answer-scale-choice{display:flex;align-items:center;flex-direction:column;gap:8px;cursor:pointer;
+  min-width:39px;padding:10px 7px;background:#142b51;border-radius:9px;font-weight:800}
+.answer-scale-choice input{accent-color:#e0294e;min-width:18px;min-height:18px}
+@media(max-width:700px){.answer-scale-choice{padding:8px 6px;min-width:35px}
+  .answer-section-heading{padding:20px 16px}}

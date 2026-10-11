@@ -284,21 +284,23 @@ def join_discord(request: Request):
 
 @app.get("/welcome", response_class=HTMLResponse)
 def welcome_discord(request: Request):
-    """Provide a usable destination after joining or verifying in Discord."""
+    """Only report main-server membership when Discord actually confirmed it."""
     guest = request.session.get("forms_identity")
     if not guest and not request.session.get("user_id"):
         return RedirectResponse("/join", 303)
-    return HTMLResponse(
-        '<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        '<title>Welcome to Delta Air Lines</title><style>'
-        'body{font-family:system-ui,Arial;background:#071d49;color:#fff;margin:0;display:grid;place-items:center;min-height:100vh}'
-        'main{padding:2rem;max-width:34rem;text-align:center}a{display:inline-block;padding:1rem 1.5rem;margin:.5rem;'
-        'background:#c8102e;color:#fff;text-decoration:none;border-radius:8px}</style>'
-        '<main><h1>Welcome aboard!</h1><p>Your Discord authorization is complete. '
-        'Continue to Delta Air Lines forms, flights, or visit the server to finish any required verification.</p>'
-        '<a href="/forms">Explore forms</a><a href="/flights">View flights</a>'
-        '<a href="' + settings.discord_invite_url + '">Open Discord</a></main></html>'
-    )
+    join_status = request.session.get("discord_join_status", "not_confirmed")
+    if join_status == "joined":
+        title, message = "Welcome to Delta Air Lines!", "Discord confirmed your server join. Complete any required server verification to access restricted roles and forms."
+    elif join_status == "already_member":
+        title, message = "Welcome Back!", "You're already a member of our Delta Air Lines Discord community."
+    else:
+        title, message = "Discord Authorization Complete", "Your server membership could not be confirmed. Open Discord using the invite below and finish joining before completing forms."
+    viewer = {"name": guest.get("name", "Member")} if isinstance(guest, dict) else None
+    return templates.TemplateResponse("welcome.html", {
+        "request": request, "viewer": viewer, "title": title, "message": message,
+        "joined": join_status in {"joined", "already_member"},
+        "settings": settings
+    })
 
 
 @app.get("/auth/discord/forms")
@@ -338,12 +340,21 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     except Exception: return RedirectResponse("/error?kind=discord",303)
     if forms_login:
         roles=await memberships(identity["id"])
+        # Newly added Discord members can briefly be absent from guild role
+        # lookups due to membership propagation. Retry once, still fail closed.
+        if not roles and identity.get("join_status") == "joined":
+            await asyncio.sleep(0.4)
+            roles=await memberships(identity["id"])
         if not roles:
             request.session.clear()
             return templates.TemplateResponse("restricted.html", context(request, kind="forms"), status_code=403)
         target=request.session.pop("forms_login_return","/forms")
-        request.session.clear()
-        request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+        previous_user_id=request.session.get("user_id")
+        sky_user=db.get(User, previous_user_id) if isinstance(previous_user_id, int) else None
+        if not sky_user or sky_user.discord_user_id!=identity["id"]:
+            request.session.clear()
+            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+        request.session["discord_join_status"]=identity.get("join_status", "not_confirmed")
         return RedirectResponse(target,303)
     if not identity["member"]: return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
     if direct_login:

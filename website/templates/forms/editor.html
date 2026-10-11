@@ -1,72 +1,302 @@
-{% extends "community_base.html" %}{% block title %}Form Editor{% endblock %}
-{% block content %}<section class="community-page">
-<div class="page-heading"><div><span class="eyebrow">DELTA AIR LINES · STAFF FORM STUDIO</span><h1>{{ "Edit Form" if form else "Create a New Form" }}</h1>
-<p>Create, publish, close, and share a dedicated Discord-verified form without requiring SkyMiles enrollment.</p></div>
-<a class="community-btn outlined" href="/forms">← All forms</a></div>
-{% if request.query_params.get("saved") %}<div class="success-note">Changes saved. Your form settings are now active.</div>{% endif %}
-<div class="editor-layout"><form id="editor" method="post" action="/forms/manage"><input type="hidden" name="csrf" value="{{ csrf }}">
-<input type="hidden" name="payload" id="editor-payload">
-<div class="editor-main"><div class="editor-card"><h2>Form details</h2><label>Title<input id="form-title" maxlength="180" required></label>
-<label>Description<textarea id="form-description" rows="3" maxlength="3000"></textarea></label>
-<label>Form status<select id="form-status"><option value="DRAFT">Draft · Only staff can see</option><option value="PUBLISHED">Published · Visible to eligible users</option><option value="CLOSED">Closed · No new submissions</option></select></label>
-{% if form %}<p class="copy-field">Shareable link: <a href="/forms/{{ form.slug }}" target="_blank" rel="noopener">{{ request.base_url }}forms/{{ form.slug }}</a></p>{% endif %}</div>
-<div class="editor-card"><div class="editor-row"><h2>Questions</h2><button class="community-btn outlined small" type="button" id="add-question">+ Add Question</button></div>
-<div id="questions"></div></div></div>
-<aside class="editor-side"><div class="editor-card"><h2>Who can see this form?</h2>
-<p>Leave all roles unchecked to allow anyone in either approved Discord server. Selecting roles restricts the form to members holding at least one selected role.</p>
-{% for guild, guild_roles in catalog.items() %}<fieldset class="role-fieldset"><legend>{{ "Delta Air Lines" if guild == "airlines" else "Delta Crew" }} roles</legend>
-{% for role in guild_roles %}<label class="role-choice"><input type="checkbox" name="role-{{ guild }}" value="{{ role.id }}">{{ role.name }}</label>{% endfor %}</fieldset>{% endfor %}
-</div><div class="editor-card"><p>Only verified Delta staff can create or edit forms. Everyone signing in is checked against Discord before submitting.</p>
-<button class="community-btn primary full" type="submit">Save Form →</button>
-{% if form %}<a class="community-btn outlined full" href="/forms/{{ form.slug }}/responses">View responses</a>{% endif %}</div></aside></form></div>
+{% extends "community_base.html" %}{% block title %}{{ "Edit" if form else "Create" }} Form | Delta Studio{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="/static/forms-studio.css">
+<section class="community-page delta-studio">
+  <div class="page-heading studio-heading">
+    <div>
+      <span class="eyebrow">DELTA AIR LINES · FORM STUDIO</span>
+      <h1>{{ "Edit Your Form" if form else "Create a New Form" }}</h1>
+      <p>Design professional applications, flight fillouts, surveys and crew questionnaires. Sign-in and role permissions are handled securely through Discord.</p>
+    </div>
+    <a class="community-btn outlined" href="/forms">← Form Center</a>
+  </div>
+  {% if request.query_params.get("saved") %}<div class="success-note" role="status">Saved successfully. Your changes are now active.</div>{% endif %}
+  <div class="studio-toolbar" aria-label="Form editor tools">
+    <div class="studio-tabs">
+      <a href="#studio-questions" class="studio-tab active">▤ Questions</a>
+      <a href="#studio-settings" class="studio-tab">⚙ Settings & Roles</a>
+      {% if form %}<a href="/forms/{{ form.slug }}/responses" class="studio-tab">▥ Responses</a>{% endif %}
+    </div>
+    <div class="studio-actions">
+      <span class="studio-save-note" id="unsaved-indicator" role="status">All changes saved</span>
+      <button type="button" class="community-btn outlined small" id="preview-form">◉ Preview</button>
+      {% if form %}<button type="button" class="community-btn outlined small" id="duplicate-form">⧉ Duplicate Form</button>{% endif %}
+    </div>
+  </div>
+  <div class="editor-layout">
+    <form id="editor" method="post" action="/forms/manage">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="payload" id="editor-payload">
+      <div class="editor-main" id="studio-questions">
+        <div class="editor-card studio-detail-card">
+          <span class="eyebrow">FORM DETAILS</span>
+          <label for="form-title">Form Title
+            <input id="form-title" maxlength="180" placeholder="e.g. Flight Attendant Application" required>
+          </label>
+          <label for="form-description">Description
+            <textarea id="form-description" rows="3" maxlength="3000" placeholder="Tell people what this form is about."></textarea>
+          </label>
+          {% if form %}<div class="studio-share-row">
+            <span class="eyebrow">SHARE LINK</span>
+            <a id="share-link" href="/forms/{{ form.slug }}" target="_blank" rel="noopener">{{ request.base_url }}forms/{{ form.slug }}</a>
+            <button type="button" id="copy-share-link" class="text-button">Copy link</button>
+          </div>{% endif %}
+        </div>
+        <div class="studio-question-header">
+          <div><span class="eyebrow">QUESTION BUILDER</span><h2>Build your questions</h2><p>Choose question types, add sections, duplicate or rearrange cards.</p></div>
+          <div class="studio-add-actions">
+            <button type="button" class="community-btn outlined small" id="add-section">+ Section</button>
+            <button type="button" class="community-btn primary small" id="add-question">+ Question</button>
+          </div>
+        </div>
+        <div id="questions" class="studio-question-list" aria-live="polite"></div>
+        <div class="studio-bottom-add">
+          <button type="button" class="community-btn outlined" id="add-question-bottom">+ Add another question</button>
+        </div>
+      </div>
+      <aside class="editor-side" id="studio-settings">
+        <div class="editor-card studio-settings-card">
+          <span class="eyebrow">PUBLISHING</span>
+          <h2>Form Settings</h2>
+          <label for="form-status">Accepting Responses
+            <select id="form-status">
+              <option value="DRAFT">Draft — staff only</option>
+              <option value="PUBLISHED">Published — accepting responses</option>
+              <option value="CLOSED">Closed — no responses</option>
+            </select>
+          </label>
+          <p>Preview your questions before publishing. Closing a form stops new submissions but keeps its existing responses.</p>
+        </div>
+        <div class="editor-card studio-settings-card">
+          <span class="eyebrow">ACCESS CONTROL</span>
+          <h2>Who can answer?</h2>
+          <p>Leave all roles unchecked to allow members of either approved Discord server. Choose specific roles to limit access to those members only.</p>
+          {% for guild, guild_roles in catalog.items() %}
+          <fieldset class="role-fieldset"><legend>{{ "Delta Air Lines" if guild == "airlines" else "Delta Crew" }} Roles</legend>
+            {% for role in guild_roles %}
+            <label class="role-choice"><input type="checkbox" name="role-{{ guild }}" value="{{ role.id }}">{{ role.name }}</label>
+            {% endfor %}
+          </fieldset>
+          {% endfor %}
+        </div>
+        <div class="editor-card studio-settings-card studio-publish-panel">
+          <span class="eyebrow">READY WHEN YOU ARE</span>
+          <h2>Save Your Changes</h2>
+          <p>Only approved leadership and HR roles can edit form settings. Discord membership and roles are checked again when someone opens the form.</p>
+          <button class="community-btn primary full" type="submit" id="save-form">Save Form →</button>
+          <button class="community-btn outlined full" type="button" id="save-draft">Save as Draft</button>
+          {% if form %}<a class="community-btn outlined full" href="/forms/{{ form.slug }}/responses">Review Responses</a>{% endif %}
+        </div>
+      </aside>
+    </form>
+  </div>
 </section>
+
+<dialog id="studio-preview-dialog" class="studio-preview-dialog" aria-labelledby="preview-title">
+  <div class="studio-preview-shell">
+    <div class="studio-preview-toolbar"><span class="eyebrow">DELTA FORM STUDIO · PREVIEW MODE</span>
+      <button type="button" id="close-preview" class="community-btn outlined small">✕ Close</button>
+    </div>
+    <h2 id="preview-title"></h2><p id="preview-description"></p>
+    <div id="preview-questions"></div>
+    <p class="studio-preview-disclaimer">Preview only · No answers are submitted or saved in this view.</p>
+  </div>
+</dialog>
 <script>
 (function(){
-  const initial = {{ {"id":form.id,"title":form.title,"description":form.description,"status":form.status,"questions":form.questions,"allowed_roles":form.allowed_roles} | tojson if form else '{"title":"","description":"","status":"DRAFT","questions":[],"allowed_roles":{}}' | safe }};
-  const state = typeof initial === "string" ? JSON.parse(initial) : initial;
-  const questions = document.getElementById("questions");
-  const field = (label, element) => { const wrap = document.createElement("label"); wrap.textContent=label; wrap.appendChild(element);return wrap };
-  const inp=(value, placeholder)=>{const e=document.createElement("input");e.value=value||"";e.placeholder=placeholder||"";return e};
+  {% if form %}
+  const state = {{ {"id":form.id,"title":form.title,"description":form.description,"status":form.status,"questions":form.questions,"allowed_roles":form.allowed_roles} | tojson }};
+  {% else %}
+  const state = {"title":"","description":"","status":"DRAFT","questions":[],"allowed_roles":{}};
+  {% endif %}
+  if (!Array.isArray(state.questions)) state.questions=[];
+  const $ = id => document.getElementById(id);
+  const questions = $('questions');
+  const editor = $('editor');
+  const indicator = $('unsaved-indicator');
+  const kinds = [
+    ['text','Short answer'], ['textarea','Paragraph'], ['radio','Multiple choice'],
+    ['checkbox','Checkboxes'], ['select','Dropdown'], ['email','Email address'],
+    ['number','Number'], ['date','Date'], ['time','Time'], ['url','Website URL'],
+    ['scale','Linear scale'], ['section','Section heading']
+  ];
+  let dirty=false, saving=false;
+  function touch(){dirty=true;indicator.textContent='Unsaved changes';indicator.classList.add('is-unsaved')}
+  function field(label,el){
+    const wrap=document.createElement('label');
+    wrap.textContent=label;
+    wrap.append(el);
+    return wrap;
+  }
+  function input(value='',placeholder='',max=200){
+    const el=document.createElement('input');el.type='text';el.value=value||'';
+    el.placeholder=placeholder;el.maxLength=max;return el;
+  }
+  function button(text,callback,cls='text-button'){
+    const btn=document.createElement('button');btn.type='button';btn.className=cls;
+    btn.textContent=text;if(typeof callback==='function')btn.addEventListener('click',callback);return btn;
+  }
+  function newQuestion(type='text'){
+    return {id:'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),
+      label:type==='section'?'New Section':'',help_text:'',type,required:false,
+      options:['Option 1','Option 2'],scale_min:1,scale_max:5,min_label:'',max_label:''};
+  }
   function render(){
     questions.replaceChildren();
+    if(!state.questions.length){
+      const empty=document.createElement('div');empty.className='studio-empty-state';
+      empty.textContent='Your form is a blank canvas. Add a question or section to get started.';
+      questions.append(empty);
+    }
     state.questions.forEach((q,i)=>{
-      const card=document.createElement("div");card.className="question-card";
-      const head=document.createElement("div");head.className="editor-row";
-      const title=document.createElement("strong");title.textContent="Question "+(i+1);
-      const del=document.createElement("button");del.type="button";del.className="text-button";del.textContent="Remove";
-      del.onclick=()=>{state.questions.splice(i,1);render()};head.append(title,del);card.append(head);
-      const label=inp(q.label,"Question text");label.maxLength=200;label.oninput=()=>q.label=label.value;
-      card.append(field("Question label",label));
-      const type=document.createElement("select");
-      ["text","textarea","select","radio","checkbox","number","date"].forEach(t=>{const opt=document.createElement("option");opt.value=t;opt.textContent=t;type.append(opt)});
-      type.value=q.type;type.onchange=()=>{q.type=type.value;render()};card.append(field("Answer type",type));
-      if(["select","radio","checkbox"].includes(q.type)){
-        const choices=document.createElement("textarea");choices.rows=3;choices.value=(q.options||[]).join("\n");
-        choices.oninput=()=>q.options=choices.value.split("\n").map(x=>x.trim()).filter(Boolean);
-        card.append(field("Options (one per line)",choices));
+      const isSection=q.type==='section';
+      const card=document.createElement('article');
+      card.className='question-card studio-question-card'+(isSection?' is-section':'');
+      const head=document.createElement('div');head.className='studio-question-top';
+      const badge=document.createElement('span');badge.className='studio-q-index';
+      badge.textContent=isSection?'SECTION '+(i+1):'QUESTION '+(i+1);
+      const controls=document.createElement('div');controls.className='studio-q-controls';
+      const up=button('↑','', 'studio-icon-btn');up.disabled=i===0;up.title='Move up';up.setAttribute('aria-label','Move question up');
+      up.onclick=()=>{if(i<=0)return;[state.questions[i-1],state.questions[i]]=[state.questions[i],state.questions[i-1]];touch();render()};
+      const down=button('↓','', 'studio-icon-btn');down.disabled=i===state.questions.length-1;down.title='Move down';down.setAttribute('aria-label','Move question down');
+      down.onclick=()=>{if(i>=state.questions.length-1)return;[state.questions[i+1],state.questions[i]]=[state.questions[i],state.questions[i+1]];touch();render()};
+      const dupe=button('⧉ Duplicate',()=>{const copy=JSON.parse(JSON.stringify(q));copy.id=newQuestion().id;state.questions.splice(i+1,0,copy);touch();render()},'studio-icon-btn');
+      const remove=button('✕',()=>{if(!confirm('Remove this '+(isSection?'section':'question')+'?'))return;state.questions.splice(i,1);touch();render()},'studio-icon-btn dangerous');
+      remove.title='Remove question';remove.setAttribute('aria-label','Remove question');
+      controls.append(up,down,dupe,remove);head.append(badge,controls);card.append(head);
+      const layout=document.createElement('div');layout.className='studio-question-inputs';
+      const label=input(q.label,isSection?'Section title':'Enter your question',200);
+      label.required=true;label.oninput=()=>{q.label=label.value;touch()};
+      layout.append(field(isSection?'Section heading':'Question title',label));
+      const type=document.createElement('select');
+      kinds.forEach(([key,name])=>{const opt=document.createElement('option');opt.value=key;opt.textContent=name;type.append(opt)});
+      type.value=q.type||'text';
+      type.onchange=()=>{q.type=type.value;if(['radio','select','checkbox'].includes(q.type)&&!q.options?.length)q.options=['Option 1','Option 2'];touch();render()};
+      layout.append(field('Answer type',type));
+      card.append(layout);
+      const description=document.createElement('textarea');
+      description.rows=2;description.maxLength=400;description.value=q.help_text||'';
+      description.placeholder=isSection?'Optional section instructions':'Add help text or instructions (optional)';
+      description.oninput=()=>{q.help_text=description.value;touch()};
+      card.append(field('Description / help text',description));
+      if(['radio','select','checkbox'].includes(q.type)){
+        const choices=document.createElement('textarea');choices.rows=Math.max(3,Math.min(7,(q.options||[]).length+1));
+        choices.value=(q.options||[]).join('\n');choices.placeholder='Option 1\nOption 2';
+        choices.oninput=()=>{q.options=choices.value.split('\n').map(x=>x.trim()).filter(Boolean);touch()};
+        card.append(field('Choices — one per line (up to 30)',choices));
       }
-      const required=document.createElement("label");required.className="role-choice";
-      const checked=document.createElement("input");checked.type="checkbox";checked.checked=!!q.required;
-      checked.onchange=()=>q.required=checked.checked;required.append(checked,document.createTextNode(" Required"));card.append(required);
-      const reorder=document.createElement("div");reorder.className="editor-row";
-      ["Move up","Move down"].forEach((text,d)=>{const btn=document.createElement("button");btn.type="button";btn.className="text-button";btn.textContent=text;
-        btn.disabled=d===0?i===0:i===state.questions.length-1;btn.onclick=()=>{const next=d===0?i-1:i+1;[state.questions[i],state.questions[next]]=[state.questions[next],state.questions[i]];render()};reorder.append(btn)});
-      card.append(reorder);questions.append(card);
+      if(q.type==='scale'){
+        const settings=document.createElement('div');settings.className='studio-scale-options';
+        const lower=document.createElement('select'),upper=document.createElement('select');
+        for(let min=0;min<=1;min++){let opt=document.createElement('option');opt.value=String(min);opt.textContent=String(min);lower.append(opt)}
+        for(let max=2;max<=10;max++){let opt=document.createElement('option');opt.value=String(max);opt.textContent=String(max);upper.append(opt)}
+        lower.value=String(q.scale_min===0?0:1);upper.value=String(q.scale_max||5);
+        lower.onchange=()=>{q.scale_min=Number(lower.value);touch()};
+        upper.onchange=()=>{q.scale_max=Number(upper.value);touch()};
+        const low=input(q.min_label||'','Low end label (optional)',60);
+        const high=input(q.max_label||'','High end label (optional)',60);
+        low.oninput=()=>{q.min_label=low.value;touch()};
+        high.oninput=()=>{q.max_label=high.value;touch()};
+        settings.append(field('From',lower),field('To',upper),field('Low label',low),field('High label',high));
+        card.append(settings);
+      }
+      if(!isSection){
+        const row=document.createElement('div');row.className='studio-question-footer';
+        const wrap=document.createElement('label');wrap.className='studio-required-toggle';
+        const check=document.createElement('input');check.type='checkbox';check.checked=!!q.required;
+        check.onchange=()=>{q.required=check.checked;touch()};
+        wrap.append(check,document.createTextNode(' Required question'));
+        row.append(wrap);card.append(row);
+      }
+      questions.append(card);
     });
   }
-  document.getElementById("form-title").value=state.title||"";
-  document.getElementById("form-description").value=state.description||"";
-  document.getElementById("form-status").value=state.status||"DRAFT";
-  Object.entries(state.allowed_roles||{}).forEach(([guild,roles])=>{(roles||[]).forEach(id=>{const check=Array.from(document.getElementsByName("role-"+guild)).find(x=>x.value===String(id));if(check)check.checked=true})});
-  document.getElementById("add-question").onclick=()=>{state.questions.push({id:"q"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),label:"",type:"text",required:false,options:[]});render()};
-  document.getElementById("editor").onsubmit=(event)=>{
-    state.title=document.getElementById("form-title").value;
-    state.description=document.getElementById("form-description").value;
-    state.status=document.getElementById("form-status").value;
-    state.allowed_roles={airlines:Array.from(document.querySelectorAll('[name="role-airlines"]:checked')).map(x=>x.value),crew:Array.from(document.querySelectorAll('[name="role-crew"]:checked')).map(x=>x.value)};
-    if(!state.questions.length||state.questions.some(q=>!q.label.trim())){event.preventDefault();alert("Add and label at least one question.");return}
-    document.getElementById("editor-payload").value=JSON.stringify(state);
+  $('form-title').value=state.title||'';
+  $('form-description').value=state.description||'';
+  $('form-status').value=state.status||'DRAFT';
+  ['form-title','form-description','form-status'].forEach(id=>$(id).addEventListener('input',touch));
+  Object.entries(state.allowed_roles||{}).forEach(([guild,roles])=>(roles||[]).forEach(id=>{
+    const check=Array.from(document.getElementsByName('role-'+guild)).find(el=>el.value===String(id));
+    if(check)check.checked=true;
+  }));
+  document.querySelectorAll('[name^="role-"]').forEach(check=>check.addEventListener('change',touch));
+  function appendQuestion(kind){
+    if(state.questions.length>=50){alert('A form can have up to 50 questions/sections.');return}
+    state.questions.push(newQuestion(kind));touch();render();
+    questions.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  $('add-question').onclick=()=>appendQuestion('text');
+  $('add-question-bottom').onclick=()=>appendQuestion('text');
+  $('add-section').onclick=()=>appendQuestion('section');
+  function collect(){
+    state.title=$('form-title').value.trim();
+    state.description=$('form-description').value;
+    state.status=$('form-status').value;
+    state.allowed_roles={
+      airlines:Array.from(document.querySelectorAll('[name="role-airlines"]:checked'),el=>el.value),
+      crew:Array.from(document.querySelectorAll('[name="role-crew"]:checked'),el=>el.value)
+    };
+    return state;
+  }
+  function validate(){
+    if(!state.title){alert('Enter a title for your form.');$('form-title').focus();return false}
+    if(!state.questions.length){alert('Add at least one question or section.');return false}
+    if(state.questions.some(q=>!q.label.trim())){alert('Every question and section needs a title.');return false}
+    if(state.questions.some(q=>['select','radio','checkbox'].includes(q.type)&&!(q.options||[]).length)){
+      alert('Add at least one choice to multiple choice, dropdown and checkbox questions.');return false
+    }
+    return true;
+  }
+  editor.addEventListener('submit',event=>{
+    collect();if(!validate()){event.preventDefault();return}
+    saving=true;$('editor-payload').value=JSON.stringify(state);
+  });
+  $('save-draft').onclick=()=>{$('form-status').value='DRAFT';touch();editor.requestSubmit()};
+  {% if form %}
+  $('copy-share-link').onclick=()=>navigator.clipboard.writeText($('share-link').href).then(()=>{
+    $('copy-share-link').textContent='Copied!';
+  }).catch(()=>alert('Copy the link displayed above.'));
+  $('duplicate-form').onclick=()=>{
+    collect();delete state.id;state.title='Copy of '+state.title;
+    $('form-title').value=state.title.slice(0,180);
+    $('form-status').value='DRAFT';touch();
+    alert('A draft copy is ready. Click Save Form to create it as a separate form.');
   };
+  {% endif %}
+  function previewInput(q){
+    const wrap=document.createElement('div');wrap.className='studio-preview-field';
+    const title=document.createElement(q.type==='section'?'h3':'label');title.textContent=q.label+(q.required?' *':'');
+    wrap.append(title);
+    if(q.help_text){const help=document.createElement('p');help.textContent=q.help_text;wrap.append(help)}
+    if(q.type==='section')return wrap;
+    const options=q.type==='scale'?Array.from({length:Math.max(2,(q.scale_max||5)-(q.scale_min||1)+1)},(_,i)=>String((q.scale_min??1)+i)):(q.options||[]);
+    if(['radio','checkbox','scale'].includes(q.type)){
+      const set=document.createElement('div');set.className='studio-preview-choices';
+      options.forEach(choice=>{const label=document.createElement('label');const el=document.createElement('input');
+        el.type=q.type==='checkbox'?'checkbox':'radio';el.name='preview_'+q.id;el.value=choice;label.append(el,document.createTextNode(' '+choice));set.append(label)});
+      wrap.append(set);return wrap;
+    }
+    if(q.type==='textarea'){const el=document.createElement('textarea');el.rows=3;el.placeholder='Your answer';wrap.append(el);return wrap}
+    if(q.type==='select'){const el=document.createElement('select');let placeholder=document.createElement('option');placeholder.textContent='Choose an option';el.append(placeholder);
+      options.forEach(choice=>{const item=document.createElement('option');item.textContent=choice;el.append(item)});wrap.append(el);return wrap}
+    const el=document.createElement('input');el.type=q.type==='text'?'text':q.type;el.placeholder=q.type==='email'?'name@example.com':q.type==='url'?'https://example.com':'Your answer';wrap.append(el);
+    return wrap;
+  }
+  const previewDialog=$('studio-preview-dialog');
+  $('preview-form').onclick=()=>{
+    collect();$('preview-title').textContent=state.title||'Untitled Form';
+    $('preview-description').textContent=state.description||'';
+    const box=$('preview-questions');box.replaceChildren();
+    state.questions.forEach(q=>box.append(previewInput(q)));
+    if(typeof previewDialog.showModal==='function')previewDialog.showModal();else previewDialog.setAttribute('open','');
+  };
+  $('close-preview').onclick=()=>previewDialog.close();
+  previewDialog.addEventListener('click',event=>{if(event.target===previewDialog)previewDialog.close()});
+  window.addEventListener('beforeunload',event=>{if(dirty&&!saving){event.preventDefault();event.returnValue=''}});
+  document.addEventListener('keydown',event=>{
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){event.preventDefault();editor.requestSubmit()}
+  });
   render();
 })();
-</script>{% endblock %}
+</script>
+{% endblock %}

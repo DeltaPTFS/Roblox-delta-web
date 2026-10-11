@@ -4,12 +4,15 @@ Authorization for every read/write comes from Discord's current guild member rol
 No SkyMiles account is required for a form submission.
 """
 import hashlib
+import csv
+import io
 import json
+import math
 import re
 import secrets
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from uuid import uuid4
 
 import httpx
@@ -38,7 +41,7 @@ FLIGHT_QUESTIONS = [
     {"id": "experience", "label": "Experience / qualifications", "type": "textarea", "required": False, "options": []},
     {"id": "notes", "label": "Additional notes", "type": "textarea", "required": False, "options": []},
 ]
-QUESTION_TYPES = {"text", "textarea", "select", "radio", "checkbox", "number", "date"}
+QUESTION_TYPES = {"text", "textarea", "select", "radio", "checkbox", "number", "date", "email", "time", "url", "scale", "section"}
 GUILDS = ("airlines", "crew")
 
 
@@ -236,6 +239,8 @@ async def save_form(request: Request, csrf: str = Form(...), payload: str = Form
         questions = []
         seen = set()
         for question in question_data:
+            if not isinstance(question, dict):
+                raise ValueError("Each question must be an object")
             key = str(question.get("id", ""))[:40]
             label = str(question.get("label", "")).strip()[:200]
             kind = str(question.get("type", "text"))
@@ -245,10 +250,26 @@ async def save_form(request: Request, csrf: str = Form(...), payload: str = Form
             if not isinstance(options, list) or len(options) > 30:
                 raise ValueError("Too many choices")
             options = [str(choice).strip()[:150] for choice in options if str(choice).strip()]
-            if kind in {"select", "radio"} and not options:
-                raise ValueError("Multiple-choice questions need choices")
-            questions.append({"id": key, "label": label, "type": kind,
-                              "required": bool(question.get("required")), "options": options})
+            if kind in {"select", "radio", "checkbox"} and not options:
+                raise ValueError("Choice questions require at least one option")
+            low, high = 1, 5
+            if kind == "scale":
+                try:
+                    low, high = int(question.get("scale_min", 1)), int(question.get("scale_max", 5))
+                except (TypeError, ValueError):
+                    raise ValueError("Invalid linear scale endpoints")
+                if low not in (0, 1) or not 2 <= high <= 10 or high <= low:
+                    raise ValueError("Linear scale must start at 0 or 1 and end between 2 and 10")
+            help_text = str(question.get("help_text", ""))[:400]
+            questions.append({
+                "id": key, "label": label, "type": kind,
+                "required": bool(question.get("required")) if kind != "section" else False,
+                "options": options if kind in {"select", "radio", "checkbox"} else [],
+                "help_text": help_text,
+                "scale_min": low, "scale_max": high,
+                "min_label": str(question.get("min_label", ""))[:60],
+                "max_label": str(question.get("max_label", ""))[:60],
+            })
             seen.add(key)
         restrictions = data.get("allowed_roles", {})
         if not isinstance(restrictions, dict):
@@ -322,11 +343,15 @@ async def submit_form(request: Request, slug: str, csrf: str = Form(...),
     incoming = await request.form()
     answers = {}
     for question in form.questions:
+        if question["type"] == "section":
+            continue
         key = "answer_" + question["id"]
         values = incoming.getlist(key)
         kind = question["type"]
         if kind == "checkbox":
             chosen = [str(value)[:150] for value in values]
+            if len(chosen) != len(set(chosen)) or any(value not in (question.get("options") or ["Yes"]) for value in chosen):
+                raise HTTPException(422, "Invalid checkbox selection for " + question["label"])
             answer = chosen
         else:
             answer = str(values[0]).strip()[:2000] if values else ""
@@ -334,11 +359,29 @@ async def submit_form(request: Request, slug: str, csrf: str = Form(...),
             raise HTTPException(422, "Required: " + question["label"])
         if kind in {"select", "radio"} and answer and answer not in question["options"]:
             raise HTTPException(422, "Invalid selection for " + question["label"])
+        if kind == "scale" and answer:
+            allowed = {str(value) for value in range(int(question.get("scale_min", 1)), int(question.get("scale_max", 5)) + 1)}
+            if answer not in allowed:
+                raise HTTPException(422, "Invalid scale rating for " + question["label"])
         if kind == "number" and answer:
             try:
-                float(answer)
+                if not math.isfinite(float(answer)):
+                    raise ValueError("Nonfinite")
             except ValueError:
                 raise HTTPException(422, "Invalid number for " + question["label"])
+        if kind == "email" and answer and (len(answer) > 254 or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", answer)):
+            raise HTTPException(422, "Invalid email for " + question["label"])
+        if kind == "url" and answer:
+            parsed = urlparse(answer)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                raise HTTPException(422, "Invalid website URL for " + question["label"])
+        if kind == "time" and answer and not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", answer):
+            raise HTTPException(422, "Invalid time for " + question["label"])
+        if kind == "date" and answer:
+            try:
+                date.fromisoformat(answer)
+            except ValueError:
+                raise HTTPException(422, "Invalid date for " + question["label"])
         answers[question["id"]] = answer
     response = CommunityFormResponse(submission_key=submission_key, form_id=form.id,
         flight_id=related.id if related else None, discord_user_id=viewer["id"],
@@ -376,6 +419,42 @@ async def view_responses(request: Request, slug: str, db: Session = Depends(get_
                          .order_by(CommunityFormResponse.submitted_at.desc()).limit(500)).all()
     return templates.TemplateResponse("forms/responses.html",
         page_context(request, viewer, roles, form=form, records=records))
+
+
+@router.get("/forms/{slug}/responses.csv")
+async def export_form_responses(request: Request, slug: str, db: Session = Depends(get_db)):
+    """Authenticated staff export with formula-safe values for Google Sheets/Excel."""
+    result = await verified_viewer(request, db)
+    if isinstance(result, RedirectResponse):
+        return result
+    _, roles = result
+    if access_level(roles) == "MEMBER":
+        raise HTTPException(403, "Staff only")
+    form = db.scalar(select(CommunityForm).where(CommunityForm.slug == slug))
+    if not form:
+        raise HTTPException(404, "Form not found")
+    questions = [q for q in form.questions if q.get("type") != "section"]
+    out = io.StringIO(newline="")
+    writer = csv.writer(out)
+    writer.writerow(["Response ID", "Discord User ID", "Discord Display Name", "Flight ID", "Submitted (UTC)"]
+                    + [str(q["label"])[:200] for q in questions])
+    def safe_cell(value):
+        if isinstance(value, list):
+            value = ", ".join(str(item) for item in value)
+        value = str(value if value is not None else "")
+        return "'" + value if value.lstrip().startswith(("=", "+", "-", "@")) else value
+    records = db.scalars(select(CommunityFormResponse)
+        .where(CommunityFormResponse.form_id == form.id)
+        .order_by(CommunityFormResponse.id)
+        .limit(10000)).all()
+    for item in records:
+        writer.writerow([
+            item.id, item.discord_user_id, safe_cell(item.discord_display_name),
+            item.flight_id or "", item.submitted_at.isoformat()
+        ] + [safe_cell((item.answers or {}).get(q["id"], "")) for q in questions])
+    return Response(out.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": 'attachment; filename="delta-form-' + form.slug + '-responses.csv"',
+                             "Cache-Control": "private, no-store"})
 
 
 @router.post("/internal/flights/host")
