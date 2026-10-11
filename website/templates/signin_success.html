@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#06132d">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Welcome Aboard · Delta Air Lines</title>
+  <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
+  <link rel="stylesheet" href="/static/signin-success.css?v={{ asset_version }}">
+  <script src="/static/signin-success.js?v={{ asset_version }}" defer></script>
+</head>
+<body>
+  <div class="success-scene" aria-hidden="true">
+    <div class="success-grid"></div>
+    <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+    <div class="flight-streak flight-streak-a"></div>
+    <div class="flight-streak flight-streak-b"></div>
+    <div class="flight-streak flight-streak-c"></div>
+    <div class="spark spark-a"></div><div class="spark spark-b"></div>
+    <div class="spark spark-c"></div><div class="spark spark-d"></div>
+  </div>
+  <header class="success-header">
+    <div class="success-brand">
+      <img src="/static/delta-emblem.svg" alt="" width="34" height="37">
+      <div><strong>DELTA</strong><span>AIR LINES · ROBLOX ROLEPLAY</span></div>
+    </div>
+    <span class="secure-label"><span class="secure-light"></span> SECURE AUTHENTICATION</span>
+  </header>
+  <main class="success-main" id="success-main">
+    <div class="arrival-label">IDENTITY VERIFICATION COMPLETE</div>
+    <div class="success-check-area" aria-hidden="true">
+      <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+      <div class="orbit orbit-three"></div>
+      <div class="success-check-shell">
+        <svg class="success-check-svg" viewBox="0 0 136 136" focusable="false" aria-hidden="true">
+          <circle class="success-circle" cx="68" cy="68" r="59"/>
+          <path class="success-tick" d="M39 68 L59 88 L98 48"/>
+        </svg>
+      </div>
+    </div>
+    <p class="success-status"><span class="success-online-dot"></span> DISCORD VERIFIED</p>
+    <h1>You're <em>signed in.</em></h1>
+    <p class="success-name">Welcome aboard, <strong>{{ display_name }}.</strong></p>
+    <p class="success-description">
+      {% if event.kind == "skymiles" %}
+      Your Delta SkyMiles account is connected and ready. Your existing miles, flights, and rewards are waiting.
+      {% elif event.kind == "forms" %}
+      Your Discord identity is confirmed. Your available forms and applications are ready.
+      {% else %}
+      Your Discord account is connected. Verify your Roblox identity once to finish creating your SkyMiles membership.
+      {% endif %}
+    </p>
+    <div class="success-connection">
+      <span class="connection-dot"></span>
+      {% if event.join_status == "joined" or event.join_status == "already_member" %}
+      Delta Discord membership confirmed
+      {% else %}
+      Discord authentication confirmed · Server membership may still need verification
+      {% endif %}
+    </div>
+    <div class="success-footer">
+      <div class="progress-caption">
+        <span id="loading-copy">Preparing your Delta experience</span>
+        <span id="progress-seconds">00:04</span>
+      </div>
+      <div class="success-progress" role="progressbar" aria-label="Redirecting to your account" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="success-progress">
+        <span id="progress-fill"></span>
+      </div>
+      <div class="success-actions" id="success-actions">
+        <button class="sound-button" type="button" id="sound-button" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9a5 5 0 0 1 0 6M18 6a9 9 0 0 1 0 12"/></svg>
+          Play Welcome Sound
+        </button>
+        <a id="continue-link" class="continue-link" href="{{ destination }}">Continue now <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="success-muted-note" id="autoplay-note" hidden>
+        Your browser blocked automatic sound. Tap <b>Play Welcome Sound</b> to hear it, or continue without audio.
+      </p>
+    </div>
+  </main>
+  <footer class="success-page-footer"><span>KEEP CLIMBING, DELTA AIR LINES.</span><span>INDEPENDENT ROBLOX AVIATION ROLEPLAY COMMUNITY</span></footer>
+  <audio id="signin-sound" src="/static/audio/delta-signin.mp3" preload="auto"></audio>
+  <script type="application/json" id="signin-event">{{ {"destination":destination,"display_name":display_name,"kind":event.kind,"event_id":event.event_id} | tojson }}</script>
+</body>
+</html>
