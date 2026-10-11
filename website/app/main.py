@@ -154,6 +154,25 @@ def main_role_labels(role_ids: list[str] | None) -> list[dict]:
             for role in (role_ids or []) if role in MAIN_DISPLAY_NAMES]
 
 
+async def main_roles_for_display(request: Request, user: User) -> list[dict]:
+    """Display the member's entire known guild-role catalog, not only staff badges."""
+    fallback=main_role_labels(user.discord_role_ids)
+    cached=request.session.get("main_profile_roles")
+    if isinstance(cached,dict) and cached.get("user_id")==user.discord_user_id:
+        if time()-float(cached.get("checked_at",0))<300:
+            return cached.get("roles",fallback)
+    roles=fallback
+    if settings.discord_bot_token and settings.discord_guild_id:
+        try:
+            catalog=await asyncio.wait_for(discord_guild_roles(settings),timeout=3)
+            roles=display_discord_roles(user.discord_role_ids or [],catalog) or fallback
+        except Exception:
+            pass
+    request.session["main_profile_roles"]={"user_id":user.discord_user_id,
+                                           "roles":roles,"checked_at":time()}
+    return roles
+
+
 async def crew_roles_for_display(request: Request, discord_id: str) -> dict:
     """Fetch real Crew guild membership, caching it for 180 seconds only for display."""
     empty={"roles":[],"member":False,"status":"unavailable"}
@@ -285,7 +304,7 @@ async def homepage(request: Request, db: Session = Depends(get_db)):
                      (isinstance(guest,dict) and guest.get("main_member")) or
                      request.session.get("discord_join_status") in ("joined","already_member"))
     crew=await crew_roles_for_display(request,viewer["id"]) if isinstance(viewer,dict) and viewer.get("id") else {"roles":[],"member":False,"status":"unavailable"}
-    main_roles=main_role_labels(user.discord_role_ids) if user else []
+    main_roles=await main_roles_for_display(request,user) if user else []
     return templates.TemplateResponse("homepage.html", context(
         request,viewer=viewer,profile_user=user,profile_main_roles=main_roles,
         crew_role_details=crew["roles"],crew_member=crew["member"],crew_roles_status=crew["status"],
@@ -594,6 +613,9 @@ async def member_page(request: Request, template: str, db: Session):
         auth=permission(user,settings)
     else:
         auth=await refresh_discord_authorization(user,db); request.session["discord_sync_checked_at"]=time()
+    if getattr(user,"_discord_role_details",None):
+        request.session["main_profile_roles"]={"user_id":user.discord_user_id,
+            "roles":user._discord_role_details,"checked_at":time()}
     await crew_roles_for_display(request,user.discord_user_id)
     transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all() if template in {"dashboard.html","activity.html"} else []
     rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all() if template=="rewards.html" else []
