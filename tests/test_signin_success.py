@@ -9,7 +9,7 @@ os.environ.setdefault("SESSION_SECRET", "test-secret-at-least-thirty-two-charact
 from fastapi import HTTPException
 from fastapi.responses import RedirectResponse
 from starlette.requests import Request
-from website.app.main import login, queue_signin_success, signin_success
+from website.app.main import login, queue_signin_success, signin_success, finish_signin_celebration
 from website.app.models import Status, User
 from website.app.security import current_user, linked_user_from_session
 
@@ -87,7 +87,7 @@ def test_existing_linked_member_skips_skymiles_login_screen():
     assert result.headers["location"]=="/dashboard"
 
 
-def test_signin_success_event_is_one_time_and_rotates_cookie_id():
+def test_signin_success_stays_until_explicit_return_home_and_rotates_cookie_id():
     request=request_with_session({"user_id":17},path="/signin/success")
     redirect=queue_signin_success(request,display_name="Captain Delta",
                                   destination="/dashboard",kind="skymiles",
@@ -100,11 +100,20 @@ def test_signin_success_event_is_one_time_and_rotates_cookie_id():
     assert rendered.status_code==200
     assert b"Captain Delta" in rendered.body
     assert b"signin-success.js" in rendered.body
-    assert "signin_celebration" not in request.session
+    assert "signin_celebration" in request.session
 
     again=signin_success(request,db=FakeDatabase(linked_user()))
-    assert isinstance(again,RedirectResponse)
-    assert again.headers["location"]=="/dashboard"
+    assert again.status_code == 200
+    assert b"Return to Homepage" in again.body
+
+    finish=finish_signin_celebration(request)
+    assert isinstance(finish,RedirectResponse)
+    assert finish.headers["location"]=="/"
+    assert "signin_celebration" not in request.session
+
+    subsequent=signin_success(request,db=FakeDatabase(linked_user()))
+    assert isinstance(subsequent,RedirectResponse)
+    assert subsequent.headers["location"]=="/dashboard"
 
 
 def test_discord_only_success_cannot_claim_skymiles_membership():
@@ -130,10 +139,12 @@ def test_sound_and_four_second_animation_are_bundled_as_real_assets():
     assert "You're <em>signed in.</em>" in html
     assert "success-check-svg" in html
     assert "/static/audio/delta-signin.mp3" in html
-    assert "const durationMs = 4000" in js
-    assert "sound.play()" in js
-    assert "soundButton.hidden = false" in js
-    assert "window.location.replace(destination)" in js
+    assert "setTimeout(activate, 3900)" in js
+    assert "audio.play()" in js
+    assert "sound-button" not in html
+    assert "autoplay-note" not in html
+    assert 'href="/signin/finish"' in html
+    assert "window.location.replace(destination)" not in js
     assert "@media(prefers-reduced-motion:reduce)" in css
 
 
