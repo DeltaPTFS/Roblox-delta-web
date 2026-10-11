@@ -45,3 +45,25 @@ def test_role_defaults_do_not_confuse_main_and_crew_roles():
     assert settings.crew_staff_role_ids=="1554666482988875788"
     assert settings.forms_staff_discord_role_ids=="1539016506216812567"
     assert settings.discord_invite_url=="https://discord.gg/u8GJF2br2M"
+
+
+def test_join_button_uses_discord_oauth_and_not_raw_invitation():
+    from pathlib import Path
+    base=Path("website/templates/community_base.html").read_text()
+    home=Path("website/templates/homepage.html").read_text()
+    main=Path("website/app/main.py").read_text()
+    oauth=Path("website/app/oauth.py").read_text()
+    assert 'href="/join"' in home
+    assert 'href="/join"' in base
+    assert 'Gallery</a>' not in base
+    assert '@app.get("/join")' in main
+    assert '@app.get("/welcome")' in main
+    assert 'guilds.join' in oauth
+    assert 'client.put(' in oauth
+
+
+def test_customer_navigation_does_not_link_to_protected_gallery_editor():
+    from pathlib import Path
+    nav=Path("website/templates/community_base.html").read_text()
+    assert '/gallery/manage' not in nav
+    assert '{% if access is defined' in nav
