@@ -107,3 +107,63 @@ The page uses a responsive visual fallback when an image has not yet been upload
 The form editor is staff-only on the server; UI-hidden controls alone never confer access. Role IDs are checked against live guild roles. The bot flight API requires an unguessable secret, and website→bot events require a five-minute HMAC signature. The Google Apps Script uses secret authentication, serialized writes and event deduplication. Keep spreadsheet editor permissions limited to trusted staff; it contains Discord identifiers and submitted application details. Never ask users for real names, passwords, or personal airline credentials in roleplay forms.
 
 **Official disclaimer:** This is an independent Roblox roleplay fan community, not Delta Air Lines' corporate website or product.
+
+
+
+## October 2026 unified Crew bot release (PR #37)
+
+This release adds the **third** repository `DeltaPTFS/Delta-crew-bot` while preserving the existing `deltaptfs-bot`. There is no integration with `delta-bot`.
+
+### Roles (two independent guilds)
+
+| Main Air Lines server | Role ID | Crew server | Role ID |
+| --- | --- | --- | --- |
+| Founders | 1539005297417519205 | BOD | 1554665018690248714 |
+| Leadership | 1539005030189891684 | Leadership | 1554666461644197988 |
+| Human Resources | 1539016506216812567 | Human Resources | 1554666482988875788 |
+| Delta Crew | 1539968936681148456 | Crew | 1554669633573888010 |
+| SkyMiles | 1539005061609422849 | Authentication needed | 1554671178893885480 |
+| Customers | 1539005068916031518 | — | — |
+
+The crew server ID is still required for live role reads. Website forms can be restricted to any combination of actual roles from either guild in the form editor. Founder/BOD, Leadership and HR can manage forms. Customers and normal Crew can see only published forms whose role restrictions they satisfy.
+
+### Gallery photo fix
+
+The main homepage now uses permanent paths like `/gallery/media/delta-hangar` rather than linking to nonexistent JPGs in the repository. Staff can visit **`/gallery/manage`** from the website menu to upload all seven photos using the supplied `Delta_Air_Lines_PNG_Website_Gallery.zip` in a single action: **Import All Photos**. Images are validated (PNG/JPEG/WebP, max 3 MB each), then stored in PostgreSQL; no direct GitHub manipulation is required. Optionally upload the "Skipping Class" image separately into the **Flight format announcement image** slot, `flight-promo`. It then appears below main bot `/format` announcements as a Discord attachment.
+
+The gallery images are **not physically uploaded to the hosted website** until an authorized staff member imports the provided ZIP. Do not advertise the pictures as installed before doing so.
+
+### Discord OAuth auto-join
+
+Discord login requests `guilds.join` together with `identify` and `guilds.members.read`. A user who grants that permission can be added to the **main** Delta Air Lines Discord guild via Discord's official Add Guild Member endpoint. This feature requires `DISCORD_BOT_TOKEN`, the main guild ID and the bot's presence in the guild. Discord can reject joins (e.g. bans or screening) and those users see the invitation instructions. The separate Crew guild is **never joined silently**, and no privileged roles are auto-granted.
+
+### Crew bot service variables
+
+Set the following **website** environment variables, in addition to the existing SkyMiles ones:
+
+```env
+DISCORD_INVITE_URL=https://discord.gg/u8GJF2br2M
+DISCORD_GUILD_ID=1538738611988467782
+DISCORD_CREW_GUILD_ID=<need Crew server ID>
+DISCORD_CREW_BOT_TOKEN=<Crew bot's own Discord token>
+CREW_OWNER_ROLE_IDS=1554665018690248714
+CREW_ADMIN_ROLE_IDS=1554666461644197988
+CREW_STAFF_ROLE_IDS=1554666482988875788
+FORMS_STAFF_DISCORD_ROLE_IDS=1539016506216812567
+DELTA_CREW_API_SECRET=<random 32+ chars; same as Crew RavenHost service>
+DELTA_FLIGHT_API_SECRET=<different random 32+ chars; same as Main bot>
+```
+
+**Crew RavenHost** app should run the `Delta-crew-bot` repo via `npm install`, `npm run build`, `npm start`. Set `DISCORD_TOKEN`, `DELTA_CREW_GUILD_ID`, `DELTA_WEBSITE_URL`, `DELTA_CREW_API_SECRET` and Crew announcement/channel IDs. Use a separate app/token from main bot. The Crew bot polls for pending form/flight events every 30 seconds and only ACKs after posting; notifications for restricted forms/responses go to HR-only channels.
+
+**Main RavenHost** app continues with `deltaptfs-bot`. `/format` now offers 8 original Delta flight notices, using Discord native timestamp markup and a Publish/Cancel preview. `/flight-host` responds with the numeric website flight ID to use with `/format`. The two services share the same flight database; they do not share Discord tokens.
+
+### Release order
+
+1. Run `alembic upgrade head` to apply migrations **0013 Crew notifications** and **0014 Site gallery** (plus any previously pending 0012 Forms migration). Existing SkyMiles tables must be preserved.
+2. Configure both bot tokens, Crew server ID, channel IDs, and random API secrets as environment variables.
+3. Deploy web, then main bot, then new Crew bot. Verify `/health`, `/crew action:status`, `/format` preview.
+4. Import seven website screenshots through **`/gallery/manage`**; import the flight promo separately.
+5. Validate form visibility for a user in both servers and one who has only a Customer/Crew role; confirm private HR-only responses and Google Sheets retry behavior.
+
+Never paste Discord bot tokens or API shared secrets into chats or GitHub.
