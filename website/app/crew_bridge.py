@@ -1,5 +1,8 @@
 """Authenticated API and durable event queue for the separate Delta Crew bot."""
 from datetime import datetime, timezone
+import hashlib
+import json
+import re
 from pathlib import Path
 import secrets
 from urllib.parse import quote
@@ -9,6 +12,7 @@ from sqlalchemy.orm import Session
 from .config import get_settings
 from .database import get_db
 from .models import CrewDeliveryEvent, CommunityForm, Flight, FlightStatus
+from .sheet_sync import enqueue_event
 
 router=APIRouter()
 settings=get_settings()
@@ -74,3 +78,38 @@ def acknowledge_event(request:Request,event_id:int,db:Session=Depends(get_db)):
         row.attempts+=1
         db.commit()
     return {"ok":True,"id":row.id,"status":row.status}
+
+
+
+@router.post("/internal/crew/roster")
+async def receive_crew_roster(request:Request,db:Session=Depends(get_db)):
+    """Queue authenticated Crew roster snapshots for the existing Sheets bridge."""
+    authenticate(request)
+    if not settings.discord_crew_guild_id:
+        raise HTTPException(503,"Crew guild ID must be configured")
+    data=await request.json()
+    members=data.get("members",[])
+    if not isinstance(members,list) or not 1<=len(members)<=80:
+        raise HTTPException(422,"Send 1 to 80 members per request")
+    clean=[]
+    for m in members:
+        if not isinstance(m,dict) or str(m.get("guildId"))!=settings.discord_crew_guild_id:
+            raise HTTPException(422,"Wrong Crew Discord server")
+        uid=str(m.get("userId") or "")
+        if not re.fullmatch(r"\d{15,22}",uid):
+            raise HTTPException(422,"Invalid Discord identity")
+        role_ids=m.get("roleIds",[])
+        role_names=m.get("roleNames",[])
+        if not isinstance(role_ids,list) or not isinstance(role_names,list) or len(role_ids)>100 or len(role_names)>100:
+            raise HTTPException(422,"Too many roles")
+        if any(not re.fullmatch(r"\d{15,22}",str(r)) for r in role_ids):
+            raise HTTPException(422,"Invalid role ID")
+        clean.append({"userId":uid,"discordUsername":str(m.get("discordUsername") or "")[:100],
+                      "displayName":str(m.get("displayName") or "")[:100],
+                      "guildId":settings.discord_crew_guild_id,"guildName":"Delta Crew",
+                      "roleIds":[str(r) for r in role_ids],
+                      "roleNames":[str(r)[:100] for r in role_names]})
+    digest=hashlib.sha256(json.dumps(clean,sort_keys=True).encode()).hexdigest()[:28]
+    enqueue_event(db,"crew:roster:"+digest,"discord_roster",{"members":clean})
+    db.commit()
+    return {"ok":True,"accepted":len(clean)}
