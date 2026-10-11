@@ -219,3 +219,34 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
   .community-mobile-links{animation:none!important}
   .feature-card,.gallery-card img,.community-btn,.account-chevron,.link-chevron{transition:none!important}
 }
+
+/* Original photographs now ship as separate optimized WebP files.
+   The much larger AVIF atlas is used only if an individual image is unavailable. */
+.community-hero .hero-photo{
+  background-image:url('/static/gallery/photo-atlas.avif'),url('/static/gallery/photo-sprite.svg');
+  background-size:300% 200%,300% 200%;
+  background-position:0% 0%,0% 0%;
+  background-repeat:no-repeat,no-repeat;
+}
+.showcase .gallery-card{
+  background-image:url('/static/gallery/photo-atlas.avif'),url('/static/gallery/photo-sprite.svg');
+  background-size:300% 200%,300% 200%;
+  background-repeat:no-repeat,no-repeat;
+}
+.showcase .gallery-card:nth-child(1){background-position:50% 0%,50% 0%}
+.showcase .gallery-card:nth-child(2){background-position:100% 0%,100% 0%}
+.showcase .gallery-card:nth-child(3){background-position:0% 100%,0% 100%}
+.showcase .gallery-card:nth-child(4){background-position:50% 100%,50% 100%}
+.showcase .gallery-card:nth-child(5){background-position:100% 100%,100% 100%}
+.community-account .account-name{color:#f4f7ff}
+.community-account .account-chevron{color:#ef5977}
+.forms-empty-dialog{
+  width:min(520px,calc(100vw - 32px));max-width:100%;
+  overflow:auto;max-height:min(85vh,760px);
+  border-radius:18px;
+}
+.forms-empty-dialog::backdrop{background:#010817c7;backdrop-filter:none}
+@media(max-width:700px){
+  .forms-empty-dialog{max-height:80dvh}
+  .forms-dialog-inner{padding:27px 22px}
+}
