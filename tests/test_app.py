@@ -137,7 +137,7 @@ def test_login_has_safe_oauth_and_disclaimer():
         assert "Verify with Roblox" in response.text
         assert "Continue with Discord" in response.text
         assert "COMMUNITY OPERATIONS" in response.text
-        assert 'id="route-transition"' in response.text
+        assert 'id="route-transition"' not in response.text
         assert "Preparing your next destination" in response.text
         assert '<html lang="en" class="theme-light">' in response.text
         assert "/static/style.css?v=" in response.text
@@ -174,13 +174,9 @@ def test_invalid_flight_form_preserves_submitted_values():
 
 def test_release_update_notice_and_uncached_health():
     base_template = Path("website/templates/base.html").read_text()
-    assert "Website update in progress" in base_template
-    assert "WEBSITE UPDATE" in base_template
-    assert "We’re publishing the latest SkyMiles improvements." in base_template
-    assert "The website update is now live." in base_template
-    assert "Render brings the new release live" not in base_template
-    assert "live on Render" not in base_template
-    assert "skymiles-release-{{ asset_version }}" in base_template
+    assert "Website update in progress" not in base_template
+    assert 'id="deployment-modal"' not in base_template
+    assert "setTimeout(()=>location.assign(next.href),720)" not in base_template
     with TestClient(app) as client:
         response = client.get("/health")
         assert response.headers["cache-control"] == "no-store"
