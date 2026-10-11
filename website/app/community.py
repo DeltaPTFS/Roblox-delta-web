@@ -25,6 +25,7 @@ from .database import get_db
 from .models import CommunityForm, CommunityFormResponse, Flight, FlightStatus, User
 from .security import check_csrf, csrf_token, current_user
 from .sheet_sync import enqueue_event, add_transaction
+from .crew_bridge import queue_event
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).resolve().parents[1] / "templates")
@@ -94,7 +95,7 @@ def access_level(roles: dict) -> str:
     checks = [
         ("OWNER", settings.owner_discord_role_ids, settings.crew_owner_role_ids),
         ("ADMIN", settings.admin_discord_role_ids, settings.crew_admin_role_ids),
-        ("STAFF", settings.staff_discord_role_ids, settings.crew_staff_role_ids),
+        ("STAFF", settings.forms_staff_discord_role_ids, settings.crew_staff_role_ids),
     ]
     for level, airline_ids, crew_ids in checks:
         if set(roles.get("airlines", [])) & settings.ids(airline_ids):
@@ -156,6 +157,8 @@ def enqueue_form(db: Session, form: CommunityForm):
             "updated_at": datetime.now(timezone.utc).isoformat()}
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:18]
     enqueue_event(db, "forms:" + str(form.id) + ":" + digest, "form_upsert", data)
+    if form.status == "PUBLISHED":
+        queue_event(db, "crew:form:" + str(form.id) + ":" + digest, "form_published", {"title":form.title, "url":settings.app_url.rstrip("/")+"/forms/"+form.slug})
 
 
 def enqueue_flight(db: Session, flight: Flight):
@@ -167,6 +170,7 @@ def enqueue_flight(db: Session, flight: Flight):
             "status": flight.status.value, "name": flight.name}
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:18]
     enqueue_event(db, "flights:" + str(flight.id) + ":" + digest, "flight_upsert", data)
+    queue_event(db, "crew:flight:" + str(flight.id) + ":" + digest, "flight", {**data, "form_url":settings.app_url.rstrip("/")+"/forms/flight-crew-fillout?flight="+str(flight.id)})
 
 
 @router.get("/forms", response_class=HTMLResponse)
@@ -338,6 +342,10 @@ async def submit_form(request: Request, slug: str, csrf: str = Form(...),
                    "discord_user_id": viewer["id"], "discord_display_name": viewer["name"],
                    "flight_id": response.flight_id, "is_flight_form": form.is_flight_form, "roles": roles, "answers": answers,
                    "submitted_at": datetime.now(timezone.utc).isoformat()})
+    queue_event(db, "crew:response:" + submission_key, "form_response", {
+        "response_id": response.id, "display_name": viewer["name"], "form_title": form.title,
+        "responses_url": settings.app_url.rstrip("/")+"/forms/"+form.slug+"/responses"
+    })
     try:
         db.commit()
     except IntegrityError:
