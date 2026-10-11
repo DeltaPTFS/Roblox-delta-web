@@ -121,6 +121,13 @@ def context(request, **values):
             role_names.update({role_id:"Staff" for role_id in settings.ids(settings.staff_discord_role_ids)})
             discord_role_details=[{"id":role_id,"name":role_names[role_id],"color":0} for role_id in user.discord_role_ids or [] if role_id in role_names]
         discord_roles=[role["name"] for role in discord_role_details]
+    # Rendering cached Crew display roles never grants access. Form/admin access is
+    # determined separately by live Discord membership checks.
+    cached=request.session.get("crew_profile_roles")
+    if user and isinstance(cached,dict) and cached.get("user_id")==user.discord_user_id:
+        values.setdefault("crew_role_details",cached.get("roles",[]))
+        values.setdefault("crew_member",bool(cached.get("member")))
+        values.setdefault("crew_roles_status","verified" if time()-float(cached.get("checked_at",0))<180 else "stale")
     return {"request":request,"csrf":csrf_token(request),"settings":settings,"asset_version":ASSET_VERSION,"show_feedback":show_feedback,"show_tutorial":show_tutorial,"discord_roles":discord_roles,"discord_role_details":discord_role_details,"role_sync_state":role_sync_state,**values}
 
 
@@ -587,6 +594,7 @@ async def member_page(request: Request, template: str, db: Session):
         auth=permission(user,settings)
     else:
         auth=await refresh_discord_authorization(user,db); request.session["discord_sync_checked_at"]=time()
+    await crew_roles_for_display(request,user.discord_user_id)
     transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all() if template in {"dashboard.html","activity.html"} else []
     rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all() if template=="rewards.html" else []
     tiers=db.scalars(select(TierConfig).order_by(TierConfig.mqp_threshold)).all() if template=="miles.html" else []
@@ -945,6 +953,7 @@ def persist_qualification_adjustment(db:Session,user_id:int,mqp:int,segments:int
 
 async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     actor=await ({"STAFF":require_staff,"ADMIN":require_admin,"OWNER":require_owner}[required])(request,db); users=[]
+    await crew_roles_for_display(request,actor.discord_user_id)
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
     terminal_cutoff=datetime.now(timezone.utc)-FLIGHT_TERMINAL_GRACE
     flights=db.scalars(select(Flight).where(or_(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.updated_at>terminal_cutoff)).order_by(Flight.starts_at.desc()).limit(20)).all() if required in {"ADMIN","OWNER"} else []
