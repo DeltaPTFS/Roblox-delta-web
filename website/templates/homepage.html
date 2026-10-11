@@ -1,7 +1,6 @@
-{% extends "community_base.html" %}{% block title %}Welcome Aboard<script src="/static/delta-ads.js?v={{ asset_version }}" defer></script>
-{% endblock %}
+{% extends "community_base.html" %}{% block title %}Welcome Aboard{% endblock %}
 {% block content %}
-<section class="delta-advertising" aria-roledescription="carousel" aria-label="Delta Air Lines advertising showcase" id="advertisements">
+<section class="delta-advertising" aria-label="Delta Air Lines advertising showcase" id="top">
   <div class="delta-ad-bar"><div><span class="delta-ad-live-dot" aria-hidden="true"></span><span>DELTA SPOTLIGHT</span><span class="delta-ad-bar-divider">/</span><span class="delta-ad-bar-muted">FEATURED CAMPAIGNS</span></div><span class="delta-ad-sponsored">ROBLOX AVIATION ROLEPLAY</span></div>
   <div class="delta-ad-frame" data-ad-carousel tabindex="0" aria-label="Featured Delta campaigns, use arrows to change">
     <div class="delta-ad-slide is-active" data-ad-slide="0" role="group" aria-roledescription="slide" aria-label="Advertisement 1 of 6: Los Angeles sunset flights" aria-hidden="false">
@@ -40,38 +39,6 @@
     <div class="delta-ad-duration" aria-hidden="true"><span data-ad-progress></span></div>
   </div>
 </section>
-<section class="delta-ad-feature" id="top" aria-label="Delta Air Lines featured roleplay advertisements">
-  <div class="delta-ad-heading"><div><span class="eyebrow">DELTA AIR LINES · COMMUNITY CAMPAIGNS</span><h2>Where every journey begins.</h2></div>
-    <span class="delta-ad-interval">FEATURED ADS · 5-SECOND ROTATION</span>
-  </div>
-  <div class="delta-ad-carousel" id="delta-ad-carousel" aria-roledescription="carousel" aria-label="Delta Air Lines advertisements" data-interval="5000">
-    <div class="delta-ad-track">
-      <figure class="delta-ad-slide is-current" aria-label="Advertisement 1 of 6" aria-hidden="false"><img src="/static/ads/delta-centennial.webp" alt="Delta Air Lines Centennial promotional campaign" loading="eager" decoding="async" fetchpriority="high" width="2048" height="1205"></figure>
-      <figure class="delta-ad-slide" aria-label="Advertisement 2 of 6" aria-hidden="true"><img src="/static/ads/delta-new-york.webp" alt="Delta Air Lines New York World campaign" loading="lazy" decoding="async" width="2048" height="1209"></figure>
-      <figure class="delta-ad-slide" aria-label="Advertisement 3 of 6" aria-hidden="true"><img src="/static/ads/delta-skipping-class.webp" alt="Delta Air Lines Skipping Class advertisement" loading="lazy" decoding="async" width="2048" height="1209"></figure>
-      <figure class="delta-ad-slide" aria-label="Advertisement 4 of 6" aria-hidden="true"><img src="/static/ads/delta-lax.webp" alt="Delta Air Lines Los Angeles campaign" loading="lazy" decoding="async" width="2048" height="1209"></figure>
-      <figure class="delta-ad-slide" aria-label="Advertisement 5 of 6" aria-hidden="true"><img src="/static/ads/delta-tech-ops.webp" alt="Delta Tech-Ops Airbus A321neo feature" loading="lazy" decoding="async" width="1320" height="779"></figure>
-      <figure class="delta-ad-slide" aria-label="Advertisement 6 of 6" aria-hidden="true"><img src="/static/ads/delta-tech-ops-engine.webp" alt="Delta Tech-Ops A321neo engine campaign" loading="lazy" decoding="async" width="1320" height="777"></figure>
-    </div>
-    <div class="delta-ad-controls" aria-label="Advertisement controls">
-      <div class="delta-ad-arrows">
-        <button type="button" class="delta-ad-arrow" data-ad-prev aria-label="Previous advertisement"><svg viewBox="0 0 24 24" fill="none" width="22" height="22" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
-        <button type="button" class="delta-ad-arrow" data-ad-next aria-label="Next advertisement"><svg viewBox="0 0 24 24" fill="none" width="22" height="22" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-      </div>
-      <div class="delta-ad-dots" role="group" aria-label="Choose an advertisement">
-        <button type="button" class="is-active" data-ad-dot="0" aria-label="Advertisement 1" aria-current="true"></button>
-        <button type="button" data-ad-dot="1" aria-label="Advertisement 2" aria-current="false"></button>
-        <button type="button" data-ad-dot="2" aria-label="Advertisement 3" aria-current="false"></button>
-        <button type="button" data-ad-dot="3" aria-label="Advertisement 4" aria-current="false"></button>
-        <button type="button" data-ad-dot="4" aria-label="Advertisement 5" aria-current="false"></button>
-        <button type="button" data-ad-dot="5" aria-label="Advertisement 6" aria-current="false"></button>
-      </div>
-      <button class="delta-ad-play" type="button" data-ad-toggle aria-label="Pause automatic advertisement rotation" aria-pressed="false"><svg data-pause-icon viewBox="0 0 24 24" fill="currentColor" width="15" height="15" aria-hidden="true"><rect x="5" y="4" width="4" height="16" rx="1"></rect><rect x="15" y="4" width="4" height="16" rx="1"></rect></svg><span data-ad-play-label>Pause</span></button>
-    </div>
-    <div class="delta-ad-progress" aria-hidden="true"><span></span></div>
-  </div>
-  <div class="delta-ad-caption"><span class="delta-ad-caption-label">ADVERTISEMENT GALLERY</span><span>From New York to LAX and beyond — keep climbing with our Roblox roleplay community.</span></div>
-</section>
 <section class="community-hero" id="homepage-story">
   <div class="hero-photo"><img src="/static/gallery/delta-hangar.webp" alt="Delta aircraft in a maintenance hangar" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.classList.add('image-unavailable')};this.src='/gallery/media/delta-hangar'"></div>
   <div class="hero-content"><div class="eyebrow"><span class="pulse-dot"></span> DELTA AIR LINES · ROBLOX ROLEPLAY</div>
@@ -86,13 +53,6 @@
 <div class="feature-grid"><a class="feature-card" href="/flights"><span class="feature-index">01 / OPERATIONS</span><h3>Upcoming Flights</h3><p>Book your next roleplay journey and stay up to date with the crew.</p><span>Explore flights</span></a>
 <a class="feature-card" href="/forms"><span class="feature-index">02 / OPPORTUNITIES</span><h3>Applications & Forms</h3><p>Apply for opportunities or complete your flight fillout using Discord sign-in.</p><span>See open forms</span></a>
 <a class="feature-card" href="/dashboard"><span class="feature-index">03 / RECOGNITION</span><h3>SkyMiles</h3><p>Keep your existing account, trips, Medallion progress and member rewards.</p><span>Visit SkyMiles</span></a></div></section>
-<section class="delta-campaign-feature" aria-label="Explore Delta featured advertisements">
-  <div class="delta-campaign-feature-head"><span class="eyebrow">FEATURED CAMPAIGNS</span><h2>Experience more of Delta.</h2><p>Discover our aviation world through the latest Roblox creative campaigns.</p></div>
-  <div class="delta-campaign-cards">
-    <article class="delta-campaign-card"><img src="/static/ads/delta-tech-ops.webp" alt="Delta Tech-Ops Airbus A321neo advertisement" loading="lazy" decoding="async" width="1320" height="779"><div class="delta-campaign-card-foot"><div><span>BEHIND THE SCENES</span><h3>Delta Tech-Ops</h3></div><a href="/flights" aria-label="Explore flight operations">Explore flights <span aria-hidden="true">→</span></a></div></article>
-    <article class="delta-campaign-card"><img src="/static/ads/delta-lax.webp" alt="Los Angeles Delta Air Lines advertisement" loading="lazy" decoding="async" width="2048" height="1209"><div class="delta-campaign-card-foot"><div><span>OUR DESTINATIONS</span><h3>Los Angeles &amp; beyond</h3></div><a href="/flights" aria-label="Explore hosted flights">Explore flights <span aria-hidden="true">→</span></a></div></article>
-  </div>
-</section>
 <section class="community-section showcase"><div class="section-head"><span class="eyebrow">BEHIND THE EXPERIENCE</span><h2>Built for the sky.<br><em>Made for you.</em></h2></div>
 <div class="gallery-grid">
 <div class="gallery-card large"><img src="/static/gallery/delta-centennial.webp" alt="Delta airplane flying past palm trees" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-centennial'"><div><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></div></div>
