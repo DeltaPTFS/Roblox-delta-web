@@ -160,7 +160,7 @@ def enqueue_form(db: Session, form: CommunityForm):
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:18]
     enqueue_event(db, "forms:" + str(form.id) + ":" + digest, "form_upsert", data)
     if form.status == "PUBLISHED":
-        queue_event(db, "crew:form:" + str(form.id) + ":" + digest, "form_published", {"title":form.title, "url":settings.app_url.rstrip("/")+"/forms/"+form.slug})
+        queue_event(db, "crew:form:" + str(form.id) + ":" + digest, "form_published", {"title":form.title, "url":settings.app_url.rstrip("/")+"/forms/"+form.slug, "restricted":any((form.allowed_roles or {}).get(g) for g in GUILDS)})
 
 
 def enqueue_flight(db: Session, flight: Flight):
