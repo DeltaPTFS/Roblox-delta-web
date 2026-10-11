@@ -2,6 +2,14 @@
 {% block content %}<section class="community-page"><div class="page-heading"><div><span class="eyebrow">DELTA AIR LINES · STAFF</span><h1>Website Photo Gallery</h1><p>Upload photos once and they will appear automatically on the public homepage. No GitHub upload is needed. Each image must be under 3 MB.</p></div>
 <a href="/" class="community-btn outlined">View homepage →</a></div>
 {% if request.query_params.get("uploaded") %}<div class="success-note">Image uploaded successfully! Refresh the homepage to see it.</div>{% endif %}
+{% if request.query_params.get("imported") %}<div class="success-note">Imported {{ request.query_params.get("imported") }} photo(s). Your website gallery is now updated.</div>{% endif %}
+<div class="editor-card" style="margin-bottom:28px"><h2>Import all photos at once</h2>
+<p>Upload the Delta Air Lines photo ZIP from your phone's Files app. It automatically fills all matching gallery slots, with no GitHub file editing.</p>
+<form method="post" action="/gallery/import" enctype="multipart/form-data">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<input type="file" accept=".zip,application/zip" name="gallery_zip" required style="max-width:100%;margin-bottom:14px">
+<button class="community-btn primary" type="submit">Import All Photos →</button>
+</form></div>
 <div class="form-list">{% for slug,label in gallery.items() %}<article class="form-card"><div class="form-card-top"><span class="eyebrow">{{ "UPLOADED" if saved[slug] else "NOT UPLOADED" }}</span></div>
 <img src="/gallery/media/{{ slug }}?v={{ request.query_params.get('uploaded','') }}" alt="{{ label }}" style="height:150px;width:100%;object-fit:cover;margin:16px 0;background:#142f58;border-radius:6px" onerror="this.style.display='none'">
 <h2>{{ label }}</h2><form method="post" action="/gallery/manage" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{ csrf }}">
