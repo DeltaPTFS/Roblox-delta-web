@@ -168,6 +168,16 @@ def reconcile_outbox(db: Session) -> dict[str, int]:
         actor = users.get(transaction.created_by) if transaction.created_by else None
         enqueue_transaction(db, transaction, user, actor, replay=True)
         transactions += 1
+    # A reconciliation is a full replay of the canonical member/ledger mirror.
+    # Re-queue any older delivered snapshots as well, so historical updates
+    # do not remain inconsistent after a Google Sheet is recreated.
+    for event in db.scalars(select(SheetSyncEvent).where(SheetSyncEvent.event_type.in_([
+        "register_member", "update_member", "record_transaction"
+    ]))).all():
+        event.status = "PENDING"
+        event.next_attempt_at = datetime.now(timezone.utc)
+        event.locked_at = None
+        event.last_error = None
     return {"members": registrations, "transactions": transactions}
 
 
