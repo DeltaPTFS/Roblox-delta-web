@@ -1,5 +1,45 @@
-{% extends "community_base.html" %}{% block title %}Welcome Aboard{% endblock %}
+{% extends "community_base.html" %}{% block title %}Welcome Aboard<script src="/static/delta-ads.js?v={{ asset_version }}" defer></script>
+{% endblock %}
 {% block content %}
+<section class="delta-advertising" aria-roledescription="carousel" aria-label="Delta Air Lines advertising showcase" id="advertisements">
+  <div class="delta-ad-bar"><div><span class="delta-ad-live-dot" aria-hidden="true"></span><span>DELTA SPOTLIGHT</span><span class="delta-ad-bar-divider">/</span><span class="delta-ad-bar-muted">FEATURED CAMPAIGNS</span></div><span class="delta-ad-sponsored">ROBLOX AVIATION ROLEPLAY</span></div>
+  <div class="delta-ad-frame" data-ad-carousel tabindex="0" aria-label="Featured Delta campaigns, use arrows to change">
+    <div class="delta-ad-slide is-active" data-ad-slide="0" role="group" aria-roledescription="slide" aria-label="Advertisement 1 of 6: Los Angeles sunset flights" aria-hidden="false">
+      <img src="/static/ads/delta-lax.webp" alt="Delta Roblox aviation advertisement for New York to Los Angeles nonstop flights." width="2048" height="1209" loading="eager" decoding="async" fetchpriority="high">
+      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore Los Angeles sunset flights"></a>
+    </div>
+    <div class="delta-ad-slide" data-ad-slide="1" role="group" aria-roledescription="slide" aria-label="Advertisement 2 of 6: New York. The world is yours." aria-hidden="true">
+      <img src="/static/ads/delta-new-york.webp" alt="Delta Air Lines Roblox aviation campaign featuring New York and worldwide travel." width="2048" height="1209" loading="lazy" decoding="async" >
+      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore New York. The world is yours."></a>
+    </div>
+    <div class="delta-ad-slide" data-ad-slide="2" role="group" aria-roledescription="slide" aria-label="Advertisement 3 of 6: A century of stories" aria-hidden="true">
+      <img src="/static/ads/delta-centennial-ad.webp" alt="Delta Centennial campaign with Delta aircraft in the hangar." width="2048" height="1209" loading="lazy" decoding="async" >
+      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore A century of stories"></a>
+    </div>
+    <div class="delta-ad-slide" data-ad-slide="3" role="group" aria-roledescription="slide" aria-label="Advertisement 4 of 6: Technical operations" aria-hidden="true">
+      <img src="/static/ads/delta-tech-ops.webp" alt="Delta technical operations airplane service campaign." width="2048" height="1209" loading="lazy" decoding="async" >
+      <a class="delta-ad-hitarea" href="/forms" aria-label="Explore Technical operations"></a>
+    </div>
+    <div class="delta-ad-slide" data-ad-slide="4" role="group" aria-roledescription="slide" aria-label="Advertisement 5 of 6: We move engines that move the world" aria-hidden="true">
+      <img src="/static/ads/delta-engine.webp" alt="Delta aircraft engine and ground crew technical operations campaign." width="2048" height="1209" loading="lazy" decoding="async" >
+      <a class="delta-ad-hitarea" href="/forms" aria-label="Explore We move engines that move the world"></a>
+    </div>
+    <div class="delta-ad-slide" data-ad-slide="5" role="group" aria-roledescription="slide" aria-label="Advertisement 6 of 6: Skipping class never felt so good" aria-hidden="true">
+      <img src="/static/ads/delta-skipping.webp" alt="Delta Air Lines Roblox advertisement featuring a close-up airplane tail." width="2048" height="1209" loading="lazy" decoding="async" >
+      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore Skipping class never felt so good"></a>
+    </div>
+    <div class="delta-ad-caption"><span class="delta-ad-caption-label">FEATURED ADVERTISEMENT</span><strong data-ad-heading>Los Angeles sunset flights</strong></div>
+    <div class="delta-ad-controls" aria-label="Advertisement controls">
+      <button type="button" class="delta-ad-control" data-ad-previous aria-label="Previous advertisement"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div class="delta-ad-indicators" aria-label="Choose advertisement">
+        <button type="button" data-ad-dot="0" aria-label="Go to advertisement 1" aria-current="true"></button><button type="button" data-ad-dot="1" aria-label="Go to advertisement 2" aria-current="false"></button><button type="button" data-ad-dot="2" aria-label="Go to advertisement 3" aria-current="false"></button><button type="button" data-ad-dot="3" aria-label="Go to advertisement 4" aria-current="false"></button><button type="button" data-ad-dot="4" aria-label="Go to advertisement 5" aria-current="false"></button><button type="button" data-ad-dot="5" aria-label="Go to advertisement 6" aria-current="false"></button>
+      </div>
+      <button type="button" class="delta-ad-control" data-ad-next aria-label="Next advertisement"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button type="button" class="delta-ad-control delta-ad-pause" data-ad-toggle aria-label="Pause advertisement rotation" aria-pressed="false"><svg data-ad-pause-icon width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg data-ad-play-icon hidden width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></button>
+    </div>
+    <div class="delta-ad-duration" aria-hidden="true"><span data-ad-progress></span></div>
+  </div>
+</section>
 <section class="community-hero" id="top">
   <div class="hero-photo"><img src="/static/gallery/delta-hangar.webp" alt="Delta aircraft in a maintenance hangar" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.classList.add('image-unavailable')};this.src='/gallery/media/delta-hangar'"></div>
   <div class="hero-content"><div class="eyebrow"><span class="pulse-dot"></span> DELTA AIR LINES · ROBLOX ROLEPLAY</div>
@@ -22,6 +62,13 @@
 <div class="gallery-card"><img src="/static/gallery/delta-hq.webp" alt="Delta HQ reception" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-hq'"><div><span>OUR COMMUNITY</span><h3>Explore Delta HQ</h3></div></div>
 <div class="gallery-card"><img src="/static/gallery/delta-electric.webp" alt="Delta partnership electric ground service vehicle" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-electric'"><div><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></div></div>
 </div></section>
+<section class="community-section delta-ad-secondary" aria-labelledby="delta-spotlights-title">
+  <div class="section-head"><span class="eyebrow">MORE TO EXPLORE</span><h2 id="delta-spotlights-title">Beyond the flight.<br><em>Discover Delta.</em></h2><p>Explore the destinations and operations that make our Roblox aviation community unique.</p></div>
+  <div class="delta-ad-secondary-grid">
+    <a class="delta-ad-feature-card" href="/flights"><img src="/static/ads/delta-new-york.webp" alt="New York, the world is yours — Delta advertising campaign" loading="lazy" decoding="async"><span class="delta-ad-feature-footer"><span><small>DESTINATIONS</small><strong>Discover your next journey</strong></span><span aria-hidden="true">→</span></span></a>
+    <a class="delta-ad-feature-card" href="/forms"><img src="/static/ads/delta-tech-ops.webp" alt="Delta Technical Operations airplane maintenance campaign" loading="lazy" decoding="async"><span class="delta-ad-feature-footer"><span><small>BEHIND THE SCENES</small><strong>Explore crew opportunities</strong></span><span aria-hidden="true">→</span></span></a>
+  </div>
+</section>
 <section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/login">Access SkyMiles</a></div></div></section>
 <section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
 {% endblock %}
