@@ -170,3 +170,8 @@ html.theme-dark .login-stage,body.theme-dark .login-stage{background:radial-grad
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* Discord-first visitors keep their identity while creating a SkyMiles account. */
+.discord-connected-note{display:grid;gap:7px;margin:18px 18px 0;padding:15px 17px;border:1px solid #6acda07a;border-radius:10px;background:linear-gradient(110deg,#12493690,#153f5b55);color:#e8fff2;line-height:1.55;font-size:12px}
+.discord-connected-note strong{font-weight:900;color:#aef9cc;font-size:13px}
+.discord-connected-note span{color:#c9d9ea}

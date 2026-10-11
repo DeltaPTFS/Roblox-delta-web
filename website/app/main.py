@@ -28,7 +28,7 @@ from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
 from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, Status, Tier, TierConfig, Transaction, User, WebSession
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
-from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
+from .security import check_csrf, consume_oauth, csrf_token, current_user, linked_user_from_session, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 from .sheet_sync import add_transaction, enqueue_member_update, enqueue_registration, process_outbox_once, reconcile_outbox
 
@@ -85,7 +85,7 @@ async def lifespan(app):
 app = FastAPI(title="Delta SkyMiles | Roblox", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, lambda r, e: JSONResponse({"detail":"Too many requests"}, 429))
-app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max_age=86400)
+app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max_age=30*86400)
 app.add_middleware(GZipMiddleware, minimum_size=800)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 app.include_router(community_router)
@@ -217,14 +217,17 @@ async def web_discord_emojis(request:Request,db:Session=Depends(get_db)):
 
 @app.get("/", response_class=HTMLResponse)
 def homepage(request: Request, db: Session = Depends(get_db)):
-    user=db.get(User, request.session["user_id"]) if request.session.get("user_id") else None
+    user=linked_user_from_session(request,db)
     viewer={"id": user.discord_user_id, "name": user.discord_display_name} if user else request.session.get("forms_identity")
     return templates.TemplateResponse("homepage.html", context(request, viewer=viewer))
 
 
 @app.get("/login", response_class=HTMLResponse)
-def login(request: Request):
-    if request.session.get("user_id"): return RedirectResponse("/dashboard", 303)
+def login(request: Request, db: Session=Depends(get_db)):
+    # Visitors who linked Discord and SkyMiles on this browser go directly home.
+    user=linked_user_from_session(request,db)
+    if user and user.account_status==Status.ACTIVE:
+        return RedirectResponse("/dashboard",303)
     return templates.TemplateResponse("login.html", context(request))
 
 
@@ -279,12 +282,13 @@ def join_discord(request: Request):
     if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
         # Never leave visitors on a blank OAuth 503 screen.
         return RedirectResponse(settings.discord_invite_url, 303)
-    return RedirectResponse("/auth/discord/forms?next=%2Fwelcome", 303)
+    return RedirectResponse("/auth/discord/forms?next=%2Fwelcome&force=1", 303)
 
 
 @app.get("/welcome", response_class=HTMLResponse)
-def welcome_discord(request: Request):
+def welcome_discord(request: Request, db: Session=Depends(get_db)):
     """Only report main-server membership when Discord actually confirmed it."""
+    member=linked_user_from_session(request,db)
     guest = request.session.get("forms_identity")
     if not guest and not request.session.get("user_id"):
         return RedirectResponse("/join", 303)
@@ -295,7 +299,7 @@ def welcome_discord(request: Request):
         title, message = "Welcome Back!", "You're already a member of our Delta Air Lines Discord community."
     else:
         title, message = "Discord Authorization Complete", "Your server membership could not be confirmed. Open Discord using the invite below and finish joining before completing forms."
-    viewer = {"name": guest.get("name", "Member")} if isinstance(guest, dict) else None
+    viewer = {"name":member.discord_display_name} if member else ({"name": guest.get("name", "Member")} if isinstance(guest, dict) else None)
     return templates.TemplateResponse("welcome.html", {
         "request": request, "viewer": viewer, "title": title, "message": message,
         "joined": join_status in {"joined", "already_member"},
@@ -305,9 +309,17 @@ def welcome_discord(request: Request):
 
 @app.get("/auth/discord/forms")
 @limiter.limit("10/minute")
-def start_discord_forms_login(request: Request, next: str = "/forms"):
+def start_discord_forms_login(request: Request, next: str = "/forms", force: bool=False, db: Session=Depends(get_db)):
     if not settings.discord_client_id or not settings.discord_bot_token: raise HTTPException(503, "Discord OAuth is not configured")
-    target=next if next.startswith("/") and not next.startswith("//") and not next.startswith("/\\") else "/forms"
+    target=next if next.startswith("/") and not next.startswith("//") and not next.startswith("/\\") and "\\" not in next and not any(c in next for c in ("\r","\n")) else "/forms"
+    if not force:
+        linked=linked_user_from_session(request,db)
+        if linked and linked.account_status==Status.ACTIVE:
+            return RedirectResponse(target,303)
+        if request.session.get("forms_identity"):
+            if target.startswith(("/dashboard","/miles","/trips","/rewards","/settings")):
+                return RedirectResponse("/login?discord_connected=1",303)
+            return RedirectResponse(target,303)
     request.session["discord_login_for_forms"]=True
     request.session["forms_login_return"]=target[:300]
     state, challenge=oauth_values(request,"discord")
@@ -316,11 +328,46 @@ def start_discord_forms_login(request: Request, next: str = "/forms"):
 
 @app.get("/auth/discord/login")
 @limiter.limit("10/minute")
-def start_discord_login(request: Request):
+def start_discord_login(request: Request, db: Session=Depends(get_db)):
     if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
+    user=linked_user_from_session(request,db)
+    if user and user.account_status==Status.ACTIVE:
+        return RedirectResponse("/dashboard",303)
     request.session["discord_login_only"]=True
     state, challenge = oauth_values(request, "discord")
     return RedirectResponse(discord_authorize(settings, state, challenge))
+
+
+def queue_signin_success(request: Request, *, display_name: str, destination: str,
+                         kind: str, join_status: str = "not_confirmed") -> RedirectResponse:
+    """One-shot confirmation following a validated OAuth callback."""
+    request.session["signin_celebration"]={
+        "name":display_name[:100], "destination":destination,
+        "kind":kind, "join_status":join_status,
+        "event_id":secrets.token_urlsafe(12)
+    }
+    request.scope["rotate_session"]=True
+    return RedirectResponse("/signin/success",303)
+
+
+@app.get("/signin/success", response_class=HTMLResponse)
+def signin_success(request: Request, db: Session=Depends(get_db)):
+    event=request.session.pop("signin_celebration",None)
+    user=linked_user_from_session(request,db)
+    guest=request.session.get("forms_identity")
+    if not event:
+        return RedirectResponse("/dashboard" if user else "/forms" if guest else "/login",303)
+    if not user and not isinstance(guest,dict):
+        return RedirectResponse("/login",303)
+    destination=str(event.get("destination") or "/forms")
+    if not destination.startswith("/") or destination.startswith("//") or destination.startswith("/\\"):
+        destination="/dashboard" if user else "/forms"
+    viewer={"name":user.discord_display_name,"id":user.discord_user_id} if user else guest
+    return templates.TemplateResponse("signin_success.html",context(
+        request,viewer=viewer,event=event,destination=destination,
+        display_name=event.get("name") or (viewer or {}).get("name","Member"),
+        has_skymiles=bool(user)
+    ),headers={"Cache-Control":"private, no-store"})
 
 
 def next_number(db):
@@ -349,17 +396,47 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
             request.session.clear()
             return templates.TemplateResponse("restricted.html", context(request, kind="forms"), status_code=403)
         target=request.session.pop("forms_login_return","/forms")
-        previous_user_id=request.session.get("user_id")
-        sky_user=db.get(User, previous_user_id) if isinstance(previous_user_id, int) else None
-        if not sky_user or sky_user.discord_user_id!=identity["id"]:
-            request.session.clear()
-            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+        sky_user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
+        account_linked=bool(sky_user and sky_user.account_status==Status.ACTIVE
+                            and not sky_user.permanent_ban
+                            and (not sky_user.restricted_until or sky_user.restricted_until<=datetime.now(timezone.utc))
+                            and "airlines" in roles)
+        if account_linked:
+            sky_user.discord_username=identity["username"]
+            sky_user.discord_display_name=identity["display_name"]
+            sky_user.discord_avatar_url=identity["avatar"]
+            sky_user.discord_role_ids=list(roles["airlines"])
+            sky_user.discord_verified_at=datetime.now(timezone.utc)
+            db.commit()
+        request.session.clear()
+        if account_linked:
+            request.session["user_id"]=sky_user.id
+            request.session["authorization"]=permission(sky_user,settings)
+            request.session["theme"]=sky_user.theme_preference
+        else:
+            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100],
+                                               "main_member":"airlines" in roles}
         request.session["discord_join_status"]=identity.get("join_status", "not_confirmed")
-        return RedirectResponse(target,303)
+        return queue_signin_success(
+            request,display_name=identity["display_name"],
+            destination=target,kind="skymiles" if account_linked else "forms",
+            join_status=identity.get("join_status","not_confirmed")
+        )
     if not identity["member"]: return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
     if direct_login:
         user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
-        if not user: return templates.TemplateResponse("error.html",context(request,title="Roblox Verification Required",message="Verify with Roblox first to create your SkyMiles membership."),status_code=404)
+        if not user:
+            # Discord sign-in is valid, but SkyMiles enrollment still requires
+            # Roblox verification. Keep the Discord identity; do not create an
+            # unverified or duplicate SkyMiles record.
+            request.session.clear()
+            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+            request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
+            return queue_signin_success(
+                request,display_name=identity["display_name"],
+                destination="/login?discord_connected=1",kind="discord",
+                join_status=identity.get("join_status","not_confirmed")
+            )
         release_expired_restriction(user,db)
         if user.account_status != Status.ACTIVE: raise HTTPException(403,"Account suspended")
         user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc)
@@ -367,7 +444,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         except Exception: pass
         db.commit()
         request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
-        return RedirectResponse("/dashboard",303)
+        request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
+        return queue_signin_success(request,display_name=user.discord_display_name,
+                                    destination="/dashboard",kind="skymiles",
+                                    join_status=identity.get("join_status","not_confirmed"))
     existing_roblox = db.scalar(select(User).where(User.roblox_user_id == pending["id"]))
     existing_discord = db.scalar(select(User).where(User.discord_user_id == identity["id"]))
     if existing_discord and (not existing_roblox or existing_discord.id != existing_roblox.id): return templates.TemplateResponse("error.html", context(request, title="Account Already Linked", message="That Discord account is already linked to another SkyMiles membership."), status_code=409)
@@ -389,7 +469,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None); db.commit()
     except Exception: pass  # Account creation must survive a temporary Discord role outage.
     request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
-    return RedirectResponse("/dashboard?tutorial=1" if created_new else "/dashboard",303)
+    request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
+    return queue_signin_success(request,display_name=user.discord_display_name,
+                                destination="/dashboard?tutorial=1" if created_new else "/dashboard",
+                                kind="skymiles",join_status=identity.get("join_status","not_confirmed"))
 
 
 async def refresh_discord_authorization(user: User, db: Session) -> str:
