@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, LargeBinary, Boolean, DateTime, Enum, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -249,3 +249,25 @@ class CommunityFormResponse(Base):
     discord_display_name: Mapped[str] = mapped_column(String(100))
     answers: Mapped[dict] = mapped_column(JSON, default=dict)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CrewDeliveryEvent(Base):
+    """Durable outbound notifications from the website to the Crew Discord bot."""
+    __tablename__ = "crew_delivery_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_key: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    kind: Mapped[str] = mapped_column(String(30), index=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(15), default="PENDING", index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class SiteGalleryImage(Base):
+    """Permanent uploaded homepage roleplay photographs."""
+    __tablename__ = "site_gallery_images"
+    slug: Mapped[str] = mapped_column(String(50), primary_key=True)
+    mime_type: Mapped[str] = mapped_column(String(24))
+    content: Mapped[bytes] = mapped_column(LargeBinary)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)

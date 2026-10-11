@@ -25,6 +25,7 @@ from .database import get_db
 from .models import CommunityForm, CommunityFormResponse, Flight, FlightStatus, User
 from .security import check_csrf, csrf_token, current_user
 from .sheet_sync import enqueue_event, add_transaction
+from .crew_bridge import queue_event
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).resolve().parents[1] / "templates")
@@ -44,16 +45,17 @@ GUILDS = ("airlines", "crew")
 async def memberships(discord_id: str) -> dict:
     """Fail closed when role verification is impossible; never trust saved role IDs."""
     if not settings.discord_bot_token:
-        raise HTTPException(503, "Discord role verification is not configured")
+        raise HTTPException(503, "Main Discord role verification is not configured")
     ids = {"airlines": settings.discord_guild_id, "crew": settings.discord_crew_guild_id}
     result = {}
     async with httpx.AsyncClient(timeout=10) as client:
         for name, guild_id in ids.items():
             if not guild_id:
                 continue
+            bot_token = settings.discord_bot_token if name == "airlines" else (settings.discord_crew_bot_token or settings.discord_bot_token)
             response = await client.get(
                 "https://discord.com/api/v10/guilds/" + guild_id + "/members/" + discord_id,
-                headers={"Authorization": "Bot " + settings.discord_bot_token},
+                headers={"Authorization": "Bot " + bot_token},
             )
             if response.status_code == 404:
                 continue
@@ -94,7 +96,7 @@ def access_level(roles: dict) -> str:
     checks = [
         ("OWNER", settings.owner_discord_role_ids, settings.crew_owner_role_ids),
         ("ADMIN", settings.admin_discord_role_ids, settings.crew_admin_role_ids),
-        ("STAFF", settings.staff_discord_role_ids, settings.crew_staff_role_ids),
+        ("STAFF", settings.forms_staff_discord_role_ids, settings.crew_staff_role_ids),
     ]
     for level, airline_ids, crew_ids in checks:
         if set(roles.get("airlines", [])) & settings.ids(airline_ids):
@@ -122,8 +124,9 @@ async def role_catalog() -> dict:
         for guild, guild_id in guilds.items():
             if not guild_id:
                 continue
+            bot_token = settings.discord_bot_token if guild == "airlines" else (settings.discord_crew_bot_token or settings.discord_bot_token)
             response = await client.get("https://discord.com/api/v10/guilds/" + guild_id + "/roles",
-                                        headers={"Authorization": "Bot " + settings.discord_bot_token})
+                                        headers={"Authorization": "Bot " + bot_token})
             if response.status_code != 200:
                 raise HTTPException(503, "Unable to load Discord roles")
             result[guild] = [{"id": str(r["id"]), "name": r["name"]} for r in response.json()
@@ -156,6 +159,8 @@ def enqueue_form(db: Session, form: CommunityForm):
             "updated_at": datetime.now(timezone.utc).isoformat()}
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:18]
     enqueue_event(db, "forms:" + str(form.id) + ":" + digest, "form_upsert", data)
+    if form.status == "PUBLISHED":
+        queue_event(db, "crew:form:" + str(form.id) + ":" + digest, "form_published", {"title":form.title, "url":settings.app_url.rstrip("/")+"/forms/"+form.slug, "restricted":any((form.allowed_roles or {}).get(g) for g in GUILDS)})
 
 
 def enqueue_flight(db: Session, flight: Flight):
@@ -167,6 +172,7 @@ def enqueue_flight(db: Session, flight: Flight):
             "status": flight.status.value, "name": flight.name}
     digest = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:18]
     enqueue_event(db, "flights:" + str(flight.id) + ":" + digest, "flight_upsert", data)
+    queue_event(db, "crew:flight:" + str(flight.id) + ":" + digest, "flight", {**data, "form_url":settings.app_url.rstrip("/")+"/forms/flight-crew-fillout?flight="+str(flight.id)})
 
 
 @router.get("/forms", response_class=HTMLResponse)
@@ -338,6 +344,10 @@ async def submit_form(request: Request, slug: str, csrf: str = Form(...),
                    "discord_user_id": viewer["id"], "discord_display_name": viewer["name"],
                    "flight_id": response.flight_id, "is_flight_form": form.is_flight_form, "roles": roles, "answers": answers,
                    "submitted_at": datetime.now(timezone.utc).isoformat()})
+    queue_event(db, "crew:response:" + submission_key, "form_response", {
+        "response_id": response.id, "display_name": viewer["name"], "form_title": form.title,
+        "responses_url": settings.app_url.rstrip("/")+"/forms/"+form.slug+"/responses"
+    })
     try:
         db.commit()
     except IntegrityError:
@@ -455,3 +465,46 @@ async def internal_skymiles(request: Request, action: str, db: Session = Depends
                     miles_change=changed, balance_before=before, balance_after=after, actor=actor)
     db.commit()
     return {"userId": discord_id, "balance": after, "actual_change": changed}
+
+
+@router.get("/internal/flights/{flight_id}")
+async def internal_flight_details(request:Request,flight_id:int,db:Session=Depends(get_db)):
+    """Main bot retrieves canonical flight data instead of typing it repeatedly."""
+    internal_secret(request)
+    flight=db.get(Flight,flight_id)
+    if not flight:raise HTTPException(404,"Flight not found")
+    form=ensure_flight_form(db)
+    db.commit()
+    return {"id":flight.id,"flight_number":flight.flight_number,"departure":flight.departure_airport,
+            "destination":flight.destination_airport,"aircraft":flight.aircraft,"gate":flight.gate,
+            "starts_at":flight.starts_at.isoformat(),"ends_at":flight.ends_at.isoformat() if flight.ends_at else None,
+            "status":flight.status.value,"status_message":flight.status_message,
+            "name":flight.name,"miles_reward":flight.miles_reward,"image_url":flight.image_url,
+            "operator":"Delta Air Lines","event_id":flight.discord_event_id,
+            "form_url":settings.app_url.rstrip("/")+"/forms/"+form.slug+"?flight="+str(flight.id)}
+
+
+@router.post("/internal/flights/{flight_id}/status")
+async def internal_flight_update(request:Request,flight_id:int,db:Session=Depends(get_db)):
+    """Apply a format update after staff confirms publication in Discord."""
+    internal_secret(request)
+    flight=db.scalar(select(Flight).where(Flight.id==flight_id).with_for_update())
+    if not flight:raise HTTPException(404,"Flight not found")
+    data=await request.json()
+    state=str(data.get("status") or "").upper()
+    valid={"SCHEDULED","DELAYED","CANCELLED","COMPLETED","CHECKIN_OPEN","CHECKIN_CLOSED"}
+    if state not in valid:raise HTTPException(422,"Unknown flight state")
+    mapping={"DELAYED":FlightStatus.DELAYED,"CANCELLED":FlightStatus.CANCELLED,
+             "COMPLETED":FlightStatus.COMPLETED,"SCHEDULED":FlightStatus.SCHEDULED}
+    if state in mapping:flight.status=mapping[state]
+    if state.startswith("CHECKIN"):flight.status_message=state
+    elif str(data.get("reason") or "").strip():flight.status_message=str(data["reason"])[:400]
+    when=data.get("starts_at")
+    if when:
+        try:value=datetime.fromisoformat(str(when).replace("Z","+00:00"))
+        except ValueError:raise HTTPException(422,"Departure time is invalid")
+        if value.tzinfo is None:raise HTTPException(422,"Departure must have timezone")
+        flight.starts_at=value.astimezone(timezone.utc)
+    enqueue_flight(db,flight)
+    db.commit()
+    return {"ok":True,"flight_id":flight.id,"status":flight.status.value}
