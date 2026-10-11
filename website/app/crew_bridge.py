@@ -39,7 +39,7 @@ def list_published_forms(request:Request,db:Session=Depends(get_db)):
                     .order_by(CommunityForm.updated_at.desc()).limit(100)).all()
     # Metadata is intentionally minimal. Discord-only role restrictions still apply
     # when an individual member opens the URL in a browser.
-    return {"forms":[{"title":x.title,"url":base+"/forms/"+quote(x.slug,safe="")} for x in rows]}
+    return {"forms":[{"title":x.title,"url":base+"/forms/"+quote(x.slug,safe=""), "allowed_roles":x.allowed_roles or {}} for x in rows]}
 
 
 @router.get("/internal/crew/flights")
