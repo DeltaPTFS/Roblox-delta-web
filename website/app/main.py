@@ -28,7 +28,7 @@ from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
 from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, Status, Tier, TierConfig, Transaction, User, WebSession
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
-from .security import check_csrf, consume_oauth, csrf_token, current_user, oauth_values, permission
+from .security import check_csrf, consume_oauth, csrf_token, current_user, linked_user_from_session, oauth_values, permission
 from .session import DatabaseSessionMiddleware
 from .sheet_sync import add_transaction, enqueue_member_update, enqueue_registration, process_outbox_once, reconcile_outbox
 
@@ -85,7 +85,7 @@ async def lifespan(app):
 app = FastAPI(title="Delta SkyMiles | Roblox", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, lambda r, e: JSONResponse({"detail":"Too many requests"}, 429))
-app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max_age=86400)
+app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max_age=30*86400)
 app.add_middleware(GZipMiddleware, minimum_size=800)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 app.include_router(community_router)
@@ -217,14 +217,17 @@ async def web_discord_emojis(request:Request,db:Session=Depends(get_db)):
 
 @app.get("/", response_class=HTMLResponse)
 def homepage(request: Request, db: Session = Depends(get_db)):
-    user=db.get(User, request.session["user_id"]) if request.session.get("user_id") else None
+    user=linked_user_from_session(request,db)
     viewer={"id": user.discord_user_id, "name": user.discord_display_name} if user else request.session.get("forms_identity")
     return templates.TemplateResponse("homepage.html", context(request, viewer=viewer))
 
 
 @app.get("/login", response_class=HTMLResponse)
-def login(request: Request):
-    if request.session.get("user_id"): return RedirectResponse("/dashboard", 303)
+def login(request: Request, db: Session=Depends(get_db)):
+    # Visitors who linked Discord and SkyMiles on this browser go directly home.
+    user=linked_user_from_session(request,db)
+    if user and user.account_status==Status.ACTIVE:
+        return RedirectResponse("/dashboard",303)
     return templates.TemplateResponse("login.html", context(request))
 
 
@@ -279,7 +282,7 @@ def join_discord(request: Request):
     if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
         # Never leave visitors on a blank OAuth 503 screen.
         return RedirectResponse(settings.discord_invite_url, 303)
-    return RedirectResponse("/auth/discord/forms?next=%2Fwelcome", 303)
+    return RedirectResponse("/auth/discord/forms?next=%2Fwelcome&force=1", 303)
 
 
 @app.get("/welcome", response_class=HTMLResponse)
@@ -305,9 +308,11 @@ def welcome_discord(request: Request):
 
 @app.get("/auth/discord/forms")
 @limiter.limit("10/minute")
-def start_discord_forms_login(request: Request, next: str = "/forms"):
+def start_discord_forms_login(request: Request, next: str = "/forms", force: bool=False, db: Session=Depends(get_db)):
     if not settings.discord_client_id or not settings.discord_bot_token: raise HTTPException(503, "Discord OAuth is not configured")
-    target=next if next.startswith("/") and not next.startswith("//") and not next.startswith("/\\") else "/forms"
+    target=next if next.startswith("/") and not next.startswith("//") and not next.startswith("/\\") and "\\" not in next and not any(c in next for c in ("\r","\n")) else "/forms"
+    if not force and (linked_user_from_session(request,db) or request.session.get("forms_identity")):
+        return RedirectResponse(target,303)
     request.session["discord_login_for_forms"]=True
     request.session["forms_login_return"]=target[:300]
     state, challenge=oauth_values(request,"discord")
@@ -316,11 +321,46 @@ def start_discord_forms_login(request: Request, next: str = "/forms"):
 
 @app.get("/auth/discord/login")
 @limiter.limit("10/minute")
-def start_discord_login(request: Request):
+def start_discord_login(request: Request, db: Session=Depends(get_db)):
     if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
+    user=linked_user_from_session(request,db)
+    if user and user.account_status==Status.ACTIVE:
+        return RedirectResponse("/dashboard",303)
     request.session["discord_login_only"]=True
     state, challenge = oauth_values(request, "discord")
     return RedirectResponse(discord_authorize(settings, state, challenge))
+
+
+def queue_signin_success(request: Request, *, display_name: str, destination: str,
+                         kind: str, join_status: str = "not_confirmed") -> RedirectResponse:
+    """One-shot confirmation following a validated OAuth callback."""
+    request.session["signin_celebration"]={
+        "name":display_name[:100], "destination":destination,
+        "kind":kind, "join_status":join_status,
+        "event_id":secrets.token_urlsafe(12)
+    }
+    request.scope["rotate_session"]=True
+    return RedirectResponse("/signin/success",303)
+
+
+@app.get("/signin/success", response_class=HTMLResponse)
+def signin_success(request: Request, db: Session=Depends(get_db)):
+    event=request.session.pop("signin_celebration",None)
+    user=linked_user_from_session(request,db)
+    guest=request.session.get("forms_identity")
+    if not event:
+        return RedirectResponse("/dashboard" if user else "/forms" if guest else "/login",303)
+    if not user and not isinstance(guest,dict):
+        return RedirectResponse("/login",303)
+    destination=str(event.get("destination") or "/forms")
+    if not destination.startswith("/") or destination.startswith("//") or destination.startswith("/\\"):
+        destination="/dashboard" if user else "/forms"
+    viewer={"name":user.discord_display_name,"id":user.discord_user_id} if user else guest
+    return templates.TemplateResponse("signin_success.html",context(
+        request,viewer=viewer,event=event,destination=destination,
+        display_name=event.get("name") or (viewer or {}).get("name","Member"),
+        has_skymiles=bool(user)
+    ),headers={"Cache-Control":"private, no-store"})
 
 
 def next_number(db):
