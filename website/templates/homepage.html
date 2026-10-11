@@ -1,7 +1,7 @@
 {% extends "community_base.html" %}{% block title %}Welcome Aboard{% endblock %}
 {% block content %}
 <section class="community-hero" id="top">
-  <div class="hero-photo"><img src="/gallery/media/delta-hangar" alt="Delta aircraft in a maintenance hangar" loading="eager" onerror="this.classList.add('image-unavailable');this.alt='Delta photo will appear after upload'"></div>
+  <div class="hero-photo"><img src="/gallery/media/delta-hangar" alt="Delta aircraft in a maintenance hangar" loading="eager" fetchpriority="high" decoding="async" onerror="this.classList.add('image-unavailable');this.alt='Delta photo will appear after upload'"></div>
   <div class="hero-content"><div class="eyebrow"><span class="pulse-dot"></span> DELTA AIR LINES · ROBLOX ROLEPLAY</div>
   <h1>Every flight.<br><em>A new experience.</em></h1>
   <p>Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.</p>
@@ -16,12 +16,12 @@
 <a class="feature-card" href="/dashboard"><span class="feature-index">03 / RECOGNITION</span><h3>SkyMiles</h3><p>Keep your existing account, trips, Medallion progress and member rewards.</p><span>Visit SkyMiles ↗</span></a></div></section>
 <section class="community-section showcase"><div class="section-head"><span class="eyebrow">BEHIND THE EXPERIENCE</span><h2>Built for the sky.<br><em>Made for you.</em></h2></div>
 <div class="gallery-grid">
-<div class="gallery-card large"><img src="/gallery/media/delta-centennial" alt="Delta airplane flying past palm trees" loading="lazy" onerror="this.hidden=true"><div><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></div></div>
-<div class="gallery-card"><img src="/gallery/media/delta-terminal" alt="Delta terminal check-in experience" loading="lazy" onerror="this.hidden=true"><div><span>GUEST EXPERIENCE</span><h3>From check-in to boarding</h3></div></div>
-<div class="gallery-card"><img src="/gallery/media/delta-lounge" alt="Modern Delta roleplay lounge" loading="lazy" onerror="this.hidden=true"><div><span>HOSPITALITY</span><h3>Discover the lounge</h3></div></div>
-<div class="gallery-card"><img src="/gallery/media/delta-hq" alt="Delta HQ reception" loading="lazy" onerror="this.hidden=true"><div><span>OUR COMMUNITY</span><h3>Explore Delta HQ</h3></div></div>
-<div class="gallery-card"><img src="/gallery/media/delta-electric" alt="Delta partnership electric ground service vehicle" loading="lazy" onerror="this.hidden=true"><div><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></div></div>
+<div class="gallery-card large"><img src="/gallery/media/delta-centennial" alt="Delta airplane flying past palm trees" loading="lazy" decoding="async" onerror="this.hidden=true"><div><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></div></div>
+<div class="gallery-card"><img src="/gallery/media/delta-terminal" alt="Delta terminal check-in experience" loading="lazy" decoding="async" onerror="this.hidden=true"><div><span>GUEST EXPERIENCE</span><h3>From check-in to boarding</h3></div></div>
+<div class="gallery-card"><img src="/gallery/media/delta-lounge" alt="Modern Delta roleplay lounge" loading="lazy" decoding="async" onerror="this.hidden=true"><div><span>HOSPITALITY</span><h3>Discover the lounge</h3></div></div>
+<div class="gallery-card"><img src="/gallery/media/delta-hq" alt="Delta HQ reception" loading="lazy" decoding="async" onerror="this.hidden=true"><div><span>OUR COMMUNITY</span><h3>Explore Delta HQ</h3></div></div>
+<div class="gallery-card"><img src="/gallery/media/delta-electric" alt="Delta partnership electric ground service vehicle" loading="lazy" decoding="async" onerror="this.hidden=true"><div><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></div></div>
 </div></section>
 <section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now →</a><a class="community-btn outlined" href="/login">Access SkyMiles →</a></div></div></section>
-<section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ settings.discord_invite_url }}">Join Delta Air Lines on Discord ↗</a></section>
+<section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="/join">Join Delta Air Lines on Discord ↗</a></section>
 {% endblock %}
