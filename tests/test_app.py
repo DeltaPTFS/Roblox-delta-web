@@ -138,7 +138,7 @@ def test_login_has_safe_oauth_and_disclaimer():
         assert "Continue with Discord" in response.text
         assert "COMMUNITY OPERATIONS" in response.text
         assert 'id="route-transition"' not in response.text
-        assert "Preparing your next destination" in response.text
+        assert "Preparing your next destination" not in response.text
         assert '<html lang="en" class="theme-light">' in response.text
         assert "/static/style.css?v=" in response.text
         assert "ROLEPLAY COMMUNITY</small>" not in response.text
