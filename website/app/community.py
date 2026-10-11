@@ -52,7 +52,11 @@ async def memberships(discord_id: str) -> dict:
         for name, guild_id in ids.items():
             if not guild_id:
                 continue
-            bot_token = settings.discord_bot_token if name == "airlines" else (settings.discord_crew_bot_token or settings.discord_bot_token)
+            bot_token = settings.discord_bot_token if name == "airlines" else settings.discord_crew_bot_token
+            # A missing Crew integration must not break Main Discord joining.
+            # Crew-restricted forms stay unavailable until Crew credentials exist.
+            if not bot_token:
+                continue
             response = await client.get(
                 "https://discord.com/api/v10/guilds/" + guild_id + "/members/" + discord_id,
                 headers={"Authorization": "Bot " + bot_token},
@@ -124,7 +128,9 @@ async def role_catalog() -> dict:
         for guild, guild_id in guilds.items():
             if not guild_id:
                 continue
-            bot_token = settings.discord_bot_token if guild == "airlines" else (settings.discord_crew_bot_token or settings.discord_bot_token)
+            bot_token = settings.discord_bot_token if guild == "airlines" else settings.discord_crew_bot_token
+            if not bot_token:
+                continue
             response = await client.get("https://discord.com/api/v10/guilds/" + guild_id + "/roles",
                                         headers={"Authorization": "Bot " + bot_token})
             if response.status_code != 200:

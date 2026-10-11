@@ -273,6 +273,34 @@ def start_discord(request: Request):
     return RedirectResponse(discord_authorize(settings, state, challenge))
 
 
+@app.get("/join")
+def join_discord(request: Request):
+    """Discord OAuth consent -> approved main-server join -> welcome page."""
+    if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
+        # Never leave visitors on a blank OAuth 503 screen.
+        return RedirectResponse(settings.discord_invite_url, 303)
+    return RedirectResponse("/auth/discord/forms?next=%2Fwelcome", 303)
+
+
+@app.get("/welcome", response_class=HTMLResponse)
+def welcome_discord(request: Request):
+    """Provide a usable destination after joining or verifying in Discord."""
+    guest = request.session.get("forms_identity")
+    if not guest and not request.session.get("user_id"):
+        return RedirectResponse("/join", 303)
+    return HTMLResponse(
+        '<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>Welcome to Delta Air Lines</title><style>'
+        'body{font-family:system-ui,Arial;background:#071d49;color:#fff;margin:0;display:grid;place-items:center;min-height:100vh}'
+        'main{padding:2rem;max-width:34rem;text-align:center}a{display:inline-block;padding:1rem 1.5rem;margin:.5rem;'
+        'background:#c8102e;color:#fff;text-decoration:none;border-radius:8px}</style>'
+        '<main><h1>Welcome aboard!</h1><p>Your Discord authorization is complete. '
+        'Continue to Delta Air Lines forms, flights, or visit the server to finish any required verification.</p>'
+        '<a href="/forms">Explore forms</a><a href="/flights">View flights</a>'
+        '<a href="' + settings.discord_invite_url + '">Open Discord</a></main></html>'
+    )
+
+
 @app.get("/auth/discord/forms")
 @limiter.limit("10/minute")
 def start_discord_forms_login(request: Request, next: str = "/forms"):

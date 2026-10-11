@@ -9,16 +9,16 @@
   <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
   <nav aria-label="Primary navigation">
     <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
-    <a href="/dashboard">SkyMiles</a><a href="/admin">Admin</a><a href="/gallery/manage">Gallery</a>
+    <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
   </nav>
   {% if viewer %}
     <a class="community-account" href="/forms">{{ viewer.name }} <span>↗</span></a>
   {% else %}
-    <a class="community-account" href="/login">Sign in <span>→</span></a>
+    <a class="community-account" href="/auth/discord/forms?next=/forms">Sign in <span>→</span></a>
   {% endif %}
 </header>
 <main>{% block content %}{% endblock %}</main>
 <footer class="community-footer"><div><strong>DELTA AIR LINES</strong><p>Keep Climbing.</p></div>
 <div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
-<a href="{{ settings.discord_invite_url }}">Join our Discord →</a></div></footer>
+<a href="/join">Join our Discord →</a></div></footer>
 </body></html>
