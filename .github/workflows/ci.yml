@@ -13,7 +13,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: python -m compileall -q website
-      - run: pytest -q
+      - run: python -m pytest -q
         env:
           DATABASE_URL: sqlite://
           SESSION_SECRET: unit-test-secret-with-32-or-more-characters
