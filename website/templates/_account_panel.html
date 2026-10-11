@@ -3,7 +3,7 @@
 {% set panel_avatar = panel_user.discord_avatar_url if panel_user and panel_user.discord_avatar_url else "/static/avatar.svg" %}
 {% set panel_main = (discord_role_details if panel_user and discord_role_details is defined and discord_role_details else (profile_main_roles if profile_main_roles is defined else [])) %}
 {% set panel_crew = crew_role_details if crew_role_details is defined else [] %}
-{% set panel_level = auth if auth is defined else "MEMBER" %}
+{% set panel_level = auth if auth is defined else (access if access is defined else "MEMBER") %}
 <details class="delta-account-menu account-menu" id="delta-account-menu">
   <summary class="delta-account-trigger" aria-label="Open your Delta account menu">
     <img src="{{ panel_avatar }}" alt="" width="38" height="38" loading="lazy">
