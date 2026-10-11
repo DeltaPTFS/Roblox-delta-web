@@ -148,3 +148,16 @@ def test_form_studio_question_controls_use_full_width_layout():
     assert 'width:100%;max-width:100%' in css
     assert 'grid-template-columns:minmax(0,1.9fr) minmax(190px,1fr)' in css
     assert '.studio-preview-dialog{width:min(780px,calc(100vw - 32px))}' in css
+
+
+def test_sharp_homepage_images_ship_with_static_site():
+    from pathlib import Path
+    folder = Path("website/static/gallery")
+    for name in ("delta-hangar", "delta-centennial", "delta-terminal", "delta-lounge",
+                 "delta-hq", "delta-electric", "delta-tail"):
+        photo = folder / (name + ".webp")
+        assert photo.is_file(), f"Missing original photo {photo}"
+        assert photo.stat().st_size > 12000, f"Photo was accidentally replaced by a tiny thumbnail: {photo}"
+        assert photo.read_bytes().startswith(b"RIFF"), f"Invalid WebP file {photo}"
+    assert (folder / "delta-hangar.webp").stat().st_size > 50000
+    assert (folder / "photo-atlas.avif").is_file()
