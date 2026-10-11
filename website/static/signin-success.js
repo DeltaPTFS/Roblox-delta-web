@@ -73,7 +73,9 @@
       progress.setAttribute('aria-valuenow', '100');
       seconds.textContent = 'READY';
       copy.textContent = 'Welcome aboard · Your account is ready';
-      if (!blocked && !hearingSound) moveToAccount();
+      // Always continue after four seconds, even if autoplay was denied.
+      // Clicking Play Welcome Sound before then is the only optional delay.
+      if (!hearingSound) moveToAccount();
       return;
     }
     window.setTimeout(updateProgress, 90);
