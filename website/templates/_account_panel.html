@@ -1,0 +1,70 @@
+{% set panel_user = user if user is defined and user else (profile_user if profile_user is defined else none) %}
+{% set panel_name = panel_user.discord_display_name if panel_user else (viewer.name if viewer is defined and viewer else "Delta Member") %}
+{% set panel_avatar = panel_user.discord_avatar_url if panel_user and panel_user.discord_avatar_url else "/static/avatar.svg" %}
+{% set panel_main = (discord_role_details if panel_user and discord_role_details is defined and discord_role_details else (profile_main_roles if profile_main_roles is defined else [])) %}
+{% set panel_crew = crew_role_details if crew_role_details is defined else [] %}
+{% set panel_level = auth if auth is defined else "MEMBER" %}
+<details class="delta-account-menu account-menu" id="delta-account-menu">
+  <summary class="delta-account-trigger" aria-label="Open your Delta account menu">
+    <img src="{{ panel_avatar }}" alt="" width="38" height="38" loading="lazy">
+    <span class="delta-account-trigger-label"><strong>{{ panel_name }}</strong><small>{{ panel_user.skymiles_number if panel_user else "Discord Connected" }}</small></span>
+    <svg class="delta-account-caret" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  </summary>
+  <div class="delta-account-panel account-dropdown" role="group" aria-label="Account overview and links">
+    <div class="delta-account-cover" aria-hidden="true"><span>DELTA · MEMBER ACCESS</span><img src="/static/delta-emblem.svg" alt=""></div>
+    <div class="delta-account-identity">
+      <img src="{{ panel_avatar }}" alt="" class="delta-account-avatar" width="63" height="63" loading="lazy">
+      <div><small>WELCOME ABOARD</small><h3>{{ panel_name }}</h3>
+        <p>{{ panel_user.skymiles_number if panel_user else "Discord account linked" }}</p></div>
+    </div>
+    <div class="delta-account-facts">
+      <span class="delta-access-badge">{{ panel_level|title }} Access</span>
+      {% if panel_user %}<span class="delta-member-tier">{{ panel_user.tier.value }}</span>{% else %}<span class="delta-member-tier">Discord Member</span>{% endif %}
+    </div>
+    {% if panel_user %}
+    <div class="delta-account-balance">
+      <div><small>AVAILABLE SKYMILES</small><strong>{{ "{:,}".format(panel_user.miles_balance) }}</strong></div>
+      <a href="/miles">My balance <span aria-hidden="true">→</span></a>
+    </div>
+    {% endif %}
+    <div class="delta-account-roles">
+      <div class="delta-role-heading"><strong>Delta Air Lines</strong><small>MAIN SERVER</small></div>
+      {% if panel_main %}<div class="delta-role-tags">
+        {% for role in panel_main %}<span class="delta-role-chip">{{ role.name }}</span>{% endfor %}
+      </div>{% elif panel_user %}<p class="delta-role-empty">No displayable roles were found in your last verified role list.</p>
+      {% else %}<p class="delta-role-empty">Your Discord account is connected.</p>{% endif %}
+      <div class="delta-role-heading crew-heading"><strong>Delta Crew</strong><small>CREW SERVER</small></div>
+      {% if panel_crew %}<div class="delta-role-tags">
+        {% for role in panel_crew %}<span class="delta-role-chip crew">{{ role.name }}</span>{% endfor %}
+      </div>
+      {% elif crew_member is defined and crew_member %}<p class="delta-role-empty">Crew membership confirmed. No listed crew roles.</p>
+      {% elif crew_roles_status is defined and crew_roles_status == "verified" %}
+        <p class="delta-role-empty">No Delta Crew membership found.</p>
+      {% elif crew_roles_status is defined and crew_roles_status == "not_configured" %}
+        <p class="delta-role-empty">Crew role display awaits bot configuration.</p>
+      {% else %}<p class="delta-role-empty">Crew role verification temporarily unavailable.</p>{% endif %}
+    </div>
+    <div class="delta-account-links">
+      {% if panel_user %}
+      <a href="/dashboard"><span>SkyMiles Dashboard</span><span aria-hidden="true">›</span></a>
+      <a href="/profile"><span>My Profile</span><span aria-hidden="true">›</span></a>
+      <a href="/trips"><span>My Trips</span><span aria-hidden="true">›</span></a>
+      <a href="/settings"><span>Settings</span><span aria-hidden="true">›</span></a>
+      {% else %}
+      <a href="/login"><span>Activate SkyMiles</span><span aria-hidden="true">›</span></a>
+      {% endif %}
+      <a href="/forms"><span>Forms &amp; Applications</span><span aria-hidden="true">›</span></a>
+      {% if panel_level in ("OWNER","ADMIN","STAFF") %}
+        <span class="delta-account-subheading">STAFF OPERATIONS</span>
+        <a href="/forms/new"><span>Create New Form</span><span aria-hidden="true">›</span></a>
+        {% if panel_level == "OWNER" %}<a href="/owner"><span>Ownership Panel</span><span aria-hidden="true">›</span></a>{% endif %}
+        {% if panel_level in ("OWNER","ADMIN") %}<a href="/admin"><span>Admin Operations</span><span aria-hidden="true">›</span></a>{% endif %}
+        <a href="/staff"><span>Staff Workspace</span><span aria-hidden="true">›</span></a>
+      {% endif %}
+    </div>
+    <form class="delta-account-logout" method="post" action="/logout">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button type="submit"><span>Sign Out</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+    </form>
+  </div>
+</details>
