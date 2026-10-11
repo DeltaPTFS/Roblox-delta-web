@@ -389,17 +389,45 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
             request.session.clear()
             return templates.TemplateResponse("restricted.html", context(request, kind="forms"), status_code=403)
         target=request.session.pop("forms_login_return","/forms")
-        previous_user_id=request.session.get("user_id")
-        sky_user=db.get(User, previous_user_id) if isinstance(previous_user_id, int) else None
-        if not sky_user or sky_user.discord_user_id!=identity["id"]:
-            request.session.clear()
-            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+        sky_user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
+        account_linked=bool(sky_user and sky_user.account_status==Status.ACTIVE
+                            and not sky_user.permanent_ban and "airlines" in roles)
+        if account_linked:
+            sky_user.discord_username=identity["username"]
+            sky_user.discord_display_name=identity["display_name"]
+            sky_user.discord_avatar_url=identity["avatar"]
+            sky_user.discord_role_ids=list(roles["airlines"])
+            sky_user.discord_verified_at=datetime.now(timezone.utc)
+            db.commit()
+        request.session.clear()
+        if account_linked:
+            request.session["user_id"]=sky_user.id
+            request.session["authorization"]=permission(sky_user,settings)
+            request.session["theme"]=sky_user.theme_preference
+        else:
+            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100],
+                                               "main_member":"airlines" in roles}
         request.session["discord_join_status"]=identity.get("join_status", "not_confirmed")
-        return RedirectResponse(target,303)
+        return queue_signin_success(
+            request,display_name=identity["display_name"],
+            destination=target,kind="skymiles" if account_linked else "forms",
+            join_status=identity.get("join_status","not_confirmed")
+        )
     if not identity["member"]: return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
     if direct_login:
         user=db.scalar(select(User).where(User.discord_user_id==identity["id"]))
-        if not user: return templates.TemplateResponse("error.html",context(request,title="Roblox Verification Required",message="Verify with Roblox first to create your SkyMiles membership."),status_code=404)
+        if not user:
+            # Discord sign-in is valid, but SkyMiles enrollment still requires
+            # Roblox verification. Keep the Discord identity; do not create an
+            # unverified or duplicate SkyMiles record.
+            request.session.clear()
+            request.session["forms_identity"]={"id":identity["id"],"name":identity["display_name"][:100]}
+            request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
+            return queue_signin_success(
+                request,display_name=identity["display_name"],
+                destination="/login?discord_connected=1",kind="discord",
+                join_status=identity.get("join_status","not_confirmed")
+            )
         release_expired_restriction(user,db)
         if user.account_status != Status.ACTIVE: raise HTTPException(403,"Account suspended")
         user.discord_username=identity["username"]; user.discord_display_name=identity["display_name"]; user.discord_avatar_url=identity["avatar"]; user.discord_role_ids=identity["member"].get("roles",[]); user.discord_verified_at=datetime.now(timezone.utc)
@@ -407,7 +435,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         except Exception: pass
         db.commit()
         request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
-        return RedirectResponse("/dashboard",303)
+        request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
+        return queue_signin_success(request,display_name=user.discord_display_name,
+                                    destination="/dashboard",kind="skymiles",
+                                    join_status=identity.get("join_status","not_confirmed"))
     existing_roblox = db.scalar(select(User).where(User.roblox_user_id == pending["id"]))
     existing_discord = db.scalar(select(User).where(User.discord_user_id == identity["id"]))
     if existing_discord and (not existing_roblox or existing_discord.id != existing_roblox.id): return templates.TemplateResponse("error.html", context(request, title="Account Already Linked", message="That Discord account is already linked to another SkyMiles membership."), status_code=409)
@@ -429,7 +460,10 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None); db.commit()
     except Exception: pass  # Account creation must survive a temporary Discord role outage.
     request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
-    return RedirectResponse("/dashboard?tutorial=1" if created_new else "/dashboard",303)
+    request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
+    return queue_signin_success(request,display_name=user.discord_display_name,
+                                destination="/dashboard?tutorial=1" if created_new else "/dashboard",
+                                kind="skymiles",join_status=identity.get("join_status","not_confirmed"))
 
 
 async def refresh_discord_authorization(user: User, db: Session) -> str:
