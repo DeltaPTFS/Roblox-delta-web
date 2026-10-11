@@ -7,10 +7,15 @@
 <body>
 <header class="community-header">
   <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
-  <nav aria-label="Primary navigation">
+  <nav class="community-primary-nav" aria-label="Primary navigation">
     <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
     <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
   </nav>
+  <details class="community-mobile-menu"><summary aria-label="Open menu">☰ Menu</summary>
+    <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
+    <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
+    <a href="/join">Join Discord</a></div>
+  </details>
   {% if viewer %}
     <a class="community-account" href="/forms">{{ viewer.name }} <span>↗</span></a>
   {% else %}
