@@ -1,5 +1,7 @@
 """Website-managed flight/gallery photos stored in PostgreSQL instead of ephemeral CDN links."""
 from datetime import datetime,timezone
+from io import BytesIO
+from zipfile import ZipFile, BadZipFile
 from pathlib import Path
 import re
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -86,3 +88,46 @@ async def gallery_upload(request:Request,csrf:str=Form(...),slug:str=Form(...),
         item.updated_at=datetime.now(timezone.utc)
     db.commit()
     return RedirectResponse("/gallery/manage?uploaded="+slug,303)
+
+
+@router.post("/gallery/import")
+async def gallery_import_zip(request:Request,csrf:str=Form(...),
+                             gallery_zip:UploadFile=File(...),db:Session=Depends(get_db)):
+    """One upload of the photo ZIP provided for the Delta Air Lines homepage."""
+    check_csrf(request,csrf)
+    result=await verified_viewer(request,db)
+    if isinstance(result,RedirectResponse):raise HTTPException(401,"Sign in first")
+    _,roles=result
+    if access_level(roles)=="MEMBER":raise HTTPException(403,"Staff access required")
+    archive=await gallery_zip.read(12_000_001)
+    if len(archive)>12_000_000:raise HTTPException(413,"ZIP archive too large (12 MB maximum)")
+    try:
+        with ZipFile(BytesIO(archive)) as source:
+            images={}
+            for entry in source.infolist():
+                if entry.is_dir():continue
+                basename=Path(entry.filename).name
+                stem=Path(basename).stem
+                if stem not in GALLERY:continue
+                if entry.file_size>MAX_BYTES:
+                    raise HTTPException(413,"Photo exceeds 3 MB: "+basename)
+                if len(images)>=len(GALLERY):
+                    raise HTTPException(422,"Too many gallery photos")
+                content=source.read(entry)
+                mime=actual_mime(content)
+                if not mime:
+                    raise HTTPException(422,"Invalid image bytes: "+basename)
+                images[stem]=(mime,content)
+    except BadZipFile:
+        raise HTTPException(422,"Invalid ZIP archive")
+    if not images:raise HTTPException(422,"No recognized gallery photo filenames found")
+    for slug,(mime,content) in images.items():
+        row=db.get(SiteGalleryImage,slug)
+        if row is None:
+            db.add(SiteGalleryImage(slug=slug,mime_type=mime,content=content))
+        else:
+            row.mime_type=mime
+            row.content=content
+            row.updated_at=datetime.now(timezone.utc)
+    db.commit()
+    return RedirectResponse("/gallery/manage?imported="+str(len(images)),303)
