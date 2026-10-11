@@ -3,7 +3,7 @@
 <section class="community-page">
 <div class="page-heading"><div><span class="eyebrow">DELTA AIR LINES · FORM CENTER</span><h1>Forms & Applications</h1>
 <p>Welcome, {{ viewer.name }}. Browse open applications, flight fillouts, and community opportunities.</p></div>
-{% if access != "MEMBER" %}<a class="community-btn primary" href="/forms/new">+ Create a new form</a>{% endif %}</div>
+</div>
 {% if request.query_params.get('submitted') %}<div class="success-note">Your response was submitted successfully. Thank you!</div>{% endif %}
 <div class="form-list">{% for form in forms %}
 <article class="form-card"><div class="form-card-top"><span class="eyebrow">{{ "FLIGHT FILLOUT" if form.is_flight_form else "COMMUNITY APPLICATION" }}</span>
@@ -12,5 +12,28 @@
 {% if form.status == "PUBLISHED" %}<a class="community-btn primary" href="/forms/{{ form.slug }}">Open form →</a>{% endif %}
 {% if access != "MEMBER" %}<a href="/forms/{{ form.slug }}/edit">Edit form</a><a href="/forms/{{ form.slug }}/responses">Responses</a>{% endif %}
 </div></article>
-{% else %}<div class="form-empty"><h2>No forms available right now.</h2><p>Published forms that match your Discord server roles will appear here.</p></div>{% endfor %}</div>
+{% else %}<div class="form-empty"><h2>No forms open for you</h2><p>There are currently no published forms available for your Discord roles.</p></div>{% endfor %}</div>
+{% if access != "MEMBER" %}
+<a href="/forms/new" class="community-btn primary create-form-fab"><span aria-hidden="true">+</span> Create New Form</a>
+{% endif %}
+{% if not open_forms_count %}
+<dialog id="no-open-forms-dialog" class="forms-empty-dialog" aria-labelledby="no-forms-title" aria-describedby="no-forms-detail">
+<div class="forms-dialog-inner">
+<span class="eyebrow">DELTA AIR LINES · FORMS</span>
+<h2 id="no-forms-title">There aren't any forms open for you.</h2>
+<p id="no-forms-detail">No published forms are currently available for your Discord roles. Check back later.</p>
+<button type="button" class="community-btn primary" id="dismiss-forms-dialog">Got it</button>
+</div></dialog>
+<script>
+(function() {
+  const dialog = document.getElementById('no-open-forms-dialog');
+  const button = document.getElementById('dismiss-forms-dialog');
+  if (!dialog || !button) return;
+  button.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+})();
+</script>
+{% endif %}
 </section>{% endblock %}
