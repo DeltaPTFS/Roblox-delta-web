@@ -21,6 +21,7 @@ from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .community import router as community_router, ensure_flight_form, enqueue_flight, memberships
+from .crew_bridge import router as crew_bridge_router
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
@@ -87,6 +88,7 @@ app.add_middleware(DatabaseSessionMiddleware, secure=settings.cookie_secure, max
 app.add_middleware(GZipMiddleware, minimum_size=800)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 app.include_router(community_router)
+app.include_router(crew_bridge_router)
 
 
 @app.middleware("http")
