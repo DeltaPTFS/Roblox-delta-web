@@ -1,1 +1,0 @@
-Import six Google Drive campaign advertisements; generate 2048px WebP assets.
