@@ -52,6 +52,9 @@ def test_rotation_every_five_seconds_with_manual_and_accessible_controls():
         assert feature in js
     assert "document.hidden" in js
     assert "delta-ads.css" in base
+    assert 'src="/static/delta-ads.js?v={{ asset_version }}"' in base
+    home = (ROOT / "templates" / "homepage.html").read_text()
+    assert "<script" not in home.split("{% block content %}", 1)[0]
     assert "object-fit:contain" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
     assert "delta-ad-duration" in css
