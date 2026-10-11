@@ -85,3 +85,51 @@
 .answer-scale-choice input{accent-color:#e0294e;min-width:18px;min-height:18px}
 @media(max-width:700px){.answer-scale-choice{padding:8px 6px;min-width:35px}
   .answer-section-heading{padding:20px 16px}}
+
+/* October homepage typography: readable navigation without crowding tablet menus. */
+.community-header .community-primary-nav{
+  gap:clamp(15px,1.7vw,30px);
+}
+.community-header .community-primary-nav a{
+  font-size:clamp(15px,1.13vw,19px);
+  font-weight:850;
+  letter-spacing:.1em;
+  line-height:1.35;
+  padding:10px 0;
+  transition:color .18s ease;
+}
+.community-header .community-primary-nav a:focus-visible{
+  outline:2px solid #ff6882;
+  outline-offset:6px;
+  border-radius:2px;
+}
+.community-footer-brand{
+  display:flex;
+  align-items:center;
+  gap:17px;
+  width:fit-content;
+  max-width:100%;
+}
+.community-footer-brand img{
+  display:block;
+  width:50px;
+  height:43px;
+  flex-shrink:0;
+  object-fit:contain;
+}
+.community-footer-brand strong{
+  font-size:clamp(20px,1.5vw,26px);
+  line-height:1.25;
+  letter-spacing:.13em;
+  white-space:nowrap;
+}
+@media(max-width:1250px){
+  .community-header .community-primary-nav{display:none!important}
+  .community-header .community-mobile-menu{display:block!important;order:3}
+  .community-header{gap:12px}
+}
+@media(max-width:700px){
+  .community-footer-brand{gap:12px}
+  .community-footer-brand img{width:43px;height:37px}
+  .community-footer-brand strong{font-size:clamp(18px,4.6vw,23px);letter-spacing:.1em}
+}

@@ -99,3 +99,20 @@ def test_homepage_prioritizes_main_image_and_defers_gallery_decode():
     assert 'fetchpriority="high"' in html
     assert 'loading="lazy" decoding="async"' in html
     assert 'href="/join">Join Delta Air Lines on Discord' in html
+
+
+
+def test_public_homepage_header_and_footer_branding():
+    from pathlib import Path
+    base = Path("website/templates/community_base.html").read_text()
+    css = Path("website/static/community.css").read_text()
+    assert 'class="community-primary-nav"' in base
+    assert '<a href="/flights">Flights</a>' in base
+    assert '<a href="/forms">Forms</a>' in base
+    assert '<a href="/dashboard">SkyMiles</a>' in base
+    assert '.community-header .community-primary-nav a{' in css
+    assert 'font-size:clamp(15px,1.13vw,19px)' in css
+    assert 'class="community-footer-brand"' in base
+    assert '<img src="/static/delta-emblem.svg"' in base
+    assert '.community-footer-brand img{' in css
+    assert '@media(max-width:700px)' in css
