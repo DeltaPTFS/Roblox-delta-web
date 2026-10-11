@@ -1,8 +1,8 @@
 {% extends "community_base.html" %}{% block title %}Form Responses{% endblock %}
 {% block content %}<section class="community-page"><a class="back-link" href="/forms/{{ form.slug }}/edit">← Back to editor</a>
-<div class="page-heading"><div><span class="eyebrow">STAFF · RESPONSES</span><h1>{{ form.title }}</h1><p>Most recent 500 submissions · Discord identities verified on submission</p></div></div>
+<div class="page-heading"><div><span class="eyebrow">STAFF · RESPONSES</span><h1>{{ form.title }}</h1><p>{{ records|length }} recent submissions · Discord identities verified when submitted</p></div><a class="community-btn primary" href="/forms/{{ form.slug }}/responses.csv">↓ Download CSV for Google Sheets</a></div>
 <div class="responses">
 {% for response in records %}<details class="response-card"><summary><strong>{{ response.discord_display_name }}</strong><span>{{ response.submitted_at.strftime("%b %d, %Y · %H:%M UTC") }} · #{{ response.id }}</span></summary>
 <div class="response-data"><p>Discord ID: <code>{{ response.discord_user_id }}</code>{% if response.flight_id %} · Flight #{{ response.flight_id }}{% endif %}</p>
-{% for question in form.questions %}<div><strong>{{ question.label }}</strong><p>{{ response.answers.get(question.id, "") }}</p></div>{% endfor %}</div></details>
+{% for question in form.questions %}{% if question.type != "section" %}<div><strong>{{ question.label }}</strong><p>{{ response.answers.get(question.id, "") }}</p></div>{% endif %}{% endfor %}</div></details>
 {% else %}<p>No one has submitted this form yet.</p>{% endfor %}</div></section>{% endblock %}
