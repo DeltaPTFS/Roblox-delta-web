@@ -57,7 +57,7 @@ def test_join_button_uses_discord_oauth_and_not_raw_invitation():
     assert 'href="/join"' in base
     assert 'Gallery</a>' not in base
     assert '@app.get("/join")' in main
-    assert '@app.get("/welcome")' in main
+    assert '@app.get("/welcome", response_class=HTMLResponse)' in main
     assert 'guilds.join' in oauth
     assert 'client.put(' in oauth
 
