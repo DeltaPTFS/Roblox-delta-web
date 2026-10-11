@@ -249,3 +249,16 @@ class CommunityFormResponse(Base):
     discord_display_name: Mapped[str] = mapped_column(String(100))
     answers: Mapped[dict] = mapped_column(JSON, default=dict)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CrewDeliveryEvent(Base):
+    """Durable outbound notifications from the website to the Crew Discord bot."""
+    __tablename__ = "crew_delivery_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_key: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    kind: Mapped[str] = mapped_column(String(30), index=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(15), default="PENDING", index=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
