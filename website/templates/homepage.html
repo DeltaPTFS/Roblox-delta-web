@@ -1,11 +1,11 @@
 {% extends "community_base.html" %}{% block title %}Welcome Aboard{% endblock %}
 {% block content %}
 <section class="community-hero" id="top">
-  <div class="hero-photo"><img src="/gallery/media/delta-hangar" alt="Delta aircraft in a maintenance hangar" loading="eager" onerror="this.hidden=true"></div>
+  <div class="hero-photo"><img src="/gallery/media/delta-hangar" alt="Delta aircraft in a maintenance hangar" loading="eager" onerror="this.classList.add('image-unavailable');this.alt='Delta photo will appear after upload'"></div>
   <div class="hero-content"><div class="eyebrow"><span class="pulse-dot"></span> DELTA AIR LINES · ROBLOX ROLEPLAY</div>
   <h1>Every flight.<br><em>A new experience.</em></h1>
   <p>Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.</p>
-  <div class="hero-actions"><a class="community-btn primary" href="{{ settings.discord_invite_url }}">Join our Discord ↗</a><a class="community-btn outlined" href="/forms">Explore applications →</a></div></div>
+  <div class="hero-actions"><a class="community-btn primary" href="/join">Join our Discord ↗</a><a class="community-btn outlined" href="/forms">Explore applications →</a></div></div>
   <a class="scroll-cue" href="#discover">SCROLL TO EXPLORE ↓</a>
 </section>
 <section class="community-section discover" id="discover"><div class="section-head"><span class="eyebrow">WELCOME ABOARD</span>
