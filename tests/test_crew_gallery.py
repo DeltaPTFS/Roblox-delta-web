@@ -1,0 +1,47 @@
+import os
+os.environ.setdefault("DATABASE_URL","sqlite://")
+os.environ.setdefault("SESSION_SECRET","unit-test-secret-with-32-or-more-characters")
+os.environ.setdefault("COOKIE_SECURE","false")
+from website.app.community import access_level,can_see
+from website.app.config import Settings
+from website.app.gallery import actual_mime,GALLERY,MAX_BYTES
+from website.app.models import CommunityForm
+
+
+def test_gallery_supports_all_seven_photos_plus_flight_promo():
+    assert len(GALLERY)==8
+    assert "flight-promo" in GALLERY
+    assert "delta-hangar" in GALLERY
+    assert MAX_BYTES>=2000000
+
+
+def test_gallery_checks_bytes_not_untrusted_extension():
+    assert actual_mime(b"\x89PNG\r\n\x1a\n"+b"0"*50)=="image/png"
+    assert actual_mime(b"\xff\xd8\xff"+b"0"*50)=="image/jpeg"
+    assert actual_mime(b"RIFF0000WEBP"+b"0"*50)=="image/webp"
+    assert actual_mime(b"<script>alert(1)</script>") is None
+
+
+def test_role_specific_forms_are_visible_only_for_authorized_guild_role_ids():
+    form=CommunityForm(status="PUBLISHED",allowed_roles={"crew":["1554666482988875788"],"airlines":["1539016506216812567"]})
+    assert can_see(form,{"crew":["1554666482988875788"]})
+    assert can_see(form,{"airlines":["1539016506216812567"]})
+    assert not can_see(form,{"crew":["1554669633573888010"]})
+    form.status="CLOSED"
+    assert not can_see(form,{"crew":["1554666482988875788"]})
+
+
+def test_crew_authentication_only_role_does_not_get_staff_editor_access():
+    assert access_level({"crew":["1554671178893885480"]})=="MEMBER"
+    assert access_level({"crew":["1554665018690248714"]})=="OWNER"
+    assert access_level({"crew":["1554666461644197988"]})=="ADMIN"
+    assert access_level({"crew":["1554666482988875788"]})=="STAFF"
+
+
+def test_role_defaults_do_not_confuse_main_and_crew_roles():
+    settings=Settings()
+    assert settings.crew_owner_role_ids=="1554665018690248714"
+    assert settings.crew_admin_role_ids=="1554666461644197988"
+    assert settings.crew_staff_role_ids=="1554666482988875788"
+    assert settings.forms_staff_discord_role_ids=="1539016506216812567"
+    assert settings.discord_invite_url=="https://discord.gg/u8GJF2br2M"
