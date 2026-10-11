@@ -114,3 +114,21 @@ body{background:#06132d;color:var(--white);font-family:Inter,ui-sans-serif,-appl
  .orbit{opacity:.2;transform:translate(-50%,-50%)}
  .flight-streak,.spark{display:none}
 }
+
+/* Confirmation is intentionally stationary after the four-second cinematic animation. */
+.success-finish{display:grid;justify-items:center;gap:19px;margin:clamp(32px,5vh,54px) auto 35px;
+  opacity:0;transform:translateY(15px);pointer-events:none;
+  transition:opacity .5s ease,transform .5s ease}
+.success-finish.is-ready{opacity:1;transform:translateY(0);pointer-events:auto}
+.success-finish-eyebrow{font-size:10px;letter-spacing:.17em;font-weight:850;color:#8edfc1}
+.success-return-home{display:inline-flex;justify-content:center;align-items:center;gap:24px;
+  min-height:62px;padding:0 28px;background:linear-gradient(110deg,#d4123a,#f02a50);color:#fff;
+  font-weight:850;font-size:14px;letter-spacing:.025em;text-decoration:none;border-radius:13px;
+  border:1px solid #fd9aac60;box-shadow:0 12px 38px #e2174650;
+  transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.success-return-home:hover,.success-return-home:focus-visible{background:#ef2952;
+  transform:translateY(-3px);box-shadow:0 16px 48px #e217466b}
+.success-return-home svg{transition:transform .2s ease}
+.success-return-home:hover svg{transform:translateX(4px)}
+.success-return-home:focus-visible{outline:3px solid #baffdd;outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.success-finish{opacity:1;transform:none;pointer-events:auto}}
