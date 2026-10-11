@@ -26,6 +26,12 @@
   let isFocused = false;
   let isVisible = true;
   let touchStart = null;
+  if (isPaused && toggle) {
+    toggle.setAttribute('aria-pressed', 'true');
+    toggle.setAttribute('aria-label', 'Resume advertisement rotation');
+    if (pauseIcon) pauseIcon.hidden = true;
+    if (playIcon) playIcon.hidden = false;
+  }
 
   function stop() {
     if (timer !== null) { clearTimeout(timer); timer = null; }
