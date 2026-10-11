@@ -110,3 +110,47 @@ body{overflow-x:hidden}main{animation:pageArrival .48s cubic-bezier(.2,.75,.25,1
 html.theme-dark .login-stage,body.theme-dark .login-stage{background:radial-gradient(circle at 12% 20%,#285eaa3b,transparent 29%),radial-gradient(circle at 84% 15%,#d7193f2e,transparent 27%),linear-gradient(145deg,#061326,#081b31 56%,#0a1427)}html.theme-dark .auth-card,body.theme-dark .auth-card{background:#0b2038e8;border-color:#34516f;box-shadow:0 32px 90px #0008}html.theme-dark .tabs button:hover,body.theme-dark .tabs button:hover{background:#12304e;color:#fff}html.theme-dark .tabs button.active,body.theme-dark .tabs button.active{background:linear-gradient(180deg,#102b48,#0b2038)}
 @media(max-width:800px){.route-transition-sky{height:52vh}.auth-card{border-radius:20px}.login-stage:after{background-size:34px 34px}.benefit-strip>div:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){main,.auth-intro,.auth-card,.auth-intro h1 em:after,.route i:before,.login-stage:before{animation:none!important}.route-transition{display:none}.verify-button:hover,.discord-login:hover,.auth-card .outline:hover{transform:none}}
+
+/* October fix: one predictable SkyMiles navigation at laptop, tablet and mobile widths. */
+.sky-nav{display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:18px!important;padding:0 24px!important;min-height:64px!important;height:auto!important;
+  overflow:visible!important;position:sticky!important;top:0!important;z-index:95!important}
+.sky-nav-brand{display:none!important;font-weight:900;letter-spacing:.12em;font-size:13px;white-space:nowrap}
+.sky-nav-primary{display:flex!important;flex:1!important;min-width:0!important;gap:clamp(10px,1.5vw,24px)!important;align-items:center!important}
+.sky-nav-primary a{font-size:clamp(9px,.85vw,12px)!important;white-space:nowrap!important;
+  letter-spacing:.025em!important;line-height:1.2!important;padding:0!important;text-align:center!important;
+  min-width:0!important;flex:none!important}
+.sky-nav .sky-nav-book{position:static!important;transform:none!important;left:auto!important;top:auto!important;
+  order:1!important;flex:none!important;white-space:nowrap!important;display:inline-flex!important;
+  height:39px!important;align-items:center!important;justify-content:center!important;
+  padding:0 20px!important;font-size:11px!important;margin:0!important}
+.sky-nav-dropdown{display:none;position:relative;order:2;z-index:101}
+.sky-nav-dropdown summary{cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;
+  border:1px solid #9ba9c5;border-radius:9px;padding:10px 14px;min-height:42px;
+  font-size:13px;font-weight:800;list-style:none;white-space:nowrap}
+.sky-nav-dropdown summary::-webkit-details-marker{display:none}
+.sky-nav-panel{position:absolute;right:0;top:calc(100% + 9px);min-width:min(330px,calc(100vw - 32px));
+  max-height:min(75vh,650px);overflow-y:auto;background:#0e2241;border:1px solid #53709c;
+  box-shadow:0 18px 48px #02071470;border-radius:14px;padding:12px;z-index:120}
+.sky-nav-panel a{height:auto!important;display:block!important;padding:13px 15px!important;
+  color:#f2f6ff!important;font-size:13px!important;font-weight:700!important;line-height:1.25!important;
+  border-radius:7px;text-align:left!important}
+.sky-nav-panel a:hover,.sky-nav-panel a:focus-visible{background:#345281!important;color:#fff!important}
+@media(max-width:1180px){
+  .sky-nav{padding:10px 20px!important;min-height:66px!important;gap:12px!important}
+  .sky-nav-primary{display:none!important}
+  .sky-nav-brand{display:inline-flex!important;margin-right:auto}
+  .sky-nav .sky-nav-book{order:1!important}
+  .sky-nav-dropdown{display:block!important}
+  .header-command{display:none!important}
+}
+@media(max-width:560px){
+  .sky-nav{padding:9px 13px!important;gap:8px!important}
+  .sky-nav-brand{font-size:11px!important}
+  .sky-nav .sky-nav-book{font-size:10px!important;padding:0 11px!important}
+  .sky-nav-dropdown summary{font-size:12px;padding:10px!important}
+  .sky-nav-dropdown summary span{display:none}
+  .topbar{padding-left:14px!important;padding-right:14px!important}
+  .topbar .brand{min-width:0}
+  .topbar .brand b{font-size:20px!important}
+}

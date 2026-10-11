@@ -26,3 +26,46 @@
 .forms-dialog-inner h2{font-size:clamp(26px,4vw,36px);line-height:1.2;letter-spacing:-.04em;margin:22px 0 12px}
 .forms-dialog-inner p{color:#c1ccdf;line-height:1.7;font-size:15px;margin:0 0 28px}
 @media(max-width:600px){.create-form-fab{right:16px;bottom:16px;padding:14px 18px}.forms-empty-dialog{width:calc(100vw - 32px)}}
+
+/* One-row main navigation; dropdown replaces crowded horizontal links. */
+.community-mobile-menu{display:none;position:relative;z-index:60}
+.community-mobile-menu summary{cursor:pointer;list-style:none;border:1px solid #6178a2;border-radius:7px;padding:10px 13px;color:#fff;font-size:12px;font-weight:800;white-space:nowrap}
+.community-mobile-menu summary::-webkit-details-marker{display:none}
+.community-mobile-links{position:absolute;right:0;top:calc(100% + 10px);min-width:225px;max-width:calc(100vw - 30px);background:#0d244d;border:1px solid #5272a1;box-shadow:0 18px 45px #000a;border-radius:10px;padding:9px}
+.community-mobile-links a{display:block;color:white;font-size:13px;font-weight:800;padding:13px;border-radius:6px;letter-spacing:.03em}
+.community-mobile-links a:hover,.community-mobile-links a:focus-visible{background:#284976}
+@media(max-width:1050px){
+  .community-header{flex-wrap:nowrap!important;height:72px!important;min-height:72px!important;gap:12px!important}
+  .community-header .community-primary-nav{display:none!important}
+  .community-mobile-menu{display:block!important;order:3}
+  .community-header .community-account{order:2;margin-left:auto;overflow:hidden;max-width:155px;text-overflow:ellipsis}
+}
+@media(max-width:450px){
+  .community-header{padding:10px 13px!important}
+  .community-header .community-brand{font-size:16px!important}
+  .community-header .community-brand small{font-size:7px!important}
+  .community-header .community-account{max-width:115px;padding:9px!important}
+}
+
+/* Real photographs shipped with the site as a compact fallback sprite.
+   Full-resolution staff uploads automatically display over each fallback. */
+.community-hero .hero-photo{
+  background-image:url('/static/gallery/photo-sprite.svg');
+  background-repeat:no-repeat;
+  background-size:300% 200%;
+  background-position:0% 0%;
+  background-color:#09295a;
+}
+.community-hero .hero-photo img.image-unavailable{display:none}
+.showcase .gallery-card{
+  background-image:url('/static/gallery/photo-sprite.svg');
+  background-size:300% 200%;
+  background-repeat:no-repeat;
+  background-color:#09295a;
+}
+.showcase .gallery-card:nth-child(1){background-position:50% 0%}
+.showcase .gallery-card:nth-child(2){background-position:100% 0%}
+.showcase .gallery-card:nth-child(3){background-position:0% 100%}
+.showcase .gallery-card:nth-child(4){background-position:50% 100%}
+.showcase .gallery-card:nth-child(5){background-position:100% 100%}
+.showcase .gallery-card img[hidden]{display:none!important}
