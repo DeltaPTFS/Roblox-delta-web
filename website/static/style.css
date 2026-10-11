@@ -154,3 +154,19 @@ html.theme-dark .login-stage,body.theme-dark .login-stage{background:radial-grad
   .topbar .brand{min-width:0}
   .topbar .brand b{font-size:20px!important}
 }
+
+/* Performance: keep Delta branding, remove expensive continuously repainted effects. */
+.login-stage:before,.route i:before,body:before,.premium-banner:after,.book-home-card:after{
+  animation:none!important;
+}
+.route-transition,.deployment-modal{display:none!important}
+@media(hover:none), (pointer:coarse), (max-width:1180px){
+  .topbar,.nav,.sky-nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .auth-intro,.auth-card,.login-stage:before,.login-stage:after,
+  .premium-banner,.book-home-card,.route i:before{animation:none!important}
+  .card,.flight-card,.tier-card,.auth-card,.premium-banner{box-shadow:0 6px 16px #071a3520!important}
+  .card:hover,.flight-card:hover,.tier-card:hover{transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
