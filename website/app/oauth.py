@@ -55,21 +55,41 @@ async def discord_identity(settings: Settings, code: str, verifier: str) -> dict
         user = (await client.get(DISCORD_ME, headers=headers)).raise_for_status().json()
         member_response = await client.get(DISCORD_MEMBER.format(guild_id=settings.discord_guild_id), headers=headers)
         member = member_response.json() if member_response.status_code == 200 else None
-        # The OAuth "guilds.join" permission explicitly authorizes joining
-        # this one server. Discord may still reject the request (bans, full guild,
-        # bot permissions, CAPTCHA/membership screening), so fail safely.
-        if member is None and settings.discord_bot_token and settings.discord_guild_id:
+        join_status = "already_member" if member is not None else "not_joined"
+        # A visitor consents to guilds.join on Discord's OAuth screen.
+        # Add them only to the configured main Delta server (never Crew).
+        if member is None and member_response.status_code == 404 and settings.discord_bot_token and settings.discord_guild_id:
             join = await client.put(
                 f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{user['id']}",
                 headers={"Authorization": f"Bot {settings.discord_bot_token}"},
                 json={"access_token": token["access_token"]},
             )
             if join.status_code in (201, 204):
-                member_response = await client.get(DISCORD_MEMBER.format(guild_id=settings.discord_guild_id), headers=headers)
-                member = member_response.json() if member_response.status_code == 200 else None
+                join_status = "joined"
+                # The bot endpoint verifies the member after joining. Discord
+                # may take a moment to propagate a new guild membership.
+                member_response = await client.get(
+                    f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{user['id']}",
+                    headers={"Authorization": f"Bot {settings.discord_bot_token}"},
+                )
+                if member_response.status_code == 200:
+                    member = member_response.json()
+                elif join.status_code == 201:
+                    try:
+                        body = join.json()
+                        if isinstance(body, dict) and body.get("user", {}).get("id") == str(user["id"]):
+                            member = body
+                    except ValueError:
+                        pass
+            else:
+                # Discord can reject a join for guild membership screening,
+                # missing permissions or a banned user. Never claim success.
+                join_status = "join_failed"
+        elif member is None:
+            join_status = "join_unavailable"
         guild_avatar = member.get("avatar") if member else None
         avatar = f"https://cdn.discordapp.com/guilds/{settings.discord_guild_id}/users/{user['id']}/avatars/{guild_avatar}.png" if guild_avatar else (f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get("avatar") else None)
-        return {"id":str(user["id"]),"username":user["username"],"display_name":discord_server_name(user,member),"avatar":avatar,"member":member}
+        return {"id":str(user["id"]),"username":user["username"],"display_name":discord_server_name(user,member),"avatar":avatar,"member":member,"join_status":join_status}
 
 
 def discord_server_name(user: dict, member: dict | None) -> str:
