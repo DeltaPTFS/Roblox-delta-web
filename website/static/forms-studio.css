@@ -1,0 +1,84 @@
+/* Delta Air Lines Form Studio | polished, fast and readable across devices */
+.delta-studio{max-width:1530px}
+.studio-heading{align-items:start}
+.studio-heading h1{margin-top:12px}
+.studio-heading p{max-width:730px}
+.studio-toolbar{display:flex;justify-content:space-between;align-items:center;gap:18px;
+  padding:14px 18px;margin:0 0 26px;background:linear-gradient(95deg,#0c2046,#0f1e3c);
+  border:1px solid #47608a;border-radius:14px;flex-wrap:wrap}
+.studio-tabs,.studio-actions{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.studio-tab{font-size:12px;font-weight:800;color:#b4c6e1;border:1px solid transparent;
+  padding:12px 14px;border-radius:10px;transition:background .16s ease,color .16s ease}
+.studio-tab:hover,.studio-tab:focus-visible{background:#28476c;color:#fff}
+.studio-tab.active{background:#25476e;color:#fff;border-color:#547ca7}
+.studio-save-note{color:#81bdab;font-size:11px;font-weight:800;padding:10px 6px}
+.studio-save-note.is-unsaved{color:#f9bc72}
+.delta-studio .editor-layout form{grid-template-columns:minmax(0,1fr) minmax(270px,345px)}
+.delta-studio .editor-card{border-radius:16px;border-color:#344e76;background:linear-gradient(140deg,#12274b,#0a1c3a);box-shadow:0 8px 28px #030b1b29}
+.delta-studio .editor-card h2{margin:13px 0 15px}
+.studio-detail-card{border-top:3px solid #dc2243!important}
+.studio-detail-card label{display:block}
+.studio-share-row{margin:13px 0 0;border-top:1px solid #45618a;padding-top:13px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.studio-share-row a{font-size:12px;color:#a2d1ff;overflow-wrap:anywhere}
+.studio-share-row .text-button{margin-left:auto}
+.studio-question-header{display:flex;justify-content:space-between;align-items:end;gap:18px;margin:22px 0}
+.studio-question-header h2{font-size:24px;letter-spacing:-.03em;margin:10px 0 4px}
+.studio-question-header p{font-size:13px;color:#afbed9;line-height:1.6;margin:0}
+.studio-add-actions{display:flex;gap:9px}
+.studio-question-list{display:grid;gap:13px}
+.delta-studio .studio-question-card{margin:0;border-radius:14px;border:1px solid #365780;padding:23px;
+  background:linear-gradient(135deg,#0f2346,#071832);box-shadow:0 6px 25px #0002;transition:border-color .18s ease,transform .18s ease}
+.delta-studio .studio-question-card:hover{border-color:#6488b7}
+.delta-studio .studio-question-card.is-section{border-left:4px solid #ef4764;background:linear-gradient(110deg,#302443,#151c3e)}
+.studio-question-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.studio-q-index{color:#e490a0;font-weight:900;font-size:10px;letter-spacing:.17em}
+.studio-q-controls{display:flex;gap:4px;align-items:center}
+.studio-icon-btn{font-size:12px;font-weight:800;cursor:pointer;color:#c6d8f1;background:transparent;border:1px solid transparent;
+  border-radius:7px;padding:7px 9px;transition:background .18s ease,color .18s ease}
+.studio-icon-btn:hover,.studio-icon-btn:focus-visible{background:#304e79;color:white}
+.studio-icon-btn:disabled{opacity:.35;cursor:default}
+.studio-icon-btn.dangerous:hover{background:#7e2838}
+.studio-question-inputs{display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:end}
+.studio-question-card>label{display:block}
+.studio-question-card textarea{resize:vertical}
+.studio-question-card input,.studio-question-card textarea,.studio-question-card select{background:#06162c!important;border-color:#46638b!important}
+.studio-question-card input:focus,.studio-question-card textarea:focus,.studio-question-card select:focus{
+  border-color:#f35b7d!important;box-shadow:0 0 0 3px #e7315530}
+.studio-scale-options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.studio-question-footer{margin-top:8px;padding-top:12px;border-top:1px solid #ffffff1b;display:flex;justify-content:flex-end}
+.studio-required-toggle{display:flex;gap:10px;align-items:center;font-size:12px;font-weight:800;color:#cfdbef;cursor:pointer}
+.studio-required-toggle input{width:18px!important;height:18px;accent-color:#e32e51}
+.studio-empty-state{border:1px dashed #5c7295;border-radius:14px;padding:43px 23px;text-align:center;
+  font-size:14px;color:#c3d2e8;background:#0e2343}
+.studio-bottom-add{text-align:center;margin:18px 0 0}
+.studio-settings-card{position:relative}
+.studio-publish-panel{background:linear-gradient(140deg,#1c2b50,#091a3a)!important;border-color:#85586d!important}
+.studio-preview-dialog{border:1px solid #5375a1;background:#081832;color:#fff;width:min(760px,calc(100vw - 26px));
+  max-height:min(90vh,960px);padding:0;border-radius:19px;box-shadow:0 28px 85px #000c}
+.studio-preview-dialog::backdrop{background:#020817dc}
+.studio-preview-shell{padding:clamp(22px,4vw,48px);overflow-y:auto;max-height:90vh}
+.studio-preview-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding-bottom:17px;border-bottom:1px solid #456286}
+.studio-preview-shell>h2{font-size:clamp(28px,4vw,43px);margin:24px 0 10px}
+.studio-preview-shell>p{line-height:1.7;color:#bbcbe2}
+.studio-preview-field{border:1px solid #2c507b;border-radius:12px;background:#0e2346;margin:14px 0;padding:23px}
+.studio-preview-field label,.studio-preview-field h3{display:block;font-weight:800;font-size:15px;margin:0 0 11px}
+.studio-preview-field p{color:#aebfd9;font-size:12px;margin:0 0 13px}
+.studio-preview-field input:not([type=radio]):not([type=checkbox]),.studio-preview-field textarea,.studio-preview-field select{
+  width:100%;border:1px solid #53759c;background:#07182f;color:#fff;padding:13px;border-radius:8px}
+.studio-preview-choices{display:grid;gap:9px}
+.studio-preview-choices label{display:flex;align-items:center;gap:12px;font-weight:500;margin:0}
+.studio-preview-choices input{accent-color:#d7193f}
+.studio-preview-disclaimer{text-align:center;border-top:1px solid #425f85;padding-top:17px;font-size:11px!important}
+@media(min-width:1051px){.delta-studio .editor-side .studio-publish-panel{position:sticky;top:95px}}
+@media(max-width:1050px){.delta-studio .editor-layout form{grid-template-columns:1fr}
+ .studio-settings-card{margin-bottom:15px!important}}
+@media(max-width:650px){.studio-toolbar{padding:12px}.studio-tabs{width:100%;overflow:auto;flex-wrap:nowrap}
+ .studio-tab{white-space:nowrap;padding:10px}
+ .studio-question-inputs,.studio-scale-options{grid-template-columns:1fr}
+ .studio-question-header{align-items:start;flex-direction:column}
+ .studio-question-card{padding:17px!important}
+ .studio-q-controls{gap:0}
+ .studio-icon-btn{padding:6px}
+ .studio-save-note{display:none}
+}
+@media(prefers-reduced-motion:reduce){.delta-studio *{transition:none!important}}
