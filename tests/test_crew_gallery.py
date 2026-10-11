@@ -82,3 +82,20 @@ def test_forms_empty_state_is_role_aware_and_uses_modal():
     assert 'class="community-btn primary create-form-fab"' in page
     assert 'if access != "MEMBER"' in page
     assert 'position:fixed' in styles
+
+
+def test_sky_miles_navigation_does_not_delay_clicks():
+    from pathlib import Path
+    html = Path("website/templates/base.html").read_text()
+    assert 'setTimeout(()=>location.assign(next.href),720)' not in html
+    assert 'id="deployment-modal"' not in html
+    assert 'id="route-transition"' not in html
+    assert 'visibilitychange' in html
+
+
+def test_homepage_prioritizes_main_image_and_defers_gallery_decode():
+    from pathlib import Path
+    html = Path("website/templates/homepage.html").read_text()
+    assert 'fetchpriority="high"' in html
+    assert 'loading="lazy" decoding="async"' in html
+    assert 'href="/join">Join Delta Air Lines on Discord' in html
