@@ -4,6 +4,8 @@ Authorization for every read/write comes from Discord's current guild member rol
 No SkyMiles account is required for a form submission.
 """
 import hashlib
+import csv
+import io
 import json
 import math
 import re
@@ -417,6 +419,42 @@ async def view_responses(request: Request, slug: str, db: Session = Depends(get_
                          .order_by(CommunityFormResponse.submitted_at.desc()).limit(500)).all()
     return templates.TemplateResponse("forms/responses.html",
         page_context(request, viewer, roles, form=form, records=records))
+
+
+@router.get("/forms/{slug}/responses.csv")
+async def export_form_responses(request: Request, slug: str, db: Session = Depends(get_db)):
+    """Authenticated staff export with formula-safe values for Google Sheets/Excel."""
+    result = await verified_viewer(request, db)
+    if isinstance(result, RedirectResponse):
+        return result
+    _, roles = result
+    if access_level(roles) == "MEMBER":
+        raise HTTPException(403, "Staff only")
+    form = db.scalar(select(CommunityForm).where(CommunityForm.slug == slug))
+    if not form:
+        raise HTTPException(404, "Form not found")
+    questions = [q for q in form.questions if q.get("type") != "section"]
+    out = io.StringIO(newline="")
+    writer = csv.writer(out)
+    writer.writerow(["Response ID", "Discord User ID", "Discord Display Name", "Flight ID", "Submitted (UTC)"]
+                    + [str(q["label"])[:200] for q in questions])
+    def safe_cell(value):
+        if isinstance(value, list):
+            value = ", ".join(str(item) for item in value)
+        value = str(value if value is not None else "")
+        return "'" + value if value.lstrip().startswith(("=", "+", "-", "@")) else value
+    records = db.scalars(select(CommunityFormResponse)
+        .where(CommunityFormResponse.form_id == form.id)
+        .order_by(CommunityFormResponse.id)
+        .limit(10000)).all()
+    for item in records:
+        writer.writerow([
+            item.id, item.discord_user_id, safe_cell(item.discord_display_name),
+            item.flight_id or "", item.submitted_at.isoformat()
+        ] + [safe_cell((item.answers or {}).get(q["id"], "")) for q in questions])
+    return Response(out.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": 'attachment; filename="delta-form-' + form.slug + '-responses.csv"',
+                             "Cache-Control": "private, no-store"})
 
 
 @router.post("/internal/flights/host")
