@@ -1,0 +1,16 @@
+{% extends "community_base.html" %}{% block title %}Discord Verification{% endblock %}
+{% block content %}
+<section class="community-page narrow" style="display:grid;place-items:center;min-height:65vh">
+  <div class="form-answer" style="width:100%;max-width:620px;text-align:center;padding:clamp(28px,5vw,60px)">
+    <div class="eyebrow">DELTA AIR LINES · DISCORD AUTHORIZATION</div>
+    <div aria-hidden="true" style="font-size:52px;margin:20px 0">{{ "✈" if joined else "⌁" }}</div>
+    <h1 style="font-size:clamp(30px,5vw,48px)">{{ title }}</h1>
+    <p>{{ message }}</p>
+    <p style="font-size:13px;color:#b4c7e4">Joining requires your permission on the Discord authorization screen. Crew roles and verification are managed separately within Discord.</p>
+    <div class="hero-actions" style="justify-content:center">
+      <a class="community-btn primary" href="/forms">Explore Forms →</a>
+      <a class="community-btn outlined" href="{{ settings.discord_invite_url }}" rel="noopener noreferrer">Open Delta Discord ↗</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
