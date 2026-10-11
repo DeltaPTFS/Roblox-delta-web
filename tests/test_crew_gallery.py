@@ -116,3 +116,48 @@ def test_public_homepage_header_and_footer_branding():
     assert '<img src="/static/delta-emblem.svg"' in base
     assert '.community-footer-brand img{' in css
     assert '@media(max-width:700px)' in css
+
+
+def test_homepage_visual_polish_is_fast_and_reduced_motion_safe():
+    from pathlib import Path
+    html = Path("website/templates/homepage.html").read_text()
+    base = Path("website/templates/community_base.html").read_text()
+    css = Path("website/static/community.css").read_text()
+    motion = Path("website/static/community-motion.js").read_text()
+    for name in ("delta-hangar", "delta-centennial", "delta-terminal", "delta-lounge", "delta-hq", "delta-electric"):
+        assert '/static/gallery/' + name + '.webp' in html
+        assert '/gallery/media/' + name in html
+    assert 'fetchpriority="high"' in html
+    assert 'loading="lazy" decoding="async"' in html
+    assert 'class="community-footer-copy"' in base
+    assert 'class="menu-lines"' in base
+    assert 'class="account-chevron"' in base
+    assert '↗' not in html and '↗' not in base
+    assert 'community-motion.js' in base
+    assert 'IntersectionObserver' in motion
+    assert 'unobserve(entry.target)' in motion
+    assert 'prefers-reduced-motion: reduce' in motion
+    assert 'scroll-behavior:smooth' in css
+    assert 'body.delta-motion-ready [data-reveal]' in css
+
+
+def test_form_studio_question_controls_use_full_width_layout():
+    from pathlib import Path
+    css = Path("website/static/forms-studio.css").read_text()
+    assert '.studio-question-card input:not([type="checkbox"]):not([type="radio"])' in css
+    assert 'width:100%;max-width:100%' in css
+    assert 'grid-template-columns:minmax(0,1.9fr) minmax(190px,1fr)' in css
+    assert '.studio-preview-dialog{width:min(780px,calc(100vw - 32px))}' in css
+
+
+def test_sharp_homepage_images_ship_with_static_site():
+    from pathlib import Path
+    folder = Path("website/static/gallery")
+    for name in ("delta-hangar", "delta-centennial", "delta-terminal", "delta-lounge",
+                 "delta-hq", "delta-electric", "delta-tail"):
+        photo = folder / (name + ".webp")
+        assert photo.is_file(), f"Missing original photo {photo}"
+        assert photo.stat().st_size > 12000, f"Photo was accidentally replaced by a tiny thumbnail: {photo}"
+        assert photo.read_bytes().startswith(b"RIFF"), f"Invalid WebP file {photo}"
+    assert (folder / "delta-hangar.webp").stat().st_size > 50000
+    assert (folder / "photo-atlas.avif").is_file()

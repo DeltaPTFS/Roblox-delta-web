@@ -82,3 +82,72 @@
  .studio-save-note{display:none}
 }
 @media(prefers-reduced-motion:reduce){.delta-studio *{transition:none!important}}
+
+/* Form Studio: consistently sized real controls (previous generic CSS skipped dynamically-created fields). */
+.delta-studio .editor-layout,
+.delta-studio .editor-layout form,
+.delta-studio .editor-main,
+.delta-studio .editor-side,
+.delta-studio .studio-question-card{min-width:0}
+.delta-studio .editor-layout form{width:100%;align-items:start}
+.delta-studio .editor-main,.delta-studio .editor-side{width:100%}
+.delta-studio .studio-question-inputs{grid-template-columns:minmax(0,1.9fr) minmax(190px,1fr);gap:16px;align-items:start}
+.delta-studio .studio-question-inputs>label,
+.delta-studio .studio-question-card>label,
+.delta-studio .studio-scale-options>label{
+  display:flex!important;flex-direction:column;gap:8px;min-width:0;
+  margin:12px 0 0;font-size:13px;font-weight:750;line-height:1.45;color:#e0e8f5;
+}
+.delta-studio .studio-question-card input:not([type="checkbox"]):not([type="radio"]),
+.delta-studio .studio-question-card textarea,
+.delta-studio .studio-question-card select{
+  display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+  background:#081a34!important;color:#f3f7ff!important;
+  border:1px solid #55729d!important;border-radius:9px!important;
+  padding:13px 15px!important;min-height:48px;
+  font:inherit;font-size:14px;line-height:1.5;
+  margin:0!important;outline:none;appearance:auto;
+}
+.delta-studio .studio-question-card textarea{min-height:78px;resize:vertical}
+.delta-studio .studio-question-card input::placeholder,
+.delta-studio .studio-question-card textarea::placeholder{color:#a3b4d0;opacity:1}
+.delta-studio .studio-question-card select{padding-right:32px!important;cursor:pointer}
+.delta-studio .studio-question-card input:focus-visible,
+.delta-studio .studio-question-card textarea:focus-visible,
+.delta-studio .studio-question-card select:focus-visible{
+  border-color:#ff5c7d!important;box-shadow:0 0 0 3px #ec426233!important;
+}
+.delta-studio .studio-q-controls{flex-wrap:wrap;justify-content:flex-end}
+.delta-studio .studio-q-index{flex:none}
+.delta-studio .studio-question-top{align-items:center;flex-wrap:wrap}
+.delta-studio .studio-question-card>label{margin-top:15px}
+.delta-studio .studio-question-footer .studio-required-toggle{
+  display:inline-flex!important;flex-direction:row!important;align-items:center!important;
+  gap:10px!important;margin:0!important;white-space:normal;
+}
+.delta-studio .studio-question-footer input[type="checkbox"]{
+  width:18px!important;height:18px!important;min-height:18px!important;
+  flex:none;accent-color:#eb3457;
+}
+.delta-studio .editor-card label:not(.role-choice){min-width:0;max-width:100%}
+.delta-studio .editor-card input:not([type="checkbox"]),
+.delta-studio .editor-card textarea,
+.delta-studio .editor-card select{box-sizing:border-box;max-width:100%}
+.delta-studio .studio-question-card{box-shadow:0 10px 28px #020b1d38}
+.delta-studio .studio-preview-dialog{width:min(780px,calc(100vw - 32px))}
+.delta-studio .studio-preview-field,
+.delta-studio .studio-preview-field input,
+.delta-studio .studio-preview-field textarea{min-width:0}
+@media(max-width:920px){
+  .delta-studio .studio-question-inputs{grid-template-columns:1fr}
+  .delta-studio .editor-layout form{grid-template-columns:1fr}
+  .delta-studio .studio-question-card{padding:19px}
+  .delta-studio .studio-question-top{gap:12px}
+}
+@media(max-width:520px){
+  .delta-studio .studio-q-controls{width:100%;justify-content:space-between}
+  .delta-studio .studio-question-card input:not([type="checkbox"]):not([type="radio"]),
+  .delta-studio .studio-question-card textarea,
+  .delta-studio .studio-question-card select{font-size:16px;min-height:49px}
+  .delta-studio .studio-preview-dialog{width:calc(100vw - 20px)}
+}
