@@ -133,3 +133,89 @@
   .community-footer-brand img{width:43px;height:37px}
   .community-footer-brand strong{font-size:clamp(18px,4.6vw,23px);letter-spacing:.1em}
 }
+
+/* Delta Air Lines visual polish — responsive, GPU-light, accessible */
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+.community-header{box-shadow:0 8px 26px #00000020}
+.community-header a:focus-visible,.community-btn:focus-visible,
+.community-mobile-menu summary:focus-visible,.footer-discord-link:focus-visible{
+  outline:2px solid #ff7b99;outline-offset:4px
+}
+.community-account{display:inline-flex;align-items:center;justify-content:center;gap:11px;min-width:0;
+  padding:12px 16px;border-radius:9px;transition:background .18s ease,border-color .18s ease}
+.community-account:hover{background:#233759;border-color:#99aac2}
+.account-name{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-chevron,.link-chevron{
+  display:inline-block;width:8px;height:8px;flex:none;
+  border-top:2px solid currentColor;border-right:2px solid currentColor;
+  transform:rotate(45deg);margin-left:2px;transition:transform .2s ease
+}
+.community-account:hover .account-chevron,
+.footer-discord-link:hover .link-chevron{transform:translateX(3px) rotate(45deg)}
+.menu-lines{width:19px;height:14px;display:inline-flex;flex-direction:column;justify-content:space-between;flex:none}
+.menu-lines i{height:2px;width:100%;border-radius:2px;background:#ee5471;transition:transform .2s ease,opacity .2s ease}
+.community-mobile-menu summary{display:flex;align-items:center;gap:9px;border-radius:10px;background:#132745;padding:11px 14px}
+.community-mobile-menu[open] .menu-lines i:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.community-mobile-menu[open] .menu-lines i:nth-child(2){opacity:0}
+.community-mobile-menu[open] .menu-lines i:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.community-mobile-links{border-radius:13px;animation:deltaMenuIn .2s ease-out both;transform-origin:top right}
+@keyframes deltaMenuIn{from{opacity:0;transform:translateY(-7px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.community-footer{align-items:flex-start;gap:clamp(22px,7vw,100px)}
+.community-footer-brand{align-items:center;gap:18px;max-width:100%;width:auto}
+.community-footer-brand img{height:64px;width:66px;object-fit:contain;flex:none}
+.community-footer-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:64px}
+.community-footer-copy strong{font-size:clamp(18px,2.1vw,29px);letter-spacing:.12em;white-space:normal;line-height:1.25}
+.community-footer-copy p{margin:6px 0 0!important;line-height:1.4;font-size:clamp(13px,1.3vw,17px);color:#becae1}
+.footer-discord-link{display:inline-flex;align-items:center;gap:12px;font-size:15px;white-space:nowrap}
+.community-hero .hero-actions .community-btn::after,
+.community-section .hero-actions .community-btn::after,
+.community-section .feature-card>span:last-child::after,
+.community-section .small-cta .community-btn::after,
+.community-section.small-cta .community-btn::after{
+  content:"";display:inline-block;flex:none;width:8px;height:8px;
+  border-top:2px solid currentColor;border-right:2px solid currentColor;
+  transform:rotate(45deg);margin-left:4px;transition:transform .2s ease
+}
+.community-hero .hero-actions .community-btn:hover::after,
+.community-section .hero-actions .community-btn:hover::after,
+.community-section .feature-card:hover>span:last-child::after,
+.community-section.small-cta .community-btn:hover::after{transform:translateX(4px) rotate(45deg)}
+.scroll-cue{display:inline-flex;align-items:center;gap:11px}
+.scroll-cue-icon{display:inline-block;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:rotate(45deg) translateY(-2px)}
+.community-btn{border-radius:9px;transition:background .2s ease,transform .2s ease,border-color .2s ease}
+.feature-card,.gallery-card{border-radius:12px;overflow:hidden}
+.gallery-card img{image-rendering:auto;transition:transform .35s ease;backface-visibility:hidden}
+.gallery-card:hover img{transform:scale(1.025)}
+.feature-card{transition:transform .25s ease,background .25s ease,border-color .25s ease}
+.feature-card:hover{transform:translateY(-3px);border-color:#627eab}
+@media(prefers-reduced-motion:no-preference){
+  body.delta-motion-ready [data-reveal]{opacity:0;transform:translate3d(0,18px,0);
+    transition:opacity .65s cubic-bezier(.2,.75,.2,1),transform .65s cubic-bezier(.2,.75,.2,1)}
+  body.delta-motion-ready [data-reveal].delta-visible{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(min-width:1100px){
+  body.delta-motion-ready .feature-card:nth-child(2){transition-delay:.06s}
+  body.delta-motion-ready .feature-card:nth-child(3){transition-delay:.12s}
+}
+@media(max-width:1250px){
+  .community-header{gap:12px}
+  .community-account{max-width:195px}
+}
+@media(max-width:700px){
+  .community-footer{gap:22px}
+  .community-footer-brand{gap:14px}
+  .community-footer-brand img{height:52px;width:54px}
+  .community-footer-copy{min-height:52px}
+  .community-footer-copy strong{font-size:clamp(18px,4.4vw,25px)}
+  .community-footer-copy p{font-size:13px;margin-top:4px!important}
+  .community-account{max-width:142px;font-size:11px}
+  .account-name{max-width:105px}
+  .gallery-card:hover img,.feature-card:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  body [data-reveal]{opacity:1!important;transform:none!important;transition:none!important}
+  .community-mobile-links{animation:none!important}
+  .feature-card,.gallery-card img,.community-btn,.account-chevron,.link-chevron{transition:none!important}
+}
