@@ -501,7 +501,14 @@ def signin_success(request: Request, db: Session=Depends(get_db)):
 def finish_signin_celebration(request: Request):
     """Continue to the original protected destination after OAuth completes."""
     event = request.session.pop("signin_celebration", None) or {}
-    destination = safe_login_target(event.get("destination"), "/dashboard")
+    # New Discord-only visitors return to the SkyMiles enrollment screen,
+    # not to member-only pages that would cause another login redirect.
+    if event.get("kind") == "discord":
+        destination = str(event.get("destination", ""))
+        if not destination.startswith("/login?") or "\\" in destination or len(destination) > 300:
+            destination = "/login?mode=signup"
+    else:
+        destination = safe_login_target(event.get("destination"), "/dashboard")
     if not request.session.get("user_id") and not request.session.get("forms_identity"):
         return RedirectResponse("/login?next=" + quote(destination, safe=""), 303)
     return RedirectResponse(destination, 303)
