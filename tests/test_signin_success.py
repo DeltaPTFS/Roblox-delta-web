@@ -87,7 +87,7 @@ def test_existing_linked_member_skips_skymiles_login_screen():
     assert result.headers["location"]=="/dashboard"
 
 
-def test_signin_success_stays_until_explicit_return_home_and_rotates_cookie_id():
+def test_signin_success_stays_until_continue_to_original_destination_and_rotates_cookie_id():
     request=request_with_session({"user_id":17},path="/signin/success")
     redirect=queue_signin_success(request,display_name="Captain Delta",
                                   destination="/dashboard",kind="skymiles",
@@ -104,11 +104,11 @@ def test_signin_success_stays_until_explicit_return_home_and_rotates_cookie_id()
 
     again=signin_success(request,db=FakeDatabase(linked_user()))
     assert again.status_code == 200
-    assert b"Return to Homepage" in again.body
+    assert b"Go to My Dashboard" in again.body
 
     finish=finish_signin_celebration(request)
     assert isinstance(finish,RedirectResponse)
-    assert finish.headers["location"]=="/"
+    assert finish.headers["location"]=="/dashboard"
     assert "signin_celebration" not in request.session
 
     subsequent=signin_success(request,db=FakeDatabase(linked_user()))
