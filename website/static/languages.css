@@ -63,3 +63,21 @@
   .community-header>.delta-language-switch select{width:73px;max-width:73px;font-size:10px}
   .community-header>.community-account{font-size:10px!important;max-width:55px!important}
 }
+
+
+/* Give small phones a clear two-row header instead of squeezing four controls. */
+@media(max-width:540px){
+ .community-header{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+  gap:8px!important;height:auto!important;min-height:78px!important;padding:9px 12px!important}
+ .community-header>.community-brand{grid-column:1;grid-row:1;max-width:none!important;min-width:0}
+ .community-header>.delta-language-switch{grid-column:2;grid-row:1;margin:0!important}
+ .community-header>.community-mobile-menu{grid-column:3;grid-row:1;order:initial!important}
+ .community-header>.community-account,.community-header>.community-account-slot{
+  grid-column:1 / -1;grid-row:2;justify-self:stretch;margin:0!important;order:initial!important}
+ .community-header>.community-account{max-width:none!important;min-height:36px;display:flex;justify-content:center}
+ .community-header>.community-account-slot>.delta-account-menu{width:100%}
+ .community-header>.community-account-slot>.delta-account-menu>summary.delta-account-trigger{
+  max-width:none!important;width:100%;min-height:40px!important;justify-content:flex-start!important}
+ .community-header>.community-account-slot>.delta-account-menu>summary .delta-account-trigger-label{
+  display:flex!important}
+}
