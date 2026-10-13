@@ -86,7 +86,7 @@ def authorize_login(request: Request) -> RedirectResponse:
     destination = request.url.path
     if request.url.query:
         destination += "?" + request.url.query
-    return RedirectResponse("/auth/discord/forms?next=" + quote(destination, safe=""), 303)
+    return RedirectResponse("/login?intent=forms&next=" + quote(destination, safe=""), 303)
 
 
 async def verified_viewer(request: Request, db: Session) -> tuple[dict, dict] | RedirectResponse:
