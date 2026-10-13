@@ -367,8 +367,8 @@ def test_public_homepage_is_not_a_login_wall():
         assert 'href="/dashboard"' in response.text
 
 
-def test_guest_form_navigation_starts_discord_oauth():
+def test_guest_form_navigation_starts_at_unified_login():
     with TestClient(app) as client:
         response=client.get("/forms", follow_redirects=False)
         assert response.status_code == 303
-        assert response.headers["location"].startswith("/auth/discord/forms")
+        assert response.headers["location"] == "/login?intent=forms&next=%2Fforms"
