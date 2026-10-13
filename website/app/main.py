@@ -5,7 +5,7 @@ import re
 import secrets
 from time import time
 from uuid import uuid4
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -314,19 +314,51 @@ async def homepage(request: Request, db: Session = Depends(get_db)):
     ))
 
 
+
+def safe_login_target(target: str | None, default: str = "/dashboard") -> str:
+    """Return an internal destination only; never redirect OAuth users off-site."""
+    if not isinstance(target, str) or not target.startswith("/") or target.startswith("//") or (
+        "\\" in target or any(ord(char) < 32 for char in target) or len(target) > 300
+    ):
+        return default
+    parsed = urlparse(target)
+    if parsed.scheme or parsed.netloc or parsed.fragment or parsed.path in ("/login", "/signup", "/signin/success"):
+        return default
+    return target
+
+
 @app.get("/login", response_class=HTMLResponse)
-def login(request: Request, db: Session=Depends(get_db)):
-    # Visitors who linked Discord and SkyMiles on this browser go directly home.
-    user=linked_user_from_session(request,db)
-    if user and user.account_status==Status.ACTIVE:
-        return RedirectResponse("/dashboard",303)
-    return templates.TemplateResponse("login.html", context(request))
+def login(request: Request, next: str = "/dashboard", mode: str = "login",
+          intent: str = "", db: Session=Depends(get_db)):
+    target = safe_login_target(next)
+    user = linked_user_from_session(request, db)
+    if user and user.account_status == Status.ACTIVE:
+        return RedirectResponse(target, 303)
+    guest = request.session.get("forms_identity")
+    if isinstance(guest, dict) and target.startswith("/forms"):
+        return RedirectResponse(target, 303)
+    forms_target = target if target.startswith("/forms") else "/forms"
+    return templates.TemplateResponse("login.html", context(
+        request, login_next=target,
+        login_mode="signup" if mode == "signup" else "login",
+        login_intent="forms" if intent == "forms" or target.startswith("/forms") else "skymiles",
+        discord_login_href="/auth/discord/login?next=" + quote(target, safe=""),
+        discord_forms_href="/auth/discord/forms?next=" + quote(forms_target, safe=""),
+        signup_href="/auth/roblox?next=" + quote(target, safe=""),
+        discord_connected=bool(request.session.get("forms_identity") or request.query_params.get("discord_connected")),
+    ))
+
+
+@app.get("/signup")
+def signup(request: Request, next: str = "/dashboard"):
+    return RedirectResponse("/login?mode=signup&next=" + quote(safe_login_target(next), safe=""), 303)
 
 
 @app.get("/auth/roblox")
 @limiter.limit("10/minute")
-def start_roblox(request: Request):
+def start_roblox(request: Request, next: str = "/dashboard"):
     if not settings.roblox_client_id or not settings.roblox_group_id: raise HTTPException(503, "Roblox OAuth is not configured")
+    request.session["login_return"] = safe_login_target(next)
     state, challenge = oauth_values(request, "roblox")
     return RedirectResponse(roblox_authorize(settings, state, challenge))
 
@@ -335,6 +367,7 @@ def start_roblox(request: Request):
 @limiter.limit("10/minute")
 async def roblox_callback(request: Request, code: str, state: str, db: Session=Depends(get_db)):
     verifier = consume_oauth(request, "roblox", state)
+    login_return = safe_login_target(request.session.get("login_return"))
     try: identity = await roblox_identity(settings, code, verifier)
     except Exception: return RedirectResponse("/error?kind=roblox", 303)
     if not identity["membership"]:
@@ -349,7 +382,7 @@ async def roblox_callback(request: Request, code: str, state: str, db: Session=D
         request.session["link_user_id"] = existing.id
         if existing.discord_verified_at and existing.account_status == Status.ACTIVE:
             request.session.clear(); request.session["user_id"]=existing.id; request.session["authorization"]=permission(existing,settings); request.session["theme"]=existing.theme_preference
-            return RedirectResponse("/dashboard",303)
+            return RedirectResponse(login_return,303)
     return RedirectResponse("/connect-discord", 303)
 
 
@@ -420,11 +453,13 @@ def start_discord_forms_login(request: Request, next: str = "/forms", force: boo
 
 @app.get("/auth/discord/login")
 @limiter.limit("10/minute")
-def start_discord_login(request: Request, db: Session=Depends(get_db)):
+def start_discord_login(request: Request, next: str = "/dashboard", db: Session=Depends(get_db)):
     if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
+    target=safe_login_target(next)
     user=linked_user_from_session(request,db)
     if user and user.account_status==Status.ACTIVE:
-        return RedirectResponse("/dashboard",303)
+        return RedirectResponse(target,303)
+    request.session["login_return"]=target
     request.session["discord_login_only"]=True
     state, challenge = oauth_values(request, "discord")
     return RedirectResponse(discord_authorize(settings, state, challenge))
@@ -478,6 +513,7 @@ def next_number(db):
 @limiter.limit("10/minute")
 async def discord_callback(request: Request, code: str, state: str, db: Session=Depends(get_db)):
     pending = request.session.get("pending_roblox")
+    login_return = safe_login_target(request.session.get("login_return"))
     direct_login = bool(request.session.pop("discord_login_only",False))
     forms_login = bool(request.session.pop("discord_login_for_forms",False))
     if not pending and not direct_login and not forms_login: raise HTTPException(401, "Verification session expired")
@@ -533,7 +569,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
             request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
             return queue_signin_success(
                 request,display_name=identity["display_name"],
-                destination="/login?discord_connected=1",kind="discord",
+                destination="/login?discord_connected=1&mode=signup&next=" + quote(login_return, safe=""),kind="discord",
                 join_status=identity.get("join_status","not_confirmed")
             )
         release_expired_restriction(user,db)
@@ -545,7 +581,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
         request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
         return queue_signin_success(request,display_name=user.discord_display_name,
-                                    destination="/dashboard",kind="skymiles",
+                                    destination=login_return,kind="skymiles",
                                     join_status=identity.get("join_status","not_confirmed"))
     existing_roblox = db.scalar(select(User).where(User.roblox_user_id == pending["id"]))
     existing_discord = db.scalar(select(User).where(User.discord_user_id == identity["id"]))
@@ -570,7 +606,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
     request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
     return queue_signin_success(request,display_name=user.discord_display_name,
-                                destination="/dashboard?tutorial=1" if created_new else "/dashboard",
+                                destination=login_return + ("&tutorial=1" if "?" in login_return else "?tutorial=1") if created_new and login_return == "/dashboard" else login_return,
                                 kind="skymiles",join_status=identity.get("join_status","not_confirmed"))
 
 
@@ -1245,7 +1281,10 @@ def error(request:Request,kind:str="authentication"): return templates.TemplateR
 async def http_error(request, exc):
     if (exc.status_code == 401 and request.method == "GET" and
             not request.url.path.startswith(("/api/", "/internal/", "/auth/"))):
-        return RedirectResponse("/login", 303)
+        requested=request.url.path + ("?" + request.url.query if request.url.query else "")
+        target=safe_login_target(requested)
+        intent="&intent=forms" if target.startswith("/forms") else ""
+        return RedirectResponse("/login?next=" + quote(target, safe="") + intent, 303)
     titles={401:"Session Expired",403:"Access Denied",404:"Page Not Found"}
     return templates.TemplateResponse("error.html",context(request,title=titles.get(exc.status_code,"Something Went Wrong"),message=str(exc.detail)),status_code=exc.status_code)
 
