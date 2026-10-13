@@ -164,3 +164,25 @@ body.theme-light .delta-auth-v3,body.theme-dark .delta-auth-v3{color:#fff}
   .auth-bottom-strip span{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.auth-action{transition:none}.auth-action:hover{transform:none}}
+
+
+/* Compact mobile experience while retaining the original member authentication design. */
+@media(max-width:850px){
+  .delta-auth-grid{max-width:520px;margin:0 auto;gap:12px}
+  .delta-auth-story{padding:6px 0 0;text-align:center}
+  .auth-kicker{justify-content:center}
+  .delta-auth-story h1{font-size:clamp(38px,8.3vw,51px)!important;margin:12px 0!important}
+  .auth-lead{font-size:16px;line-height:1.5;margin:0 auto 14px}
+  .auth-advantage-grid,.auth-safety-ribbon,.auth-stage-label{display:none!important}
+  .delta-auth-card{padding:22px 20px;border-radius:19px}
+  .auth-card-icon{display:none}
+  .auth-mode-switch{margin:10px 0 17px}
+  .auth-panel-heading{margin-bottom:15px}
+  .auth-panel-heading p{font-size:14px!important}
+  .auth-signup-steps{gap:7px}
+  .auth-signup-steps>div{padding:9px}
+  .auth-forms-access{padding:12px;margin-top:13px}
+  .auth-forms-access div>span{display:none}
+  .auth-card-footer{margin-top:12px}
+  .auth-bottom-strip{display:none}
+}
