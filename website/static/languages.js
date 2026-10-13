@@ -26,12 +26,13 @@
   }
   function translateText(node){
     if(!node.parentElement||node.parentElement.closest(skip))return;
-    const existing=cache.get(node);
-    const original=existing===undefined?node.nodeValue:existing;
-    if(existing===undefined)cache.set(node,original);
+    const previous=cache.get(node);
+    // If page scripts wrote new content, do not restore stale text when the language changes.
+    const original=previous&&node.nodeValue===previous.localized?previous.original:node.nodeValue;
     const match=original.match(/^(\s*)([\s\S]*?)(\s*)$/);
     if(!match||!match[2])return;
     const next=match[1]+phrase(match[2])+match[3];
+    if(next!==original||previous)cache.set(node,{original,localized:next});
     if(node.nodeValue!==next)node.nodeValue=next;
   }
   function translateElement(element){
