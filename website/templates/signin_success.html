@@ -62,7 +62,7 @@
     <div class="success-finish" id="success-finish" aria-live="polite">
       <span class="success-finish-eyebrow">IDENTITY CONNECTED · WELCOME ABOARD</span>
       <a class="success-return-home" href="/signin/finish">
-        <span>Return to Homepage</span>
+        <span>{% if destination.startswith("/forms") %}Continue to Forms{% elif destination.startswith("/flights") %}Continue to Flight Booking{% elif destination.startswith("/login") %}Complete SkyMiles Sign Up{% elif destination.startswith("/dashboard") %}Go to My Dashboard{% else %}Continue to Your Destination{% endif %}</span>
         <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
     </div>
