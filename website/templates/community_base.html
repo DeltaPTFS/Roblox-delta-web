@@ -3,7 +3,7 @@
 <title>{% block title %}Delta Air Lines{% endblock %} · Roblox Roleplay</title>
 <meta name="description" content="Delta Air Lines Roblox roleplay community — flights, SkyMiles, crew applications and events.">
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
-<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"></head>
+<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"></head>
 <body>
 <header class="community-header">
   <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
@@ -16,6 +16,7 @@
     <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
     <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
   </details>
+  <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option></select></label>
   {% if viewer %}
     <div class="community-account-slot">{% include "_account_panel.html" %}</div>
   {% else %}
@@ -27,4 +28,4 @@
 <div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
 <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}" class="footer-discord-link" {% if main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join our Discord" }} <span class="link-chevron" aria-hidden="true"></span></a></div></footer>
 <script src="/static/community-motion.js?v={{ asset_version }}" defer></script><script src="/static/account-hub.js?v={{ asset_version }}" defer></script>
-<script defer src="/static/delta-ads.js?v={{ asset_version }}"></script></body></html>
+<script defer src="/static/delta-ads.js?v={{ asset_version }}"></script><script src="/static/languages.js?v={{ asset_version }}" defer></script></body></html>
