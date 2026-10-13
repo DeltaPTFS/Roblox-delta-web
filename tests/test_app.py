@@ -134,25 +134,54 @@ def test_static_assets_are_cached_and_compressed():
 def test_login_has_safe_oauth_and_disclaimer():
     with TestClient(app) as client:
         response=client.get("/login")
-        assert "Verify with Roblox" in response.text
-        assert "Continue with Discord" in response.text
+        assert response.status_code == 200
+        assert "Log in with Discord" in response.text
+        assert "Sign up with Roblox" in response.text
+        assert "Access Forms with Discord" in response.text
         assert "COMMUNITY OPERATIONS" in response.text
+        assert 'id="auth-tab-login"' in response.text
+        assert 'id="auth-tab-signup"' in response.text
+        assert '/static/auth-refresh.css?v=' in response.text
         assert 'id="route-transition"' not in response.text
-        assert "Preparing your next destination" not in response.text
         assert '<html lang="en" class="theme-light">' in response.text
-        assert "/static/style.css?v=" in response.text
-        assert "ROLEPLAY COMMUNITY</small>" not in response.text
-        assert "Roblox Password" not in response.text
         assert "Not affiliated with or operated by Delta Air Lines, Inc." in response.text
-        css=client.get("/static/style.css").text
-        assert "@keyframes routeTakeoff" in css
-        assert "@media(prefers-reduced-motion:reduce)" in css
+        css=client.get("/static/auth-refresh.css").text
+        assert ".delta-auth-v3" in css
+        assert "@media(max-width:560px)" in css
+
+
+def test_signup_and_login_are_distinct_oauth_flows():
+    with TestClient(app) as client:
+        signup=client.get("/login?mode=signup&next=/flights")
+        assert 'id="auth-panel-signup"' in signup.text
+        assert 'href="/auth/roblox?next=%2Fflights"' in signup.text
+        assert 'href="/auth/discord/login?next=%2Fflights"' in signup.text
+        assert 'aria-selected="true"' in signup.text
+        untrusted=client.get("/login?next=https://evil.example/steal")
+        assert 'href="/auth/discord/login?next=%2Fdashboard"' in untrusted.text
+        assert 'href="/auth/roblox?next=%2Fdashboard"' in untrusted.text
+
+
+def test_protected_pages_redirect_to_unified_login_with_return_path():
+    with TestClient(app) as client:
+        for path, expected in (
+            ("/admin", "/login?next=%2Fadmin"),
+            ("/flights", "/login?next=%2Fflights"),
+            ("/dashboard", "/login?next=%2Fdashboard"),
+            ("/trips", "/login?next=%2Ftrips"),
+            ("/forms", "/login?intent=forms&next=%2Fforms"),
+            ("/forms/example?flight=123", "/login?intent=forms&next=%2Fforms%2Fexample%3Fflight%3D123"),
+        ):
+            response=client.get(path, follow_redirects=False)
+            assert response.status_code == 303
+            assert response.headers["location"] == expected
+
 
 def test_admin_requires_session():
     with TestClient(app) as client:
         response=client.get("/admin", follow_redirects=False)
         assert response.status_code==303
-        assert response.headers["location"]=="/login"
+        assert response.headers["location"]=="/login?next=%2Fadmin"
 
 
 def test_flight_management_is_manual_and_local_time_enabled():
