@@ -186,3 +186,20 @@ body.theme-light .delta-auth-v3,body.theme-dark .delta-auth-v3{color:#fff}
   .auth-card-footer{margin-top:12px}
   .auth-bottom-strip{display:none}
 }
+
+
+/* A hidden detail section must remain hidden even when older styles use display:grid. */
+.delta-auth-v3 .auth-advantage-grid[hidden]{display:none!important}
+@media(max-width:560px){
+ .delta-auth-v3{padding:20px 12px 30px;min-height:calc(100svh - 74px)}
+ .delta-auth-story h1{font-size:clamp(36px,9vw,47px)!important}
+ .delta-auth-story .auth-lead{font-size:15px}
+ .delta-auth-card{padding:19px 17px}
+ .delta-auth-card-top{margin-bottom:7px}
+ .auth-panel-heading .auth-panel-sparkle{display:none}
+ .auth-panel-heading h2{font-size:27px!important}
+ .auth-hint{margin:12px 0;font-size:12px}
+ .auth-secondary-route{padding-top:10px;font-size:12px}
+ .auth-forms-access{gap:8px}
+ .auth-card-footer{font-size:11px}
+}
