@@ -499,9 +499,12 @@ def signin_success(request: Request, db: Session=Depends(get_db)):
 
 @app.get("/signin/finish")
 def finish_signin_celebration(request: Request):
-    """Only dismiss the verification screen after the member clicks home."""
-    request.session.pop("signin_celebration",None)
-    return RedirectResponse("/",303)
+    """Continue to the original protected destination after OAuth completes."""
+    event = request.session.pop("signin_celebration", None) or {}
+    destination = safe_login_target(event.get("destination"), "/dashboard")
+    if not request.session.get("user_id") and not request.session.get("forms_identity"):
+        return RedirectResponse("/login?next=" + quote(destination, safe=""), 303)
+    return RedirectResponse(destination, 303)
 
 
 def next_number(db):
