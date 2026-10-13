@@ -31,6 +31,7 @@ from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, Moderatio
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, linked_user_from_session, oauth_values, permission
 from .session import DatabaseSessionMiddleware
+from .skymiles_messages import SKYMILES_WELCOME_MESSAGE
 from .sheet_sync import add_transaction, enqueue_member_update, enqueue_registration, process_outbox_once, reconcile_outbox
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -613,6 +614,13 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     try:
         user.discord_role_ids=await discord_sync_skymiles_roles(settings,user.discord_user_id,user.tier.name if user.tier!=Tier.MEMBER else None); db.commit()
     except Exception: pass  # Account creation must survive a temporary Discord role outage.
+    if created_new:
+        # New registration only; never re-DM a returning member.
+        # Closed DMs or Discord downtime must not block successful enrollment.
+        try:
+            await discord_dm(settings, user.discord_user_id, SKYMILES_WELCOME_MESSAGE)
+        except Exception:
+            pass
     request.session.clear(); request.session["user_id"]=user.id; request.session["authorization"]=permission(user,settings); request.session["theme"]=user.theme_preference
     request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
     return queue_signin_success(request,display_name=user.discord_display_name,
