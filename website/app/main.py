@@ -45,6 +45,7 @@ settings = get_settings()
 templates = Jinja2Templates(directory=ROOT / "templates")
 limiter = Limiter(key_func=get_remote_address)
 FLIGHT_TERMINAL_GRACE = timedelta(minutes=10)
+PUBLIC_SITE_URL = "https://roblox-delta-web.vercel.app"
 
 
 @asynccontextmanager
@@ -268,6 +269,48 @@ async def emoji_map() -> dict[str,str]:
 
 def em(emojis:dict,name:str,fallback:str) -> str:
     return emojis.get(name.lower(),fallback)
+
+
+@app.get("/robots.txt", include_in_schema=False)
+def robots_txt():
+    """Allow public homepage crawling without indexing private member screens."""
+    return Response(
+        content=(
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Disallow: /admin\n"
+            "Disallow: /owner\n"
+            "Disallow: /auth/\n"
+            "Disallow: /api/\n"
+            "Disallow: /login\n"
+            "Disallow: /signup\n"
+            "Disallow: /signin/\n"
+            "Disallow: /dashboard\n"
+            "Disallow: /miles\n"
+            "Disallow: /profile\n"
+            "Disallow: /trips\n"
+            "Disallow: /rewards\n"
+            "Disallow: /forms\n"
+            f"Sitemap: {PUBLIC_SITE_URL}/sitemap.xml\n"
+        ),
+        media_type="text/plain",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap_xml():
+    """Only list the public homepage, never an account or staff route."""
+    return Response(
+        content=(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"  <url><loc>{PUBLIC_SITE_URL}/</loc></url>\n"
+            "</urlset>\n"
+        ),
+        media_type="application/xml",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 @app.get("/health")
