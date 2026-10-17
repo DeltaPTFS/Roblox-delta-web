@@ -1,7 +1,19 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Delta Air Lines{% endblock %} · Roblox Roleplay</title>
-<meta name="description" content="Delta Air Lines Roblox roleplay community — flights, SkyMiles, crew applications and events.">
+<title>{% block title %}Delta Air Lines Roblox | Unofficial Aviation Roleplay{% endblock %}</title>
+<meta name="description" content="Explore Delta Air Lines Roblox, an independent aviation roleplay community. Join virtual flights, discover SkyMiles-style rewards, crew applications and Discord events. Not affiliated with Delta Air Lines, Inc.">
+<meta name="robots" content="{% if request.url.path == '/' %}index, follow, max-image-preview:large{% else %}noindex, follow{% endif %}">
+{% if request.url.path == '/' %}
+<link rel="canonical" href="https://roblox-delta-web.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Delta Roblox">
+<meta property="og:title" content="Delta Air Lines Roblox | Unofficial Aviation Roleplay">
+<meta property="og:description" content="Explore Delta Air Lines Roblox, an independent aviation roleplay community. Join virtual flights, discover SkyMiles-style rewards, crew applications and Discord events. Not affiliated with Delta Air Lines, Inc.">
+<meta property="og:url" content="https://roblox-delta-web.vercel.app/">
+<meta property="og:image" content="https://roblox-delta-web.vercel.app/static/ads/delta-lax.webp">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Delta Air Lines Roblox - Unofficial Roleplay Community","url":"https://roblox-delta-web.vercel.app/","description":"Independent Roblox aviation roleplay community. Not affiliated with Delta Air Lines, Inc."}</script>
+{% endif %}
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
 <link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"></head>
 <body>
