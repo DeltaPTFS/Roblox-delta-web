@@ -1,0 +1,76 @@
+"""Regression tests for cinematic landing, shared onboarding, flight board and staff links."""
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from website.app.main import app
+
+
+def source(name):
+    return Path("website", name).read_text()
+
+
+def test_join_now_reuses_existing_polished_signin_layout():
+    with TestClient(app) as client:
+        redirect = client.get("/signup", follow_redirects=False)
+        assert redirect.status_code == 303
+        assert redirect.headers["location"] == "/login?mode=signup&intent=community&next=%2Fwelcome"
+        page = client.get(redirect.headers["location"])
+        assert page.status_code == 200
+        assert "delta-auth-v3" in page.text
+        assert "Join Delta Roblox." in page.text
+        assert "Continue with Discord" in page.text
+        assert 'href="/join"' in page.text
+        assert "No SkyMiles membership or Forms application required" in page.text
+
+
+def test_home_motion_does_not_hide_content_without_javascript_or_reduced_motion():
+    homepage = source("templates/homepage.html")
+    css = source("static/homepage-cinematic.css")
+    js = source("static/homepage-cinematic.js")
+    assert "home-cinematic-hero" in homepage
+    assert "home-flight-trails" in homepage
+    assert "home-flight-ticker" in homepage
+    assert "homepage-cinematic.css" in homepage
+    assert "homepage-cinematic.js" in homepage
+    assert "IntersectionObserver" in js
+    assert "home-visible" in js
+    assert "@media(prefers-reduced-motion:reduce)" in css
+    assert "body.home-cinematic-ready .home-reveal" in css
+    assert "animation:home-flight-path" in css
+    assert 'href="/signup">Get Started</a>' in homepage
+
+
+def test_flights_link_is_a_real_schedule_with_genuine_empty_state():
+    main = source("app/main.py")
+    flights = source("templates/flights.html")
+    assert '@app.get("/flights", response_class=HTMLResponse)' in main
+    assert 'Flight.status.in_([FlightStatus.SCHEDULED, FlightStatus.DELAYED])' in main
+    assert 'Flight.starts_at >= terminal_cutoff' in main
+    assert 'select(Flight)' in main
+    assert 'discord_member' in main
+    assert 'can_book=bool(user)' in main
+    assert "No flights scheduled right now." in flights
+    assert "CURRENT" not in flights.upper() or "Current flights" in flights
+    assert "{% for flight in flights %}" in flights
+    assert "data-local-time" in flights
+    assert "data-live-clock" in flights
+    assert 'class="flight-terminal-book open-booking"' in flights
+    assert "Activate SkyMiles to book" in flights
+    assert "flight-terminal.css" in source("templates/base.html")
+
+
+def test_staff_permissions_and_panels_remain_intact():
+    base = source("templates/community_base.html")
+    main = source("app/main.py")
+    panel = source("templates/admin.html")
+    assert 'set nav_level = auth if auth is defined' in base
+    assert "'/owner' if nav_level == 'OWNER'" in base
+    assert "'/admin' if nav_level == 'ADMIN'" in base
+    assert "'/staff'" in base
+    assert "require_staff" in main and "require_owner" in main
+    assert '@app.get("/staff",response_class=HTMLResponse)' in main
+    assert '@app.get("/admin",response_class=HTMLResponse)' in main
+    assert '@app.get("/owner",response_class=HTMLResponse)' in main
+    assert "render_staff_panel(request,q,db" in main
+    assert "Panel</div>" not in panel.split("{% block content %}")[0]
