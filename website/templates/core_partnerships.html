@@ -2,12 +2,16 @@
 {% block title %}Core Partnerships | Virgin Atlantic × Delta Roblox{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="/static/core-partnerships.css?v={{ asset_version }}">
+<link rel="stylesheet" href="/static/partnership-cinematic.css?v={{ asset_version }}">
+<script src="/static/partnership-cinematic.js?v={{ asset_version }}" defer></script>
 {% endblock %}
 {% block content %}
 <div class="core-page">
+  <div class="core-scroll-meter" aria-hidden="true"><span class="core-scroll-meter-fill"></span></div>
   <section class="core-hero" aria-labelledby="core-heading">
     <div class="core-hero-orbit core-orbit-one" aria-hidden="true"></div>
     <div class="core-hero-orbit core-orbit-two" aria-hidden="true"></div>
+    <div class="core-hero-route" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="core-hero-inner">
       <div class="core-hero-copy">
         <div class="core-overline"><span class="core-red-dot"></span> Delta Roblox <span class="core-overline-rule"></span> Partner spotlight</div>
