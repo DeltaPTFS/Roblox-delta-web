@@ -65,7 +65,14 @@
   </div>
   <span class="premium-header-accent" aria-hidden="true"></span>
 </header>
-<main>{% block content %}{% endblock %}</main>
+<main>
+{% if viewer and request.query_params.get('already_signed_in') == '1' %}
+<div class="delta-already-signed-in" role="status" aria-live="polite">
+<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+<div><strong>You're already signed in!</strong><p>Your Delta Roblox session is still active. There's no need to log in again.</p></div>
+</div>
+{% endif %}
+{% block content %}{% endblock %}</main>
 <footer class="community-footer"><div><div class="community-footer-brand"><img src="/static/delta-emblem.svg" alt="" width="60" height="54" decoding="async"><div class="community-footer-copy"><strong>DELTA AIR LINES</strong><p>Keep Climbing.</p></div></div></div>
 <div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
 <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}" class="footer-discord-link" {% if main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join our Discord" }} <span class="link-chevron" aria-hidden="true"></span></a></div></footer>
