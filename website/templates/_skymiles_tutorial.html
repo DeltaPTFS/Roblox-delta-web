@@ -1,0 +1,40 @@
+{% if show_tutorial %}
+<dialog class="tutorial-modal delta-tour" id="tutorial-modal" aria-labelledby="tutorial-title">
+ <section class="tutorial-intro">
+  <div class="tutorial-hosts">
+    <img class="tutorial-avatar tutorial-avatar-img" src="{{ tutorial_grey_avatar }}" alt="Grey R. Discord profile photo" width="52" height="52" onerror="this.onerror=null;this.src='/static/avatar.svg'">
+    <span class="tutorial-avatar cookie" aria-label="Cookie">C</span>
+  </div>
+  <span class="eyebrow">PERSONALIZED DELTA ROBLOX TOUR</span>
+  <h2 id="tutorial-title">Welcome aboard, {{ user.discord_display_name }}!</h2>
+  <div class="host-introductions">
+    <p><b>Grey R.</b> I'll walk you through your SkyMiles dashboard, navigation and member tools.</p>
+    <p><b>Cookie</b> I'll help with status, rewards, bookings and everything in your account.</p>
+  </div>
+  <div class="tutorial-actions">
+    <button type="button" class="button primary" id="tutorial-start">Start Full Tour</button>
+    <form method="post" action="/tutorial/complete"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button outline">Maybe Later</button></form>
+  </div>
+ </section>
+ <section class="tutorial-guide" hidden aria-live="polite">
+  <div class="tutorial-progress-track"><i id="tutorial-progress-bar"></i></div>
+  <div class="tutorial-speaker">
+    <img class="tutorial-avatar tutorial-avatar-img" id="tutorial-avatar-grey" src="{{ tutorial_grey_avatar }}" alt="Grey R. Discord profile photo" width="52" height="52" onerror="this.onerror=null;this.src='/static/avatar.svg'">
+    <span class="tutorial-avatar cookie" id="tutorial-avatar-cookie" hidden>C</span>
+    <div><small id="tutorial-speaker">GREY R.</small><b id="tutorial-progress">1 of 16</b></div>
+  </div>
+  <h2 id="tutorial-heading"></h2>
+  <p id="tutorial-copy"></p>
+  <div class="tutorial-tip" id="tutorial-tip">Follow the highlighted part of the website. The tour will take you between pages.</div>
+  <div class="tutorial-actions">
+    <button type="button" class="button outline" id="tutorial-back">Back</button>
+    <button type="button" class="button primary" id="tutorial-next">Next <span aria-hidden="true">→</span></button>
+  </div>
+  <form method="post" action="/tutorial/complete" id="tutorial-finish" hidden>
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="button primary">Finish Tutorial</button>
+  </form>
+ </section>
+</dialog>
+<script src="/static/skymiles-tour.js?v={{ asset_version }}" defer></script>
+{% endif %}
