@@ -1,6 +1,6 @@
 /* Current flights / Delta Roblox flight operations board */
 .flight-terminal{background:#07142d;color:#f8faff;min-height:85vh;font-family:Manrope,DM Sans,Arial,sans-serif;overflow:hidden}
-.flight-terminal-hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(90deg,#061228ed 2%,#0c234aee 55%,#071b389e),url('/static/ads/delta-lax.webp') center 47% /cover no-repeat;border-bottom:1px solid #94acd83b}
+.flight-terminal-hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(90deg,#061228e6 2%,#0c234ab8 55%,#071b387a),url('/static/gallery/delta-centennial.webp') center 47% /cover no-repeat;border-bottom:1px solid #94acd83b}
 .flight-terminal-aurora{position:absolute;inset:-30% -10%;pointer-events:none;z-index:-1;background:radial-gradient(circle at 76% 36%,#ff386c2e,transparent 35%),radial-gradient(ellipse at 35% 10%,#3571dd3d,transparent 55%);filter:blur(9px)}
 .flight-terminal-runway{position:absolute;right:-15%;bottom:-23%;height:550px;width:850px;border:1px solid #ffffff19;border-radius:50%;transform:rotate(-18deg);pointer-events:none}
 .flight-terminal-runway:before{content:"";position:absolute;inset:70px;border:1px solid #ffffff13;border-radius:50%}
