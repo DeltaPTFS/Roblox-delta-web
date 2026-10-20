@@ -27,21 +27,25 @@ def test_confirmation_no_longer_redirects_and_has_no_sound_button():
 def test_homepage_membership_changes_join_to_go_to_discord():
     html=read("templates/homepage.html")
     base=read("templates/community_base.html")
+    header=read("templates/_unified_site_header.html")
     main=read("app/main.py")
     assert '"Go to Discord" if main_discord_member' in html
     assert "main_discord_member=member_main" in main
     assert "discord_href=" in main
-    assert "Go to Discord" in base
-    assert '<a class="community-account" href="/forms">' not in base
-
+    assert "Go to Discord" in header
+    assert "'/join'" in header
+    assert '{% include "_unified_site_header.html" %}' in base
+    assert '<a class="community-account" href="/forms">' not in header
 
 def test_account_panel_shared_and_expanded_with_real_crew_roles():
     partial=read("templates/_account_panel.html")
     base=read("templates/base.html")
     homepage_base=read("templates/community_base.html")
+    header=read("templates/_unified_site_header.html")
     styles=read("static/account-hub.css")
-    assert '{% include "_account_panel.html" %}' in base
-    assert '{% include "_account_panel.html" %}' in homepage_base
+    assert '{% include "_unified_site_header.html" %}' in base
+    assert '{% include "_unified_site_header.html" %}' in homepage_base
+    assert '{% include "_account_panel.html" %}' in header
     assert 'class="delta-account-menu account-menu"' in partial
     assert 'class="delta-account-caret"' in partial
     assert "Delta Crew" in partial
@@ -50,7 +54,6 @@ def test_account_panel_shared_and_expanded_with_real_crew_roles():
     assert "SkyMiles Dashboard" in partial
     assert "Staff Workspace" in partial
     assert 'width:min(440px,calc(100vw - 28px))' in styles
-
 
 def test_crew_role_labels_match_supplied_roles():
     assert CREW_DISPLAY_NAMES["1554665018690248714"]=="Board of Directors"

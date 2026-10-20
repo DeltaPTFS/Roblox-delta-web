@@ -106,19 +106,22 @@ def test_discord_login_preserves_flights_destination():
 
 def test_staff_permissions_and_panels_remain_intact():
     base = source("templates/community_base.html")
+    private = source("templates/base.html")
+    header = source("templates/_unified_site_header.html")
     main = source("app/main.py")
     panel = source("templates/admin.html")
-    assert 'set nav_level = auth if auth is defined' in base
-    assert "'/owner' if nav_level == 'OWNER'" in base
-    assert "'/admin' if nav_level == 'ADMIN'" in base
-    assert "'/staff'" in base
+    assert '{% include "_unified_site_header.html" %}' in base
+    assert '{% include "_unified_site_header.html" %}' in private
+    assert 'set nav_level = auth if auth is defined' in header
+    assert "'/owner' if nav_level == 'OWNER'" in header
+    assert "'/admin' if nav_level == 'ADMIN'" in header
+    assert "'/staff'" in header
     assert "require_staff" in main and "require_owner" in main
     assert '@app.get("/staff",response_class=HTMLResponse)' in main
     assert '@app.get("/admin",response_class=HTMLResponse)' in main
     assert '@app.get("/owner",response_class=HTMLResponse)' in main
     assert "render_staff_panel(request,q,db" in main
     assert "Panel</div>" not in panel.split("{% block content %}")[0]
-
 
 def test_page_backgrounds_use_community_gallery_not_advertisements():
     home = source("templates/homepage.html")

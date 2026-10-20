@@ -1,0 +1,98 @@
+{# Shared Delta Roblox navigation. Reused by public and authenticated layouts. #}
+{% set header_user = user if user is defined and user else (profile_user if profile_user is defined else none) %}
+{% set header_viewer = viewer if viewer is defined and viewer else ({"id": header_user.discord_user_id, "name": header_user.discord_display_name} if header_user else none) %}
+{% set nav_level = auth if auth is defined else (access if access is defined else "MEMBER") %}
+<header class="community-header premium-header unified-delta-header" id="site-header">
+  {% include "_site_announcement.html" %}
+  <div class="premium-announcement">
+    <div class="premium-announcement-inner">
+      {% if header_viewer %}
+      <span class="premium-announcement-label"><span class="premium-live-pulse" aria-hidden="true"></span> YOUR JOURNEY CONTINUES WITH DELTA ROBLOX</span>
+      {% else %}
+      <a class="premium-signup-message" href="/signup"><span class="premium-live-pulse" aria-hidden="true"></span><span>NEW TO DELTA ROBLOX?</span> <strong>SIGN UP <span aria-hidden="true">↗</span></strong></a>
+      {% endif %}
+      <a class="premium-announcement-partner" href="/core-partnerships" aria-label="Explore our Virgin Atlantic core partnership">
+        <span class="premium-partner-label">OUR FIRST CORE PARTNER</span><strong>VIRGIN ATLANTIC</strong><span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+  <div class="premium-nav-shell">
+    <a class="community-brand" href="/" aria-label="Delta Roblox homepage">
+      <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
+      <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
+    </a>
+    <nav class="community-primary-nav" aria-label="Primary navigation">
+      <a href="/" {% if request.url.path == '/' %}class="is-current" aria-current="page"{% endif %}>Home</a>
+      <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
+      <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
+      <a href="/core-partnerships" {% if request.url.path == '/core-partnerships' %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
+      <a href="/dashboard" {% if request.url.path in ['/dashboard', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
+      {% if nav_level in ("OWNER","ADMIN","STAFF") %}
+      <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}"
+         {% if request.url.path in ['/owner','/admin','/staff'] %}class="is-current" aria-current="page"{% endif %}>{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
+      {% endif %}
+    </nav>
+    <div class="premium-header-actions">
+      <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option></select></label>
+
+      {% if header_viewer %}
+      <div class="community-account-slot">{% include "_account_panel.html" %}</div>
+      {% else %}
+      <a class="premium-get-started" href="/signup" aria-label="Join Delta Roblox">Join Now <span aria-hidden="true">↗</span></a>
+      {% endif %}
+
+      <div class="sky-nav unified-menu-shell">
+        <details class="sky-nav-dropdown unified-menu-dropdown" id="sky-nav-dropdown">
+          <summary aria-label="Open Delta navigation menu" aria-controls="sky-nav-panel" aria-haspopup="true">
+            <span class="sky-menu-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="sky-menu-label">MENU</span><span class="sky-menu-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="sky-nav-panel" id="sky-nav-panel" aria-label="Delta navigation hub">
+            <div class="sky-menu-heading">
+              <div><small>DELTA DIGITAL</small><strong>Navigation Hub</strong></div>
+              <span class="sky-menu-status"><i aria-hidden="true"></i> ONLINE</span>
+            </div>
+            <span class="sky-menu-section">EXPLORE DELTA</span>
+            <div class="sky-menu-grid">
+              <a href="/" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">⌂</span><span><b>Delta Home</b><small>Explore the community</small></span></a>
+              <a href="/flights" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">✈</span><span><b>Flights</b><small>Upcoming departures</small></span></a>
+              <a href="/forms" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▤</span><span><b>Forms</b><small>Applications &amp; fillouts</small></span></a>
+              <a href="/core-partnerships" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◇</span><span><b>Partnerships</b><small>Virgin Atlantic</small></span></a>
+              <a href="/dashboard" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◈</span><span><b>SkyMiles</b><small>Member dashboard</small></span></a>
+              {% if header_user %}
+              <a href="/miles" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◆</span><span><b>My Miles</b><small>Balance and status</small></span></a>
+              <a href="/trips" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">⌁</span><span><b>My Trips</b><small>Reservations</small></span></a>
+              <a href="/activity" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◷</span><span><b>Activity</b><small>Account history</small></span></a>
+              <a href="/rewards" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">✦</span><span><b>Rewards</b><small>Available benefits</small></span></a>
+              {% endif %}
+            </div>
+            <div class="sky-menu-bottom">
+              {% if header_user %}
+              <a href="/profile">◎ <span>My Profile</span><span aria-hidden="true">↗</span></a>
+              <a href="/settings">⚙ <span>Settings</span><span aria-hidden="true">↗</span></a>
+              {% elif header_viewer %}
+              <a href="/login">◈ <span>Activate SkyMiles</span><span aria-hidden="true">↗</span></a>
+              {% else %}
+              <a href="/signup">＋ <span>Join Delta Roblox</span><span aria-hidden="true">↗</span></a>
+              <a href="/login">◎ <span>Sign In</span><span aria-hidden="true">↗</span></a>
+              {% endif %}
+              <a href="{{ discord_href if discord_href is defined and main_discord_member is defined and main_discord_member else '/join' }}"
+                 {% if discord_href is defined and main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                 ↗ <span>{{ 'Go to Discord' if main_discord_member is defined and main_discord_member else 'Join Discord' }}</span><span aria-hidden="true">↗</span>
+              </a>
+              {% if nav_level in ("OWNER","ADMIN","STAFF") %}
+              <span class="sky-menu-section">STAFF OPERATIONS</span>
+              <a href="/forms/new" class="sky-menu-create">＋ <span>Create New Form</span><span aria-hidden="true">→</span></a>
+              {% if nav_level == 'OWNER' %}<a href="/owner">♛ <span>Ownership Panel</span><span aria-hidden="true">↗</span></a>{% endif %}
+              {% if nav_level in ('OWNER','ADMIN') %}<a href="/admin">⚙ <span>Staff Admin</span><span aria-hidden="true">↗</span></a>{% endif %}
+              <a href="/staff">▥ <span>Staff Panel</span><span aria-hidden="true">↗</span></a>
+              {% endif %}
+            </div>
+            <div class="sky-menu-footer"><span>KEEP CLIMBING</span><span>DELTA AIR LINES · ROBLOX ROLEPLAY</span></div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+  <span class="premium-header-accent" aria-hidden="true"></span>
+</header>

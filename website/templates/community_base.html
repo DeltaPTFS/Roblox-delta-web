@@ -30,49 +30,9 @@
 <meta name="twitter:image" content="https://roblox-delta-web.vercel.app/static/gallery/delta-centennial.webp">
 {% endif %}
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
-<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/premium-header.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/site-announcement.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
+<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/premium-header.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/sky-nav-future.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/unified-delta-navigation.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/site-announcement.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
 <body>
-<header class="community-header premium-header" id="site-header">
-{% include "_site_announcement.html" %}
-  <div class="premium-announcement">
-    <div class="premium-announcement-inner">
-      {% if viewer %}
-      <span class="premium-announcement-label"><span class="premium-live-pulse"></span> YOUR JOURNEY CONTINUES WITH DELTA ROBLOX</span>
-      {% else %}
-      <a class="premium-signup-message" href="/signup"><span class="premium-live-pulse" aria-hidden="true"></span><span>NEW TO DELTA ROBLOX?</span> <strong>SIGN UP <span aria-hidden="true">↗</span></strong></a>
-      {% endif %}
-      <a class="premium-announcement-partner" href="/core-partnerships" aria-label="Explore our Virgin Atlantic core partnership">
-        <span class="premium-partner-label">OUR FIRST CORE PARTNER</span><strong>VIRGIN ATLANTIC</strong><span aria-hidden="true">→</span>
-      </a>
-    </div>
-  </div>
-  <div class="premium-nav-shell">
-    <a class="community-brand" href="/" aria-label="Delta Roblox homepage">
-      <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
-      <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
-    </a>
-    {% set nav_level = auth if auth is defined else (access if access is defined else "MEMBER") %}
-    <nav class="community-primary-nav" aria-label="Primary navigation">
-      <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
-      <a href="/dashboard">SkyMiles</a>{% if nav_level in ("OWNER","ADMIN","STAFF") %}<a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}">{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>{% endif %}
-    </nav>
-    <div class="premium-header-actions">
-      <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option></select></label>
-      {% if viewer %}
-      <div class="community-account-slot">{% include "_account_panel.html" %}</div>
-      {% else %}
-      <a class="premium-get-started" href="/signup" aria-label="Sign up for Delta Roblox">Join Now <span aria-hidden="true">↗</span></a>
-      {% endif %}
-      <details class="community-mobile-menu"><summary aria-label="Open navigation menu"><span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span><span class="premium-menu-label">Menu</span></summary>
-        <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
-        <a href="/dashboard">SkyMiles</a>{% if nav_level in ("OWNER","ADMIN","STAFF") %}<a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}">{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>{% endif %}
-        {% if not viewer %}<a class="premium-mobile-signup" href="/signup">Sign Up <span aria-hidden="true">↗</span></a>{% endif %}
-        <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
-      </details>
-    </div>
-  </div>
-  <span class="premium-header-accent" aria-hidden="true"></span>
-</header>
+{% include "_unified_site_header.html" %}
 <main>
 {% if viewer and request.query_params.get('already_signed_in') == '1' %}
 <div class="delta-already-signed-in" role="status" aria-live="polite">
@@ -84,5 +44,5 @@
 <footer class="community-footer"><div><div class="community-footer-brand"><img src="/static/delta-emblem.svg" alt="" width="60" height="54" decoding="async"><div class="community-footer-copy"><strong>DELTA AIR LINES</strong><p>Keep Climbing.</p></div></div></div>
 <div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
 <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}" class="footer-discord-link" {% if main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join our Discord" }} <span class="link-chevron" aria-hidden="true"></span></a></div></footer>
-<script src="/static/community-motion.js?v={{ asset_version }}" defer></script><script src="/static/account-hub.js?v={{ asset_version }}" defer></script>
+<script src="/static/unified-delta-navigation.js?v={{ asset_version }}" defer></script><script src="/static/community-motion.js?v={{ asset_version }}" defer></script><script src="/static/account-hub.js?v={{ asset_version }}" defer></script>
 <script defer src="/static/delta-ads.js?v={{ asset_version }}"></script><script src="/static/languages.js?v={{ asset_version }}" defer></script></body></html>

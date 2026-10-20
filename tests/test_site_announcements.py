@@ -82,12 +82,14 @@ def test_announcement_is_shared_across_layouts_and_accessible():
     public = src("templates/community_base.html")
     member = src("templates/base.html")
     welcome = src("templates/signin_success.html")
+    header = src("templates/_unified_site_header.html")
     gallery = src("app/gallery.py")
     partial = src("templates/_site_announcement.html")
     css = src("static/site-announcement.css")
     for layout in (public, member, welcome):
-        assert '{% include "_site_announcement.html" %}' in layout
+        assert '{% include "_unified_site_header.html" %}' in layout
         assert "/static/site-announcement.css" in layout
+    assert '{% include "_site_announcement.html" %}' in header
     assert "context_processors=[announcement_for_page]" in gallery
     assert 'role="region"' in partial
     assert 'aria-label="Community announcement"' in partial

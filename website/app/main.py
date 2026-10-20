@@ -592,7 +592,8 @@ def signin_success(request: Request, db: Session=Depends(get_db)):
     return templates.TemplateResponse("signin_success.html",context(
         request,viewer=viewer,event=event,destination=destination,
         display_name=event.get("name") or (viewer or {}).get("name","Member"),
-        has_skymiles=bool(user)
+        has_skymiles=bool(user), profile_user=user,
+        auth=permission(user,settings) if user else "MEMBER",
     ),headers={"Cache-Control":"private, no-store"})
 
 
