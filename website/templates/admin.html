@@ -19,7 +19,7 @@
   </div>
 </section>
 <section class="delta-admin-overview" aria-label="Live operations summary">
-  <article class="delta-admin-kpi"><div><span>REGISTERED MEMBERS</span><strong>{{ member_directory|length }}</strong></div><span class="delta-kpi-glyph" aria-hidden="true">01</span><small>Active SkyMiles community</small></article>
+  <article class="delta-admin-kpi"><div><span>REGISTERED MEMBERS</span><strong>{{ directory_total }}</strong></div><span class="delta-kpi-glyph" aria-hidden="true">01</span><small>Active SkyMiles community</small></article>
   <article class="delta-admin-kpi"><div><span>FLIGHT OPERATIONS</span><strong>{{ flights|length }}</strong></div><span class="delta-kpi-glyph" aria-hidden="true">02</span><small>Flights available in this workspace</small></article>
   <article class="delta-admin-kpi"><div><span>SEARCH RESULTS</span><strong>{{ users|length }}</strong></div><span class="delta-kpi-glyph" aria-hidden="true">03</span><small>Matching member records</small></article>
   {% if panel_level == 'OWNER' %}
@@ -27,6 +27,18 @@
   {% else %}
   <article class="delta-admin-kpi"><div><span>ARCHIVED FLIGHTS</span><strong>{{ flight_logs|length }}</strong></div><span class="delta-kpi-glyph" aria-hidden="true">04</span><small>Recent flight logs</small></article>
   {% endif %}
+</section>
+<section class="delta-admin-quickstart" aria-label="Quick staff actions">
+ <div><span class="eyebrow">START HERE · {{ panel_level }} WORKSPACE</span>
+   <h2>What would you like to do?</h2>
+   <p>Choose a task below. The more advanced controls stay out of your way until needed.</p></div>
+ <div class="delta-admin-quick-grid">
+   <a href="#member-actions"><span aria-hidden="true">01</span><strong>Find a Member</strong><small>Search a Discord name, Roblox name, or SkyMiles number</small><i aria-hidden="true">→</i></a>
+   <a href="#member-directory"><span aria-hidden="true">02</span><strong>View Members</strong><small>Browse the member directory one page at a time</small><i aria-hidden="true">→</i></a>
+   {% if panel_level in ('OWNER','ADMIN') %}<a href="#flight-operations"><span aria-hidden="true">03</span><strong>Manage Flights</strong><small>Publish departures, delays, and updates</small><i aria-hidden="true">→</i></a>{% endif %}
+   <a href="/forms"><span aria-hidden="true">04</span><strong>Applications</strong><small>See available forms and member submissions</small><i aria-hidden="true">→</i></a>
+   {% if panel_level == 'OWNER' %}<a href="#site-announcement-editor"><span aria-hidden="true">05</span><strong>Post Website News</strong><small>Publish or hide a top-of-site announcement</small><i aria-hidden="true">→</i></a>{% endif %}
+ </div>
 </section>
 <nav class="delta-admin-sections" aria-label="Administration sections">
   <a href="#member-directory">Members</a>
@@ -91,6 +103,7 @@
           <span id="owner-news-preview-link">{{ announcement_settings.link_label if announcement_settings and announcement_settings.link_label else '' }}</span>
         </div>
       </div>
+      <div class="owner-preview-author"><img src="{{ user.discord_avatar_url or '/static/avatar.svg' }}" width="32" height="32" alt="" loading="lazy"><span><strong>{{ user.discord_display_name }}</strong><small>@{{ user.discord_username }} · Discord</small></span></div>
       <p class="owner-announcement-preview-caption">The published banner slides smoothly into view. Animation is automatically disabled for visitors who prefer reduced motion.</p>
     </div>
   </div>
@@ -121,12 +134,27 @@
 </script>
 {% endif %}
 
-<section class="card page-card member-directory" id="member-directory"><details><summary><span><b>SkyMiles Member Directory</b><small>Every active member · recently awarded first</small></span><strong>{{ member_directory|length }} MEMBERS ⌄</strong></summary><div class="directory-list">{% for member, last_award in member_directory %}<a href="{{ '/owner' if panel_level == 'OWNER' else '/admin' if panel_level == 'ADMIN' else '/staff' }}?q={{ member.skymiles_number }}"><img src="{{ member.discord_avatar_url or '/static/avatar.svg' }}" alt=""><span><b>{{ member.discord_display_name }}</b><small>{{ member.skymiles_number }} · @{{ member.roblox_username }}</small></span><em>{% if last_award %}Miles applied {{ last_award.strftime('%b %d') }}{% else %}New member{% endif %}</em></a>{% endfor %}</div></details></section>
+<section class="card page-card member-directory" id="member-directory">
+ <details><summary><span><b>SkyMiles Member Directory</b><small>24 members per page · recently awarded first</small></span><strong>{{ directory_total }} MEMBERS ⌄</strong></summary>
+ <div class="directory-list">
+ {% for member, last_award in member_directory %}
+ <a href="{{ '/owner' if panel_level == 'OWNER' else '/admin' if panel_level == 'ADMIN' else '/staff' }}?q={{ member.skymiles_number }}#member-actions">
+ <img src="{{ member.discord_avatar_url or '/static/avatar.svg' }}" alt="" loading="lazy" decoding="async" width="46" height="46">
+ <span><b>{{ member.discord_display_name }}</b><small>{{ member.skymiles_number }} · @{{ member.roblox_username }}</small></span>
+ <em>{% if last_award %}Miles applied {{ last_award.strftime('%b %d') }}{% else %}New member{% endif %}</em>
+ </a>{% endfor %}
+ </div>
+ <div class="delta-admin-pagination" aria-label="Directory pagination">
+  {% if directory_page > 1 %}<a href="?directory_page={{ directory_page - 1 }}#member-directory">← Previous</a>{% endif %}
+  <span>Page {{ directory_page }} of {{ directory_pages }} · {{ directory_total }} total</span>
+  {% if directory_page < directory_pages %}<a href="?directory_page={{ directory_page + 1 }}#member-directory">Next →</a>{% endif %}
+ </div></details>
+</section>
 
-{% if panel_level == 'OWNER' %}<section class="card page-card discord-role-map"><details><summary><span><b>Discord Role Connection</b><small>Roles currently visible to the website bot</small></span><strong>{{ guild_roles|length }} ROLES ⌄</strong></summary><div class="role-chip-list">{% for role in guild_roles %}<span style="--role-color:#{{ '%06x'|format(role.color) }}">{{ role.name }} <small>{{ role.id }}</small></span>{% else %}<p>Bot role data is unavailable. Check DISCORD_BOT_TOKEN and guild permissions.</p>{% endfor %}</div></details></section>{% endif %}
+{% if panel_level == 'OWNER' %}<section class="card page-card discord-role-map"><details><summary><span><b>Discord Role Connection</b><small>Roles currently visible to the website bot</small></span><strong>{{ guild_roles|length }} ROLES ⌄</strong></summary>{% if not guild_roles_loaded %}<p>Discord roles are loaded only when requested, so the panel opens faster.</p><a class="button outline" href="?show_roles=1#member-directory">Load Discord Role Catalog</a>{% endif %}<div class="role-chip-list">{% for role in guild_roles %}<span style="--role-color:#{{ '%06x'|format(role.color) }}">{{ role.name }} <small>{{ role.id }}</small></span>{% else %}<p>Bot role data is unavailable. Check DISCORD_BOT_TOKEN and guild permissions.</p>{% endfor %}</div></details></section>{% endif %}
 
 <section class="card page-card delta-admin-member-actions" id="member-actions"><form class="search"><label for="q">Search members</label><div><input id="q" name="q" value="{{ request.query_params.get('q','') }}" placeholder="Discord, Roblox, ID or SkyMiles number"><button class="button primary">Search</button></div></form>
-{% for member in users %}<article class="admin-member"><div class="identity"><img class="avatar" src="{{ member.discord_avatar_url or '/static/avatar.svg' }}" alt=""><div><b>{{ member.discord_display_name }}</b><small>@{{ member.roblox_username }} · {{ member.skymiles_number }} · {{ member.miles_balance }} miles · {{ member.medallion_qualifying_points }} MQP · {{ member.segments_flown }} segments · {{ member.account_status.value }}</small></div></div>
+{% for member in users %}<article class="admin-member"><div class="identity"><img class="avatar" src="{{ member.discord_avatar_url or '/static/avatar.svg' }}" alt="" loading="lazy" decoding="async" width="48" height="48"><div><b>{{ member.discord_display_name }}</b><small>@{{ member.roblox_username }} · {{ member.skymiles_number }} · {{ member.miles_balance }} miles · {{ member.medallion_qualifying_points }} MQP · {{ member.segments_flown }} segments · {{ member.account_status.value }}</small></div></div>
 <form method="post" action="/admin/members/{{ member.id }}/miles" class="adjust"><input type="hidden" name="csrf" value="{{ csrf }}"><label>Action<select name="action"><option value="ADD">Add SkyMiles</option><option value="REMOVE">Remove SkyMiles</option></select></label><label>SkyMiles amount<input name="amount" type="number" min="1" max="1000000" required></label><label>Reason<input name="reason" required maxlength="255"></label><label>Reference<input name="reference" maxlength="100"></label><button class="button primary">Confirm Adjustment</button></form>
 <section class="qualification-adjust"><h4>Add Medallion Qualifications</h4><form method="post" action="/admin/members/{{ member.id }}/qualifications" class="adjust"><input type="hidden" name="csrf" value="{{ csrf }}"><label>MQP to add<input name="mqp" type="number" min="0" max="1000000" value="0" required></label><label>Segments to add<input name="segments" type="number" min="0" max="10000" value="0" required></label><label class="wide">Reason<input name="reason" required maxlength="255"></label><label class="wide">Reference<input name="reference" maxlength="100"></label><button class="button outline wide">Add Qualifications</button></form></section>
 <section class="member-trips-admin"><h4>🎟️ Booking &amp; Attendance History</h4>{% for booking,flight in member_bookings.get(member.id,[]) %}<div class="admin-trip-row"><span><b>{{ flight.flight_number }} · {{ flight.departure_airport }} → {{ flight.destination_airport }}</b> <a href="/forms/flight-crew-fillout?flight={{ flight.id }}" style="font-size:12px;color:#9fc6ff">Crew Fillout ↗</a><small>{{ booking.confirmation_number }} · {{ booking.status|title }} · {{ booking.attendance_status|title }}</small></span><a href="/trips/{{ booking.confirmation_number }}">View</a></div>{% else %}<p class="empty">No bookings.</p>{% endfor %}</section><section class="moderation-panel"><h4>⚠️ Staff SkyMiles Moderation</h4><form method="post" action="/admin/members/{{ member.id }}/moderate" class="adjust"><input type="hidden" name="csrf" value="{{ csrf }}"><label>Action<select name="action"><option value="WARN">Issue Warning</option><option value="NO_SHOW">Record Verified No-Show</option>{% if panel_level == 'OWNER' %}<option value="SUSPEND">Temporarily Suspend</option><option value="BAN_TEMPORARY">Temporarily Ban</option><option value="BAN_PERMANENT">Permanently Ban</option><option value="REMOVE">Remove From SkyMiles</option><option value="RESTORE">Reverse Restriction</option><option value="REVERSE_WARNING">Reverse Warning / No-Show</option>{% endif %}</select></label><label>Related flight<select name="flight_id"><option value="">Not Applicable</option>{% for booking,flight in member_bookings.get(member.id,[]) %}<option value="{{ flight.id }}">{{ flight.flight_number }}</option>{% endfor %}</select></label><label>Duration (hours)<input name="duration_hours" type="number" min="0" max="8760" value="0"></label><label>Warning to reverse<select name="moderation_id"><option value="">Not Applicable</option>{% for action in moderation.get(member.id,[]) if action.action in ['WARN','NO_SHOW'] and not action.reversed_at %}<option value="{{ action.id }}">#{{ action.id }} · {{ action.action|title }}</option>{% endfor %}</select></label><label>Required reason<input name="reason" required maxlength="500"></label><button class="button danger-button">Apply Moderation</button></form><div class="moderation-history">{% for action in moderation.get(member.id,[]) %}<p><b>{{ action.action.replace('_',' ')|title }}</b> · {{ action.created_at.strftime('%b %d, %Y · %H:%M UTC') }}<small>{{ action.reason }}{% if action.flight_id %} · Flight #{{ action.flight_id }}{% endif %}</small></p>{% else %}<p class="empty">No warnings, no-shows, or restrictions.</p>{% endfor %}</div></section>{% if panel_level == 'OWNER' %}<section class="owner-access"><h4>Website Access</h4><form method="post" action="/owner/members/{{ member.id }}/access"><input type="hidden" name="csrf" value="{{ csrf }}"><select name="action"><option value="KICK">Kick active sessions</option><option value="BAN">Ban from website</option><option value="RESTORE">Restore account</option></select><input name="reason" required maxlength="255" placeholder="Required reason"><button class="button danger-button">Apply Access Action</button></form></section>{% endif %}
