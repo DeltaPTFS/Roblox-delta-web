@@ -74,9 +74,24 @@ def test_homepage_reveals_on_scroll_and_replays_on_return():
     assert "home-visible" in css
     assert ".home-scroll-meter-fill" in css
     assert "--home-parallax" in js and "--home-parallax" in css
-    assert "if (document.querySelector('.home-cinematic-hero')) return;" in community_motion
+    assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in community_motion
     assert "prefers-reduced-motion:reduce" in css
     assert "observer.unobserve(entry.target)" not in js
+
+
+def test_homepage_animated_scenes_activate_during_scrolling():
+    homepage = source("templates/homepage.html")
+    css = source("static/homepage-cinematic.css")
+    script = source("static/homepage-cinematic.js")
+    assert "home-cinematic-hero" in homepage
+    assert "home-scene-active" in script
+    assert "new IntersectionObserver" in script
+    assert ".discover, .showcase, .core-home-spotlight, .future, .small-cta" in script
+    assert "homePartnerLevitate" in css
+    assert "homeGallerySweep" in css
+    assert "homeRunwayLight" in css
+    assert "prefers-reduced-motion:reduce" in css
+    assert "url('/static/ads/" not in css
 
 
 def test_discord_login_preserves_flights_destination():

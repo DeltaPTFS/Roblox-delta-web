@@ -18,13 +18,24 @@
     '.core-home-spotlight .core-home-copy > *',
     '.core-home-spotlight .core-home-partner',
     '.future .future-content > *',
-    '.small-cta > *'
+    '.small-cta > *',
+    '.home-flight-ticker .home-ticker-inner'
   ];
 
   const targets = [...document.querySelectorAll(selectors.join(', '))];
   const meter = document.querySelector('.home-scroll-meter-fill');
   const picture = hero.querySelector('.hero-photo img');
+  const sections = [...document.querySelectorAll('.discover, .showcase, .core-home-spotlight, .future, .small-cta')];
   let ticking = false;
+
+  // Scenes illuminate only while visitors are actually scrolling through them.
+  // Cards still use the separate staggered entrance observer below.
+  const sceneObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      entry.target.classList.toggle('home-scene-active', entry.isIntersecting);
+    }
+  }, { threshold: .12, rootMargin: '0px 0px -12% 0px' });
+  sections.forEach(section => sceneObserver.observe(section));
 
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {

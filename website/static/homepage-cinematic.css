@@ -122,3 +122,61 @@ body.home-cinematic-ready .home-reveal.home-visible:nth-child(4){transition-dela
   .home-cinematic-hero .hero-photo img{transform:none!important;will-change:auto}
   body.home-cinematic-ready .home-reveal{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
 }
+
+
+/* Scroll-scenes: a runway-like accent illuminates each section as it appears. */
+.discover,.showcase,.core-home-spotlight,.future,.small-cta{position:relative;isolation:isolate}
+.discover::before,.showcase::before,.core-home-spotlight::before,.future::before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;z-index:2;
+pointer-events:none;background:linear-gradient(180deg,transparent,#f84b84 23%,#b48aff 66%,transparent);
+transform:scaleY(0);transform-origin:top center;opacity:.85}
+.home-scene-active.discover::before,.home-scene-active.showcase::before,
+.home-scene-active.core-home-spotlight::before,.home-scene-active.future::before{transform:scaleY(1)}
+.discover .section-head h2 em,.showcase .section-head h2 em,.future h2 em{
+  text-shadow:0 0 0 #ed609100;transition:text-shadow 1s ease}
+.home-scene-active.discover .section-head h2 em,.home-scene-active.showcase .section-head h2 em,
+.home-scene-active.future h2 em{text-shadow:0 0 30px #fc65934d}
+.showcase .gallery-card{isolation:isolate}
+.showcase .gallery-card::after{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;
+background:linear-gradient(107deg,transparent 31%,#ffffff15 48%,transparent 63%);
+transform:translateX(-130%);opacity:0}
+.showcase.home-scene-active .gallery-card::after{opacity:1}
+.core-home-spotlight .core-home-card{overflow:hidden}
+.core-home-spotlight .core-home-card::before{content:"";position:absolute;inset:-85%;z-index:0;pointer-events:none;opacity:0;
+background:linear-gradient(115deg,transparent 46%,#ffdbf91f 51%,transparent 57%);transform:translateX(-80%) rotate(-7deg)}
+.core-home-spotlight.home-scene-active .core-home-card::before{opacity:1}
+.home-scene-active .core-home-card .core-home-partner img{filter:drop-shadow(0 20px 30px #dc5eae3b)}
+.home-cinematic-hero .scroll-cue-icon{display:inline-block;transform-origin:center}
+.home-flight-ticker{isolation:isolate}
+.home-flight-ticker::before{content:"";position:absolute;inset:0;pointer-events:none;
+background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%);transform:translateX(-100%)}
+.home-cinematic-hero .hero-actions .community-btn{transition:transform .26s,box-shadow .26s,filter .26s}
+.home-cinematic-hero .hero-actions .community-btn:hover{transform:translateY(-4px)}
+@media(prefers-reduced-motion:no-preference){
+  @keyframes homeRunwayLight{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  @keyframes homeGallerySweep{0%,27%{transform:translateX(-130%)}58%,100%{transform:translateX(130%)}}
+  @keyframes homePartnerLevitate{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-16px) rotate(1deg)}}
+  @keyframes homePartnerGleam{0%,28%{transform:translateX(-80%) rotate(-7deg)}75%,100%{transform:translateX(85%) rotate(-7deg)}}
+  @keyframes homeScrollCue{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+  @keyframes homeTickerGlow{0%,35%{transform:translateX(-100%)}70%,100%{transform:translateX(100%)}}
+  .home-scene-active.discover::before,.home-scene-active.showcase::before,
+  .home-scene-active.core-home-spotlight::before,.home-scene-active.future::before{animation:homeRunwayLight 1.25s ease both}
+  .showcase.home-scene-active .gallery-card::after{animation:homeGallerySweep 9s ease-in-out infinite}
+  .showcase.home-scene-active .gallery-card:nth-child(2)::after{animation-delay:1.5s}
+  .showcase.home-scene-active .gallery-card:nth-child(3)::after{animation-delay:2.7s}
+  .showcase.home-scene-active .gallery-card:nth-child(4)::after{animation-delay:3.8s}
+  .core-home-spotlight.home-scene-active .core-home-card::before{animation:homePartnerGleam 8s ease-in-out infinite}
+  .core-home-spotlight.home-scene-active .core-home-partner img{animation:homePartnerLevitate 7s ease-in-out infinite}
+  .home-cinematic-hero .scroll-cue-icon{animation:homeScrollCue 2s ease-in-out infinite}
+  .home-flight-ticker::before{animation:homeTickerGlow 14s ease-in-out infinite}
+}
+@media(max-width:720px){
+  .discover::before,.showcase::before,.core-home-spotlight::before,.future::before{width:2px}
+  .home-scene-active .core-home-card .core-home-partner img{max-width:180px}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-scene-active.discover::before,.home-scene-active.showcase::before,
+  .home-scene-active.core-home-spotlight::before,.home-scene-active.future::before,
+  .showcase .gallery-card::after,.core-home-card::before,.core-home-partner img,
+  .home-flight-ticker::before,.home-cinematic-hero .scroll-cue-icon{animation:none!important}
+  .home-cinematic-hero .hero-actions .community-btn:hover{transform:none}
+}

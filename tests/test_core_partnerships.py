@@ -69,3 +69,30 @@ def test_welcome_sound_replays_when_page_is_revisited():
     assert 'audio.play()' in js
     assert 'resumeOnGesture' in js
     assert 'delta-signin.mp3' in html
+
+
+def test_partnership_has_its_own_scroll_cinematic_director():
+    template = Path("website/templates/core_partnerships.html").read_text()
+    script = Path("website/static/partnership-cinematic.js").read_text()
+    css = Path("website/static/partnership-cinematic.css").read_text()
+    generic = Path("website/static/community-motion.js").read_text()
+
+    assert "/static/partnership-cinematic.js" in template
+    assert "/static/partnership-cinematic.css" in template
+    assert 'class="core-hero-route"' in template
+    assert 'class="core-scroll-meter"' in template
+    assert 'data-core-progress' not in template or 'core-scroll-meter-fill' in template
+    assert "IntersectionObserver" in script
+    assert "window.addEventListener('scroll', schedule, { passive: true })" in script
+    assert "node.classList.add('core-visible')" in script
+    assert "node.classList.remove('core-visible')" in script
+    assert ".core-benefit" in script and ".core-eligibility" in script
+    assert ".core-sky-visual-overlay > *" in script
+    assert "core-motion-ready" in css
+    assert "coreBrandFloat" in css
+    assert "coreFlightStreak" in css
+    assert "coreTierArrive" in css
+    assert "url('/static/gallery/delta-lounge.webp')" in css
+    assert "url('/static/ads/" not in css
+    assert "prefers-reduced-motion:reduce" in css
+    assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in generic
