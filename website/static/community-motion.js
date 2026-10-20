@@ -21,7 +21,8 @@
   if (reduce || !('IntersectionObserver' in window)) return;
 
   const targets = document.querySelectorAll(
-    '.discover .section-head, .feature-card, .showcase .section-head, .gallery-card, .future-content, .small-cta'
+    '.discover .section-head, .feature-card, .showcase .section-head, .gallery-card, .future-content, .small-cta, ' +
+    '.core-intro-grid, .core-section-heading, .core-benefit, .core-eligibility, .core-sky-copy, .core-sky-visual, .core-connect-heading, .core-connect-panel, .core-final, .core-facts > div, .core-home-card'
   );
   if (!targets.length) return;
   const observer = new IntersectionObserver(function (entries) {
@@ -34,6 +35,9 @@
   }, { threshold: 0.06, rootMargin: '0px 0px -20px 0px' });
   targets.forEach(node => {
     node.setAttribute('data-reveal', '');
+    if (node.closest('.core-page') || node.closest('.core-home-spotlight')) {
+      node.setAttribute('data-premium-reveal', '');
+    }
     observer.observe(node);
   });
   document.body.classList.add('delta-motion-ready');
