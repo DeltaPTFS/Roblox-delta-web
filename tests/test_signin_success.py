@@ -167,6 +167,28 @@ def test_first_time_signup_gets_distinct_confirmation_page():
     assert b"Your new Delta Roblox SkyMiles account is ready!" in rendered.body
 
 
+def test_community_signup_is_not_skymiles_enrollment_or_forms():
+    from website.app.main import signup
+    response = signup(request_with_session(), db=FakeDatabase(None))
+    assert response.status_code == 200
+    assert b"Join our community." in response.body
+    assert b'Continue with Discord' in response.body
+    assert b'href="/join"' in response.body
+    assert b"No SkyMiles enrollment or application form is required." in response.body
+    assert b"Sign up with Roblox" not in response.body
+
+
+def test_community_signup_confirmation_uses_neutral_welcome_copy():
+    request = request_with_session({"forms_identity": {"id": USER_ID, "name": "Guest Delta"}}, path="/signin/success")
+    queue_signin_success(request, display_name="Guest Delta", destination="/welcome",
+                         kind="community", join_status="joined")
+    response = signin_success(request, db=FakeDatabase(None))
+    assert response.status_code == 200
+    assert b"Welcome to the aviation community!" in response.body
+    assert b"Continue to Community Welcome" in response.body
+    assert b"Verify your Roblox identity once" not in response.body
+
+
 def test_sound_and_four_second_animation_are_bundled_as_real_assets():
     root=Path("website")
     sound=root/"static/audio/delta-signin.mp3"
