@@ -60,6 +60,25 @@ def test_flights_link_is_a_real_schedule_with_genuine_empty_state():
     assert "flight-terminal.css" in source("templates/base.html")
 
 
+def test_homepage_reveals_on_scroll_and_replays_on_return():
+    homepage = source("templates/homepage.html")
+    js = source("static/homepage-cinematic.js")
+    css = source("static/homepage-cinematic.css")
+    community_motion = source("static/community-motion.js")
+    assert 'class="home-scroll-meter"' in homepage
+    assert "IntersectionObserver" in js
+    assert "window.addEventListener('scroll', requestDraw, { passive: true })" in js
+    assert "node.classList.remove('home-visible')" in js
+    assert "node.classList.add('home-visible')" in js
+    assert "node.getBoundingClientRect()" in js
+    assert "home-visible" in css
+    assert ".home-scroll-meter-fill" in css
+    assert "--home-parallax" in js and "--home-parallax" in css
+    assert "if (document.querySelector('.home-cinematic-hero')) return;" in community_motion
+    assert "prefers-reduced-motion:reduce" in css
+    assert "observer.unobserve(entry.target)" not in js
+
+
 def test_discord_login_preserves_flights_destination():
     source_main = source("app/main.py")
     assert 'request.session["community_login_return"] = next if next in ("/welcome", "/flights") else "/welcome"' in source_main
