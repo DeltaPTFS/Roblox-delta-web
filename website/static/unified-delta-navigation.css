@@ -100,3 +100,28 @@
  .unified-delta-header .sky-nav .sky-nav-panel{animation:none!important}
  .unified-delta-header .sky-menu-item{transition:none!important}
 }
+
+/* Lightweight CSS-only glints, not a particle engine. Never block navigation. */
+.unified-delta-header .premium-nav-shell{isolation:isolate}
+.unified-delta-header .premium-nav-shell:before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.52;
+ background-image:radial-gradient(circle,#fff 0 1px,transparent 2px),
+ radial-gradient(circle,#f3a7c3 0 1.3px,transparent 2.4px),
+ radial-gradient(circle,#bad5ff 0 1px,transparent 2px);
+ background-size:203px 76px,293px 72px,367px 90px;
+ background-position:21px 13px,91px 41px,169px 20px;
+}
+.unified-delta-header .premium-nav-shell:after{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ opacity:0;transform:translateX(-80%);
+ background:linear-gradient(115deg,transparent 36%,#ffffff12 48%,#ffffff05 52%,transparent 64%);
+}
+@media(prefers-reduced-motion:no-preference){
+ @keyframes navStarlight{0%,100%{opacity:.12}47%{opacity:.64}72%{opacity:.3}}
+ @keyframes navPassingGlimmer{0%,20%{opacity:0;transform:translateX(-80%)}45%{opacity:.45}68%,100%{opacity:0;transform:translateX(85%)}}
+ .unified-delta-header .premium-nav-shell:before{animation:navStarlight 6s ease-in-out infinite}
+ .unified-delta-header .premium-nav-shell:after{animation:navPassingGlimmer 14s ease-in-out infinite}
+}
+@media(prefers-reduced-motion:reduce){
+ .unified-delta-header .premium-nav-shell:before,.unified-delta-header .premium-nav-shell:after{animation:none!important}
+}
