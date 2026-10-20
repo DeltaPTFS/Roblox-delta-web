@@ -38,6 +38,7 @@ def test_editor_script_passes_node_syntax_check():
     class FakeRequest:
         base_url = "https://roblox-delta-web.vercel.app/"
         query_params = {}
+        url = type("FakeURL", (), {"path": "/forms/new"})()
 
     env = Environment(loader=FileSystemLoader("website/templates"),
                       autoescape=select_autoescape(["html"]))
