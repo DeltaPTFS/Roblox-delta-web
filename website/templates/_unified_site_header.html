@@ -76,6 +76,10 @@
               <a href="/signup">＋ <span>Join Delta Roblox</span><span aria-hidden="true">↗</span></a>
               <a href="/login">◎ <span>Sign In</span><span aria-hidden="true">↗</span></a>
               {% endif %}
+              <a href="{{ discord_href if discord_href is defined and main_discord_member is defined and main_discord_member else '/join' }}"
+                 {% if discord_href is defined and main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                 ↗ <span>{{ 'Go to Discord' if main_discord_member is defined and main_discord_member else 'Join Discord' }}</span><span aria-hidden="true">↗</span>
+              </a>
               {% if nav_level in ("OWNER","ADMIN","STAFF") %}
               <span class="sky-menu-section">STAFF OPERATIONS</span>
               <a href="/forms/new" class="sky-menu-create">＋ <span>Create New Form</span><span aria-hidden="true">→</span></a>
