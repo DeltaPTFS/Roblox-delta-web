@@ -142,7 +142,7 @@ def test_login_has_safe_oauth_and_disclaimer():
         assert "Log in with Discord" in response.text
         assert "Sign up with Roblox" in response.text
         assert "Access Forms with Discord" in response.text
-        assert "COMMUNITY OPERATIONS" in response.text
+        assert "DELTA DIGITAL EXPERIENCE" in response.text
         assert 'id="auth-tab-login"' in response.text
         assert 'id="auth-tab-signup"' in response.text
         assert '/static/auth-refresh.css?v=' in response.text
@@ -155,6 +155,8 @@ def test_login_has_safe_oauth_and_disclaimer():
 
 
 def test_signup_and_login_are_distinct_oauth_flows():
+    from website.app.database import Base, engine
+    Base.metadata.create_all(engine)
     with TestClient(app) as client:
         signup=client.get("/login?mode=signup&next=/flights")
         assert 'id="auth-panel-signup"' in signup.text
