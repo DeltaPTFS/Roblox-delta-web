@@ -103,3 +103,26 @@ def test_staff_permissions_and_panels_remain_intact():
     assert '@app.get("/owner",response_class=HTMLResponse)' in main
     assert "render_staff_panel(request,q,db" in main
     assert "Panel</div>" not in panel.split("{% block content %}")[0]
+
+
+def test_page_backgrounds_use_community_gallery_not_advertisements():
+    home = source("templates/homepage.html")
+    core_css = source("static/core-partnerships.css")
+    flights_css = source("static/flight-terminal.css")
+    old_signup_css = source("static/premium-header.css")
+    public_base = source("templates/community_base.html")
+
+    # Campaigns remain confined to the featured advertising showcase.
+    assert 'class="delta-advertising"' in home
+    assert 'src="/static/ads/delta-lax.webp"' in home
+
+    # Hero / page backgrounds are always from our Delta Roblox gallery.
+    assert "url('/static/gallery/delta-terminal.webp')" in core_css
+    assert "url('/static/gallery/delta-centennial.webp')" in flights_css
+    assert "url('/static/gallery/delta-hq.webp')" in old_signup_css
+    for style in (core_css, flights_css, old_signup_css):
+        assert "url('/static/ads/" not in style
+
+    # Sharing the homepage or partner page must not use campaign art either.
+    assert "/static/gallery/delta-centennial.webp" in public_base
+    assert "/static/ads/delta-centennial-ad.webp" not in public_base
