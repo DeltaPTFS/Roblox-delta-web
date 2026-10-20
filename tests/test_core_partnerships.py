@@ -39,27 +39,31 @@ def test_partner_benefits_are_complete_and_mobile_styled():
 
 def test_partner_link_in_site_navigation_and_homepage():
     base = Path("website/templates/community_base.html").read_text()
+    shared = Path("website/templates/_unified_site_header.html").read_text()
     home = Path("website/templates/homepage.html").read_text()
-    assert base.count('<a href="/core-partnerships">Partnerships</a>') == 2
+    assert '{% include "_unified_site_header.html" %}' in base
+    assert 'href="/core-partnerships"' in shared
     assert 'href="/core-partnerships"' in home
     assert "/static/partnerships/virgin-flag.svg" in home
 
-
 def test_premium_navigation_has_live_signup_and_mobile_access():
-    template = Path("website/templates/community_base.html").read_text()
-    css = Path("website/static/premium-header.css").read_text()
-    motion = Path("website/static/community-motion.js").read_text()
-    assert 'class="premium-announcement"' in template
-    assert 'class="premium-signup-message" href="/signup"' in template
-    assert 'class="premium-get-started" href="/signup"' in template
-    assert 'class="community-mobile-menu"' in template
-    assert 'class="premium-nav-shell"' in template
-    assert 'href="/core-partnerships"' in template
-    assert '@media(max-width:430px)' in css
+    public = Path("website/templates/community_base.html").read_text()
+    member = Path("website/templates/base.html").read_text()
+    shared = Path("website/templates/_unified_site_header.html").read_text()
+    css = Path("website/static/unified-delta-navigation.css").read_text()
+    js = Path("website/static/unified-delta-navigation.js").read_text()
+    assert '{% include "_unified_site_header.html" %}' in public
+    assert '{% include "_unified_site_header.html" %}' in member
+    assert 'class="premium-announcement"' in shared
+    assert 'class="premium-signup-message" href="/signup"' in shared
+    assert 'class="premium-get-started" href="/signup"' in shared
+    assert 'class="sky-nav-dropdown unified-menu-dropdown"' in shared
+    assert 'class="sky-nav-panel"' in shared
+    assert 'class="premium-nav-shell"' in shared
+    assert 'href="/core-partnerships"' in shared
+    assert '@media(max-width:540px)' in css
     assert '@media(prefers-reduced-motion:reduce)' in css
-    assert 'data-premium-reveal' in motion
-    assert 'unobserve(entry.target)' in motion
-
+    assert "Escape" in js
 
 def test_welcome_sound_replays_when_page_is_revisited():
     js = Path("website/static/signin-success.js").read_text()
