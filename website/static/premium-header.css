@@ -125,3 +125,45 @@
  .premium-header .community-brand .premium-brand-icon,.premium-header a{transition:none!important}
  .core-page [data-premium-reveal]{opacity:1!important;transform:none!important;filter:none!important}
 }
+
+/* General Delta Roblox community sign-up (not SkyMiles or Forms). */
+.community-join-page{position:relative;min-height:min(860px,calc(100svh - 110px));overflow:hidden;
+background:linear-gradient(115deg,#07132eef 5%,#081e46dc 55%,#28173be3),url('/static/ads/delta-lax.webp') center/cover no-repeat;color:#fff;display:grid;align-items:center}
+.community-join-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 84% 40%,#ef2c7540,transparent 35%),
+radial-gradient(circle at 25% 25%,#3879ee2e,transparent 32%)}
+.community-join-layout{position:relative;z-index:1;width:min(1420px,calc(100% - 9vw));margin:75px auto;display:grid;
+grid-template-columns:minmax(0,1.1fr) minmax(340px,.73fr);align-items:center;gap:clamp(36px,6vw,110px)}
+.community-join-kicker{display:flex;align-items:center;gap:13px;color:#f7b0c9;font-size:12px;font-weight:850;letter-spacing:.19em;line-height:1.5}
+.community-join-story h1{font-size:clamp(55px,6vw,94px);line-height:1.06;font-weight:850;letter-spacing:-.07em;margin:26px 0}
+.community-join-story h1 em{font-style:normal;background:linear-gradient(100deg,#fff,#f2a1cb);-webkit-background-clip:text;background-clip:text;color:transparent}
+.community-join-story>p{font-size:clamp(17px,1.32vw,21px);line-height:1.78;max-width:650px;color:#d1dff4}
+.community-join-points{display:flex;flex-direction:column;gap:17px;margin:40px 0;font-size:16px;font-weight:750}
+.community-join-points>div{display:flex;align-items:center;gap:15px}
+.community-join-points>div>span:first-child{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
+border:1px solid #ffffff48;background:#ffffff17;color:#ffc0d6;font-size:17px}
+.community-join-brandline{font-size:11px;letter-spacing:.21em;font-weight:850;color:#bac6df}
+.community-join-card{position:relative;display:flex;align-items:flex-start;flex-direction:column;gap:17px;
+background:linear-gradient(160deg,#142d54f5,#071127f5);border:1px solid #a2b5d87a;border-radius:25px;
+box-shadow:0 45px 95px #010918b9;padding:clamp(30px,4vw,55px);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.community-join-card-top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+font-size:11px;color:#bdcdea;font-weight:900;letter-spacing:.22em}
+.community-join-card-top>span:last-child{color:#eb4c74;font-size:27px}
+.community-join-logo{width:77px;height:77px;margin-top:9px;filter:drop-shadow(0 12px 25px #020816)}
+.community-join-card h2{font-size:clamp(29px,2.8vw,43px);line-height:1.12;letter-spacing:-.05em;margin:8px 0 0}
+.community-join-card>p{font-size:16px;line-height:1.76;color:#d0def0;margin:0}
+.community-join-primary{display:flex;justify-content:space-between;align-items:center;gap:24px;width:100%;text-align:left;
+background:linear-gradient(110deg,#c8102e,#f13c64);border:1px solid #ff7190;color:#fff;padding:17px 20px;
+font-size:16px;font-weight:900;border-radius:12px;box-shadow:0 13px 28px #c8102e4d;transition:transform .2s,box-shadow .2s}
+.community-join-primary:hover{transform:translateY(-3px);box-shadow:0 18px 42px #fa375d6b;color:#fff}
+.community-join-secondary{font-size:15px;color:#dcecff;font-weight:800;padding:6px 0}
+.community-join-privacy{font-size:13px!important;color:#b5c8de!important}
+.community-join-card-footer{border-top:1px solid #ffffff24;width:100%;display:flex;gap:11px;padding-top:17px;
+font-size:12px;color:#aabbd7;line-height:1.6}.community-join-card-footer span{flex:none;color:#ef678b}
+@media(max-width:900px){.community-join-layout{grid-template-columns:1fr;gap:35px;max-width:760px;margin:65px auto}
+.community-join-story h1{font-size:clamp(52px,10vw,80px)}.community-join-card{max-width:650px;width:100%}}
+@media(max-width:700px){.community-join-layout{width:calc(100% - 36px);margin:48px auto}
+.community-join-story h1{font-size:clamp(47px,10vw,72px);margin:18px 0}
+.community-join-story>p{font-size:16px}.community-join-points{font-size:14px;gap:13px;margin:26px 0}
+.community-join-card{padding:27px 24px;border-radius:18px}
+.community-join-brandline{font-size:10px;letter-spacing:.12em}}
+@media(prefers-reduced-motion:reduce){.community-join-primary{transition:none}.community-join-primary:hover{transform:none}}
