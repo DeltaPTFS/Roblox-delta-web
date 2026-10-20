@@ -19,9 +19,9 @@
   }
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce || !('IntersectionObserver' in window)) return;
-  // Homepage has its own scrolling director. Do not register a second
-  // IntersectionObserver or competing reveal classes on the same cards.
-  if (document.querySelector('.home-cinematic-hero')) return;
+  // The homepage and partner pages have independent scroll directors.
+  // Never register a competing generic observer on those same elements.
+  if (document.querySelector('.home-cinematic-hero, .core-page')) return;
 
   const targets = document.querySelectorAll(
     '.discover .section-head, .feature-card, .showcase .section-head, .gallery-card, .future-content, .small-cta, ' +
