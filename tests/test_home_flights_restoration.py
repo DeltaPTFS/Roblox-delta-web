@@ -60,6 +60,16 @@ def test_flights_link_is_a_real_schedule_with_genuine_empty_state():
     assert "flight-terminal.css" in source("templates/base.html")
 
 
+def test_discord_login_preserves_flights_destination():
+    source_main = source("app/main.py")
+    assert 'request.session["community_login_return"] = next if next in ("/welcome", "/flights") else "/welcome"' in source_main
+    assert 'community_return = request.session.pop("community_login_return", "/welcome")' in source_main
+    assert 'destination=community_return, kind="community"' in source_main
+    login_markup = source("templates/login.html")
+    assert "community_join_unconfirmed" in login_markup
+    assert "couldn't confirm your community membership" in login_markup
+
+
 def test_staff_permissions_and_panels_remain_intact():
     base = source("templates/community_base.html")
     main = source("app/main.py")
