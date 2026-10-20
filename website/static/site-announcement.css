@@ -39,3 +39,18 @@
   .delta-site-news,.delta-site-news-glow,.delta-site-news-status i{animation:none!important}
   .delta-site-news-link{transition:none}
 }
+
+/* Verified Discord publisher shown independently of the announcement text. */
+.delta-site-news-author{margin-left:auto;display:flex;align-items:center;gap:9px;min-width:0;flex:none;
+  border-left:1px solid #e2eaff33;padding-left:14px}
+.delta-site-news-author img{display:block;width:32px;height:32px;object-fit:cover;border-radius:50%;
+  border:1px solid #ffffff55;background:#223e62}
+.delta-site-news-author span{display:grid;gap:2px;min-width:0;max-width:185px;line-height:1.1}
+.delta-site-news-author strong{font-size:11px;font-weight:850;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.delta-site-news-author small{font-size:10px;color:#d2deef;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:750px){
+  .delta-site-news-author{margin:5px 0 0 auto;padding-left:9px}
+  .delta-site-news-author span{max-width:130px}
+  .delta-site-news-author img{width:28px;height:28px}
+  .delta-site-news-message{flex-basis:60%}
+}
