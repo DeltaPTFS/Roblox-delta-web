@@ -27,10 +27,11 @@ from .gallery import router as gallery_router
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
-from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, Status, Tier, TierConfig, Transaction, User, WebSession
+from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, SiteAnnouncement, Status, Tier, TierConfig, Transaction, User, WebSession
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, linked_user_from_session, oauth_values, permission
 from .session import DatabaseSessionMiddleware
+from .site_announcements import announcement_for_page
 from .skymiles_messages import SKYMILES_WELCOME_MESSAGE
 from .sheet_sync import add_transaction, enqueue_member_update, enqueue_registration, process_outbox_once, reconcile_outbox
 
@@ -42,7 +43,7 @@ ASSET_VERSION = str(int(max(
     for path in folder.rglob("*") if path.is_file()
 )))
 settings = get_settings()
-templates = Jinja2Templates(directory=ROOT / "templates")
+templates = Jinja2Templates(directory=ROOT / "templates", context_processors=[announcement_for_page])
 limiter = Limiter(key_func=get_remote_address)
 FLIGHT_TERMINAL_GRACE = timedelta(minutes=10)
 PUBLIC_SITE_URL = "https://roblox-delta-web.vercel.app"
@@ -1215,7 +1216,8 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str):
     moderation={member.id:db.scalars(select(ModerationAction).where(ModerationAction.user_id==member.id).order_by(ModerationAction.created_at.desc()).limit(20)).all() for member in users}
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings)))
+    announcement_settings=db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id==1)) if required=="OWNER" else None
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -1228,6 +1230,77 @@ async def admin(request:Request,q:str="",db:Session=Depends(get_db)): return awa
 
 @app.get("/owner",response_class=HTMLResponse)
 async def owner_panel(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"OWNER")
+
+
+@app.post("/owner/announcement")
+@limiter.limit("10/minute")
+async def owner_save_site_announcement(
+    request: Request,
+    message: str = Form(""),
+    tone: str = Form("UPDATE"),
+    enabled: str = Form(""),
+    link_label: str = Form(""),
+    link_path: str = Form(""),
+    csrf: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    """Publish or hide one compact top-site announcement. Ownership only."""
+    check_csrf(request, csrf)
+    actor = await require_owner(request, db)
+    message = " ".join(message.split())
+    tone = tone.upper().strip()
+    link_label = " ".join(link_label.split())
+    link_path = link_path.strip()
+    active = enabled == "on"
+
+    if len(message) > 220 or (active and not message):
+        raise HTTPException(422, "Enter an announcement of 1–220 characters before publishing.")
+    if tone not in {"UPDATE", "EVENT", "IMPORTANT"}:
+        raise HTTPException(422, "Invalid announcement type.")
+    if len(link_label) > 32 or len(link_path) > 255:
+        raise HTTPException(422, "Announcement link label or path is too long.")
+    # No javascript:, redirect tricks, external domains, backslashes or control
+    # characters. Announcements only link to safe internal website pages.
+    if link_path and (
+        not re.fullmatch(r"/[A-Za-z0-9/_?=#&.%-]*", link_path)
+        or link_path.startswith("//")
+        or re.search(r"%(?:0[0-9a-f]|2f|5c)", link_path, re.IGNORECASE)
+    ):
+        raise HTTPException(422, "Use an internal path such as /flights or /core-partnerships.")
+    if bool(link_label) != bool(link_path):
+        raise HTTPException(422, "Provide both the link label and destination, or leave both empty.")
+
+    announcement = db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id == 1).with_for_update())
+    before = ({
+        "enabled": announcement.enabled,
+        "message": announcement.message,
+        "tone": announcement.tone,
+        "link_label": announcement.link_label,
+        "link_path": announcement.link_path,
+    } if announcement else {})
+    if announcement is None:
+        announcement = SiteAnnouncement(id=1)
+        db.add(announcement)
+    announcement.enabled = active
+    announcement.message = message
+    announcement.tone = tone
+    announcement.link_label = link_label
+    announcement.link_path = link_path
+    announcement.updated_by = actor.id
+    announcement.updated_at = datetime.now(timezone.utc)
+    db.add(AuditLog(
+        staff_user_id=actor.id, target_user_id=None,
+        action="SITE_ANNOUNCEMENT_UPDATED",
+        old_value=before,
+        new_value={
+            "enabled":active,"message":message,"tone":tone,
+            "link_label":link_label,"link_path":link_path,
+        },
+        reason="Owner published site announcement" if active else "Owner hid site announcement",
+        security_metadata={"ip":request.client.host if request.client else None},
+    ))
+    db.commit()
+    return RedirectResponse("/owner?announcement_saved=1#site-announcement-editor",303)
 
 
 @app.post("/owner/sheet-sync/reconcile")

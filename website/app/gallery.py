@@ -9,12 +9,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from .database import get_db
+from .site_announcements import announcement_for_page
 from .models import SiteGalleryImage
 from .security import check_csrf
 from .community import verified_viewer, access_level, page_context
 
 router=APIRouter()
-templates=Jinja2Templates(directory=Path(__file__).resolve().parents[1]/"templates")
+templates=Jinja2Templates(directory=Path(__file__).resolve().parents[1]/"templates", context_processors=[announcement_for_page])
 ROOT=Path(__file__).resolve().parents[1]/"static"/"gallery"
 GALLERY={
     "delta-hangar":"Hangar & aircraft",
