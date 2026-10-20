@@ -690,7 +690,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
     return queue_signin_success(request,display_name=user.discord_display_name,
                                 destination=login_return + ("&tutorial=1" if "?" in login_return else "?tutorial=1") if created_new and login_return == "/dashboard" else login_return,
-                                kind="skymiles",join_status=identity.get("join_status","not_confirmed"))
+                                kind="signup" if created_new else "skymiles",join_status=identity.get("join_status","not_confirmed"))
 
 
 async def refresh_discord_authorization(user: User, db: Session) -> str:
