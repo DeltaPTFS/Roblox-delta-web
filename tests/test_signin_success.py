@@ -84,17 +84,35 @@ def test_existing_linked_member_skips_skymiles_login_screen():
     result=login(request,db=FakeDatabase(linked_user()))
     assert isinstance(result,RedirectResponse)
     assert result.status_code==303
-    assert result.headers["location"]=="/dashboard?already_signed_in=1"
+    assert result.headers["location"]=="/signin/success"
+    assert request.session["signin_celebration"]["kind"] == "already"
+    assert request.session["signin_celebration"]["destination"] == "/dashboard"
 
 
 def test_logged_in_member_sees_explicit_already_signed_in_notice():
     request=request_with_session({"user_id":17},path="/login")
     result=login(request,mode="signup",db=FakeDatabase(linked_user()))
     assert result.status_code==303
-    assert result.headers["location"]=="/dashboard?already_signed_in=1"
+    assert result.headers["location"]=="/signin/success"
+    assert request.session["signin_celebration"]["kind"] == "already"
+    assert request.session["signin_celebration"]["destination"] == "/dashboard"
     login_markup=Path("website/templates/base.html").read_text()
     assert "You're already signed in!" in login_markup
     assert 'request.query_params.get(\'already_signed_in\')' in login_markup
+
+
+def test_repeated_signin_renders_welcome_audio_and_already_signed_in_message():
+    request=request_with_session({"user_id":17},path="/login")
+    login_result=login(request,db=FakeDatabase(linked_user()))
+    assert login_result.headers["location"]=="/signin/success"
+    response=signin_success(request,db=FakeDatabase(linked_user()))
+    assert response.status_code==200
+    assert b"already signed in." in response.body
+    assert b"play-welcome-sound" in response.body
+    assert b"delta-signin.mp3" in response.body
+    finish=finish_signin_celebration(request)
+    assert finish.headers["location"]=="/dashboard"
+    assert "signin_celebration" not in request.session
 
 
 def test_signin_success_stays_until_continue_to_original_destination_and_rotates_cookie_id():
