@@ -19,7 +19,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from sqlalchemy import and_, func, or_, select, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from .community import router as community_router, ensure_flight_form, enqueue_flight, memberships
 from .crew_bridge import router as crew_bridge_router
@@ -117,9 +117,12 @@ def context(request, **values):
     if show_tutorial:
         host_avatar = user.discord_avatar_url if user and user.discord_user_id == "1263248306264608871" else None
         if not host_avatar:
-            with Session(engine) as tutorial_db:
-                host = tutorial_db.scalar(select(User).where(User.discord_user_id == "1263248306264608871"))
-                host_avatar = host.discord_avatar_url if host else None
+            try:
+                with Session(engine) as tutorial_db:
+                    host = tutorial_db.scalar(select(User).where(User.discord_user_id == "1263248306264608871"))
+                    host_avatar = host.discord_avatar_url if host else None
+            except SQLAlchemyError:
+                host_avatar = None
         if not host_avatar or not host_avatar.startswith(("https://cdn.discordapp.com/", "https://media.discordapp.net/")):
             host_avatar = "/static/avatar.svg"
         values.setdefault("tutorial_grey_avatar", host_avatar)
