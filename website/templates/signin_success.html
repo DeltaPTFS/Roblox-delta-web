@@ -40,11 +40,15 @@
       </div>
     </div>
     <p class="success-status"><span class="success-online-dot"></span> DISCORD VERIFIED</p>
-    <h1>{% if event.kind == "signup" %}You've <em>signed up.</em>{% else %}You're <em>signed in.</em>{% endif %}</h1>
+    <h1>{% if event.kind == "signup" %}You've <em>signed up.</em>{% elif event.kind == "already" %}You're <em>already signed in.</em>{% else %}You're <em>signed in.</em>{% endif %}</h1>
     <p class="success-name">Welcome aboard, <strong>{{ display_name }}.</strong></p>
     <p class="success-description">
       {% if event.kind == "signup" %}
       Your new Delta Roblox SkyMiles account is ready! You're now part of our aviation community. Explore flights, miles, and rewards.
+      {% elif event.kind == "already" %}
+      Your Delta Roblox account is still connected. There's no need to sign in again. Welcome back!
+      {% elif event.kind == "community" %}
+      You're connected to Delta Roblox through Discord. Welcome to the aviation community! Check the server to complete any required membership verification.
       {% elif event.kind == "skymiles" %}
       Your Delta SkyMiles account is connected and ready. Your existing miles, flights, and rewards are waiting.
       {% elif event.kind == "forms" %}
@@ -61,10 +65,16 @@
       Discord authentication confirmed · Server membership may still need verification
       {% endif %}
     </div>
+    <div class="success-audio-control" id="success-audio-control" aria-live="polite">
+      <button type="button" class="success-audio-button" id="play-welcome-sound" aria-label="Replay welcome sound">
+        <span aria-hidden="true">♫</span><span id="welcome-sound-label">Replay welcome sound</span>
+      </button>
+      <p id="welcome-sound-hint" hidden>Sound was blocked by your browser. Tap to play the welcome sound.</p>
+    </div>
     <div class="success-finish" id="success-finish" aria-live="polite">
       <span class="success-finish-eyebrow">IDENTITY CONNECTED · WELCOME ABOARD</span>
       <a class="success-return-home" href="/signin/finish">
-        <span>{% if destination.startswith("/forms") %}Continue to Forms{% elif destination.startswith("/flights") %}Continue to Flight Booking{% elif destination.startswith("/login") %}Complete SkyMiles Sign Up{% elif destination.startswith("/dashboard") %}Go to My Dashboard{% else %}Continue to Your Destination{% endif %}</span>
+        <span>{% if destination.startswith("/forms") %}Continue to Forms{% elif destination.startswith("/flights") %}Continue to Flight Booking{% elif destination.startswith("/welcome") %}Continue to Community Welcome{% elif destination.startswith("/login") %}Complete SkyMiles Sign Up{% elif destination.startswith("/dashboard") %}Go to My Dashboard{% else %}Continue to Your Destination{% endif %}</span>
         <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
     </div>
