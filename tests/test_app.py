@@ -102,10 +102,14 @@ def test_mobile_title_channel_and_equal_tutorial_hosts():
     base=Path("website/templates/base.html").read_text()
     assert 'apple-mobile-web-app-title" content="DAL-roblox.com' in base
     assert "1541156846579089519" in Settings().discord_skymiles_channel_url
-    assert base.count("speaker:'Gre1'")==3
-    assert base.count("speaker:'Cookie'")==3
-    assert "Start Tutorial" in Path("website/templates/_account_panel.html").read_text() and "user.discord_display_name|tojson" in base
-    assert "tutorial-progress-bar" in base and "Follow the glowing highlight" in base
+    tour=Path("website/templates/_skymiles_tutorial.html").read_text()
+    guide=Path("website/static/skymiles-tour.js").read_text()
+    assert "Start Tutorial" in Path("website/templates/_account_panel.html").read_text()
+    assert "user.discord_display_name|tojson" in base
+    assert "tutorial-progress-bar" in tour and "Follow the highlighted part" in tour
+    assert "Grey R." in guide and "Cookie" in guide
+    assert "sessionStorage.setItem" in guide and "/trips" in guide and "/rewards" in guide
+    assert "tutorial_grey_avatar" in tour
 
 
 def test_member_name_uses_discord_server_profile_name():
