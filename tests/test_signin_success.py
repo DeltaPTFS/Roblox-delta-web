@@ -178,6 +178,24 @@ def test_community_signup_is_not_skymiles_enrollment_or_forms():
     assert b"Sign up with Roblox" not in response.body
 
 
+def test_general_join_oauth_is_independent_of_forms_roles_and_sky_miles():
+    from website.app.main import join_discord
+    request = request_with_session({}, path="/join")
+    result = join_discord(request)
+    assert result.status_code == 303
+    assert result.headers["location"] in (
+        "/auth/discord/community",
+        __import__("website.app.main", fromlist=["settings"]).settings.discord_invite_url,
+    )
+    main = Path("website/app/main.py").read_text()
+    assert '@app.get("/auth/discord/community")' in main
+    assert 'request.session["discord_community_join"] = True' in main
+    assert 'if community_login:' in main
+    assert main.index('if community_login:') < main.index('if forms_login:')
+    assert 'join_status not in ("joined", "already_member")' in main
+    assert 'kind="community", join_status=join_status' in main
+
+
 def test_community_signup_confirmation_uses_neutral_welcome_copy():
     request = request_with_session({"forms_identity": {"id": USER_ID, "name": "Guest Delta"}}, path="/signin/success")
     queue_signin_success(request, display_name="Guest Delta", destination="/welcome",
