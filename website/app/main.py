@@ -114,6 +114,15 @@ def context(request, **values):
         request.session["feedback_prompted"]=True; show_feedback=True
     discord_roles=[]; discord_role_details=[]
     role_sync_state=getattr(user,"_discord_sync_state","unavailable") if user else "unavailable"
+    if show_tutorial:
+        host_avatar = user.discord_avatar_url if user and user.discord_user_id == "1263248306264608871" else None
+        if not host_avatar:
+            with Session(engine) as tutorial_db:
+                host = tutorial_db.scalar(select(User).where(User.discord_user_id == "1263248306264608871"))
+                host_avatar = host.discord_avatar_url if host else None
+        if not host_avatar or not host_avatar.startswith(("https://cdn.discordapp.com/", "https://media.discordapp.net/")):
+            host_avatar = "/static/avatar.svg"
+        values.setdefault("tutorial_grey_avatar", host_avatar)
     if user:
         discord_role_details=getattr(user,"_discord_role_details",[])
         if not discord_role_details:
