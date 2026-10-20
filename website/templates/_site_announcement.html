@@ -1,0 +1,14 @@
+{% if site_announcement is defined and site_announcement %}
+<div class="delta-site-news delta-site-news-{{ site_announcement.tone|lower }}" role="region" aria-label="Community announcement">
+  <span class="delta-site-news-glow" aria-hidden="true"></span>
+  <div class="delta-site-news-inner">
+    <span class="delta-site-news-status" aria-hidden="true"><i></i></span>
+    <span class="delta-site-news-label">{{ 'IMPORTANT' if site_announcement.tone == 'IMPORTANT' else 'EVENT' if site_announcement.tone == 'EVENT' else 'DELTA UPDATE' }}</span>
+    <span class="delta-site-news-divider" aria-hidden="true"></span>
+    <p class="delta-site-news-message">{{ site_announcement.message }}</p>
+    {% if site_announcement.link_path and site_announcement.link_label %}
+      <a class="delta-site-news-link" href="{{ site_announcement.link_path }}">{{ site_announcement.link_label }} <span aria-hidden="true">↗</span></a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
