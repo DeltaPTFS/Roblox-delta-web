@@ -61,8 +61,8 @@
 .core-reward-features{display:flex;flex-direction:column;gap:12px;margin:19px 0 25px;font-size:14px;font-weight:800}.core-reward-features span{display:flex;align-items:center;gap:12px}.core-reward-features b{color:#e75582}
 .core-text-link{font-size:13px;color:#ff93b4;font-weight:800;border-bottom:1px solid #ff93b4;width:max-content;padding-bottom:6px}
 .core-sky-visual{position:relative;min-height:500px;background:#53246e url('/static/gallery/delta-lounge.webp') center /cover no-repeat;isolation:isolate}
-.core-sky-visual:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,#7b26b68c,#27135788 60%,#100f30ea),radial-gradient(ellipse at 50% 0%,#ff81d44d,transparent 60%);z-index:-1}
-.core-sky-visual-overlay{position:absolute;left:9%;right:7%;bottom:9%;padding:27px 30px;background:#0c123fc2;border:1px solid #ffffff34;backdrop-filter:blur(8px)}
+.core-sky-visual:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,#7b26b68c,#27135788 60%,#100f30ea),radial-gradient(ellipse at 50% 0%,#ff81d44d,transparent 60%);z-index:1}
+.core-sky-visual-overlay{position:absolute;z-index:2;left:9%;right:7%;bottom:9%;padding:27px 30px;background:#0c123fc2;border:1px solid #ffffff34;backdrop-filter:blur(8px)}
 .core-sky-visual-overlay span,.core-sky-visual-overlay small{display:block;color:#e4badf;font-size:11px;letter-spacing:.19em;font-weight:800}
 .core-sky-visual-overlay strong{display:block;font-size:clamp(32px,3vw,48px);letter-spacing:-.055em;margin:12px 0}
 .core-sky-visual-overlay small{letter-spacing:.04em;color:#bbc7d9}
