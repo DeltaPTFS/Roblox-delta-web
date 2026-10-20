@@ -1,0 +1,103 @@
+/* DELTA ROBLOX × VIRGIN ATLANTIC — cinematic partner storytelling */
+.core-page{--core-pink:#ff769b}
+.core-scroll-meter{position:fixed;left:0;top:0;right:0;height:3px;z-index:240;pointer-events:none;background:#fff1}
+.core-scroll-meter-fill{display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:left;
+background:linear-gradient(90deg,#c8102e,#ff70ae 52%,#a889f2);box-shadow:0 0 15px #ff76b799}
+.core-hero{overflow:hidden}
+.core-hero::after{content:"";pointer-events:none;position:absolute;z-index:1;inset:-15% -10%;opacity:.48;
+background:radial-gradient(ellipse at 77% 40%,#b543b44a 0,transparent 44%),
+radial-gradient(ellipse at 10% 100%,#397ce02c 0,transparent 46%);
+transform:translate3d(0,var(--core-hero-drift,0px),0)}
+.core-hero-route{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.core-hero-route i{position:absolute;left:-42%;width:48%;height:2px;top:46%;opacity:0;
+background:linear-gradient(90deg,transparent,#f6bdff90,#fff8,transparent);
+box-shadow:0 0 18px #fa89d686;transform:rotate(-18deg)}
+.core-hero-route i:nth-child(2){top:64%;width:36%;height:1px}
+.core-hero-route i:nth-child(3){top:31%;width:30%;height:1px}
+.core-hero .core-partner-graphic{overflow:hidden;isolation:isolate}
+.core-hero .core-partner-graphic::after{content:"";position:absolute;inset:-60% -40%;z-index:0;pointer-events:none;opacity:.42;
+background:linear-gradient(105deg,transparent 37%,#ffffff12 46%,#ffc5ed23 50%,transparent 62%);transform:translateX(-110%) rotate(14deg)}
+.core-partner-graphic .core-brands,.core-partner-graphic .core-graphic-topline,.core-partner-graphic .core-graphic-footer{position:relative;z-index:1}
+.core-hero .core-brand-cross{display:block;text-shadow:0 0 28px #ffc2e684}
+.core-hero .core-red-dot{box-shadow:0 0 0 5px #f3416826,0 0 20px #ff608899}
+.core-hero .core-orbit-one{z-index:1}
+.core-hero .core-orbit-two{z-index:1}
+.core-page .core-facts{position:relative;z-index:1;overflow:hidden}
+.core-page .core-facts::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;
+background:linear-gradient(90deg,transparent,#f83a76,#b47efa,transparent);opacity:.7}
+.core-page .core-benefit{position:relative;isolation:isolate;overflow:hidden}
+.core-page .core-benefit::before{content:"";position:absolute;pointer-events:none;inset:0;z-index:-1;
+background:radial-gradient(circle at 90% 0,#e13c7626,transparent 53%);opacity:0;transition:opacity .5s}
+.core-page .core-benefit:hover::before{opacity:1}
+.core-page .core-benefit-icon{transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s}
+.core-page .core-benefit:hover .core-benefit-icon{transform:rotate(-8deg) scale(1.13);box-shadow:0 12px 28px #b91a564d}
+.core-page .core-eligibility{position:relative;overflow:hidden}
+.core-page .core-eligibility::after{content:"";pointer-events:none;position:absolute;inset:0;
+background:linear-gradient(110deg,transparent 33%,#e7a9ff17 51%,transparent 66%);transform:translateX(-95%)}
+.core-page .core-sky-visual{overflow:hidden;background-image:none!important}
+.core-page .core-sky-visual::after{content:"";position:absolute;inset:-3%;z-index:0;pointer-events:none;
+background:url('/static/gallery/delta-lounge.webp') center/cover no-repeat;
+transform:scale(1.03);transition:transform 6s ease-out}
+.core-page .core-sky-visual.core-section-active::after{transform:scale(1.18)}
+.core-page .core-connect-panel-art{position:relative;isolation:isolate;overflow:hidden}
+.core-page .core-connect-panel-art img{transition:transform 5s cubic-bezier(.16,1,.3,1),filter 2s ease;transform:scale(1.025)}
+.core-page .core-connect-panel-art.core-section-active img{transform:scale(1.13);filter:saturate(1.1)}
+.core-page .core-connect-panel{overflow:hidden;border-radius:12px}
+.core-page .core-final{position:relative;isolation:isolate;overflow:hidden}
+.core-page .core-final::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+background:radial-gradient(circle at 8% 20%,#ff9cdd33 0 2px,transparent 3px),
+radial-gradient(circle at 81% 56%,#ffffff38 0 2px,transparent 3px),
+radial-gradient(circle at 55% 12%,#d6a1ff2a 0 3px,transparent 4px),
+radial-gradient(circle at 30% 83%,#ffffff35 0 2px,transparent 3px)}
+.core-page .core-button-primary{box-shadow:0 12px 32px #c8102e38;transition:box-shadow .3s,transform .3s,background .3s}
+.core-page .core-button-primary:hover{box-shadow:0 17px 36px #eb345868;transform:translateY(-3px)}
+/* Scroll enter / exit: visible by default until script explicitly activates. */
+@media(prefers-reduced-motion:no-preference){
+  .core-page.core-motion-ready .core-reveal{transition:opacity .85s cubic-bezier(.22,.75,.18,1),
+  transform 1.1s cubic-bezier(.16,1,.3,1),filter .9s ease;
+  transition-delay:0ms}
+  .core-page.core-motion-ready .core-reveal:not(.core-visible){opacity:0;filter:blur(7px);transform:translate3d(0,74px,0) scale(.98)}
+  .core-page.core-motion-ready .core-reveal.core-from-left:not(.core-visible){transform:translate3d(-88px,15px,0) scale(.985)}
+  .core-page.core-motion-ready .core-reveal.core-from-right:not(.core-visible){transform:translate3d(88px,15px,0) scale(.985)}
+  .core-page.core-motion-ready .core-reveal.core-visible{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1);transition-delay:var(--core-delay,0ms)}
+  .core-page.core-motion-ready .core-reveal.core-visible.core-benefit:hover{transform:translateY(-7px)}
+  @keyframes coreFlightStreak{0%,13%{opacity:0;transform:translate(-28%,24vh) rotate(-18deg)}20%{opacity:.75}40%{opacity:.16}65%,100%{opacity:0;transform:translate(360%,-60vh) rotate(-18deg)}}
+  @keyframes coreOrbitFloat{from{transform:rotate(0) scale(.99)}to{transform:rotate(22deg) scale(1.04)}}
+  @keyframes coreBrandFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-13px) rotate(-.5deg)}}
+  @keyframes coreCardSheen{0%,25%{transform:translateX(-115%) rotate(14deg)}65%,100%{transform:translateX(110%) rotate(14deg)}}
+  @keyframes coreDotGlow{50%{box-shadow:0 0 0 9px #f341681c,0 0 30px #ff6088da}}
+  @keyframes coreTierArrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes coreEligibilityGlide{0%,27%{transform:translateX(-95%)}72%,100%{transform:translateX(125%)}}
+  @keyframes coreFinalSparkle{from{transform:translateY(0)}to{transform:translateY(-20px)}}
+  .core-hero-route i{animation:coreFlightStreak 12s ease-in-out infinite}
+  .core-hero-route i:nth-child(2){animation-delay:4.2s;animation-duration:14s}
+  .core-hero-route i:nth-child(3){animation-delay:8s;animation-duration:16s}
+  .core-hero-orbit{animation:coreOrbitFloat 18s ease-in-out infinite alternate}
+  .core-orbit-two{animation-delay:-7s;animation-duration:24s}
+  .core-hero .core-partner-graphic{animation:coreBrandFloat 7.8s ease-in-out 1.2s infinite}
+  .core-hero .core-partner-graphic::after{animation:coreCardSheen 11s ease-in-out 1.8s infinite}
+  .core-hero .core-red-dot{animation:coreDotGlow 3s ease-in-out infinite}
+  .core-page .core-eligibility.core-visible::after{animation:coreEligibilityGlide 6s ease-in-out 1s infinite}
+  .core-page .core-eligibility.core-visible .core-tiers span{animation:coreTierArrive .65s cubic-bezier(.16,1,.3,1) both}
+  .core-page .core-eligibility.core-visible .core-tiers span:nth-child(2){animation-delay:.1s}
+  .core-page .core-eligibility.core-visible .core-tiers span:nth-child(3){animation-delay:.2s}
+  .core-page .core-eligibility.core-visible .core-tiers span:nth-child(4){animation-delay:.3s}
+  .core-page .core-eligibility.core-visible .core-tiers span:nth-child(5){animation-delay:.4s}
+  .core-page .core-eligibility.core-visible .core-tiers span:nth-child(6){animation-delay:.5s}
+  .core-page .core-final::before{animation:coreFinalSparkle 10s ease-in-out infinite alternate}
+}
+@media(max-width:720px){
+  .core-page.core-motion-ready .core-reveal.core-from-left:not(.core-visible){transform:translate3d(-28px,12px,0) scale(.99)}
+  .core-page.core-motion-ready .core-reveal.core-from-right:not(.core-visible){transform:translate3d(28px,12px,0) scale(.99)}
+  .core-hero-route i{height:1px}
+  .core-scroll-meter{height:2px}
+}
+@media(prefers-reduced-motion:reduce){
+  .core-page .core-reveal{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
+  .core-scroll-meter{display:none}
+  .core-hero-route i,.core-hero-orbit,.core-hero .core-partner-graphic,
+  .core-hero .core-partner-graphic::after,.core-hero .core-red-dot,
+  .core-eligibility::after,.core-eligibility .core-tiers span,.core-final::before{animation:none!important}
+  .core-sky-visual::after,.core-connect-panel-art img{transition:none!important;transform:none!important}
+  .core-page .core-benefit:hover,.core-page .core-button:hover{transform:none!important}
+}
