@@ -1,0 +1,45 @@
+import os
+from pathlib import Path
+
+os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("SESSION_SECRET", "test-secret-at-least-thirty-two-characters")
+os.environ.setdefault("COOKIE_SECURE", "false")
+
+from fastapi.testclient import TestClient
+from website.app.main import app
+
+
+def test_core_partnerships_is_a_public_page():
+    with TestClient(app) as client:
+        response = client.get("/core-partnerships")
+    assert response.status_code == 200
+    assert "Two airlines." in response.text
+    assert "Virgin Atlantic" in response.text
+    assert "September 29, 2026" in response.text
+    assert 'href="https://discord.gg/RbuYrETXAJ"' in response.text
+    assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/core-partnerships"' in response.text
+    assert 'content="index, follow, max-image-preview:large"' in response.text
+    assert "Not an official announcement by" in response.text
+
+
+def test_partner_benefits_are_complete_and_mobile_styled():
+    template = Path("website/templates/core_partnerships.html").read_text()
+    for benefit in (
+        "Priority Check-In", "Security Screening", "Priority Boarding", "Lounge Access",
+        "First Class", "Delta Comfort", "Delta One", "Gold", "Platinum", "Diamond",
+        "SkyMiles", "Upper Class", "SkyClub",
+    ):
+        assert benefit in template
+    assert "https://discord.gg/RbuYrETXAJ" in template
+    assert 'href="#benefits"' in template
+    css = Path("website/static/core-partnerships.css").read_text()
+    assert "@media(max-width:700px)" in css
+    assert "@media(prefers-reduced-motion:reduce)" in css
+
+
+def test_partner_link_in_site_navigation_and_homepage():
+    base = Path("website/templates/community_base.html").read_text()
+    home = Path("website/templates/homepage.html").read_text()
+    assert base.count('<a href="/core-partnerships">Partnerships</a>') == 2
+    assert 'href="/core-partnerships"' in home
+    assert "/static/partnerships/virgin-flag.svg" in home
