@@ -23,7 +23,7 @@
     </div>
     {% if panel_user %}
     <div class="delta-account-balance">
-      <div><small>AVAILABLE SKYMILES</small><strong>{{ "{:,}".format(panel_user.miles_balance) }}</strong></div>
+      <div><small>AVAILABLE SKYMILES</small><strong>{{ "{:,}".format(panel_user.miles_balance or 0) }}</strong></div>
       <a href="/miles">My balance <span aria-hidden="true">→</span></a>
     </div>
     {% endif %}

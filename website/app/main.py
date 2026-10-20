@@ -19,7 +19,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from sqlalchemy import and_, func, or_, select, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from .community import router as community_router, ensure_flight_form, enqueue_flight, memberships
 from .crew_bridge import router as crew_bridge_router
@@ -114,6 +114,18 @@ def context(request, **values):
         request.session["feedback_prompted"]=True; show_feedback=True
     discord_roles=[]; discord_role_details=[]
     role_sync_state=getattr(user,"_discord_sync_state","unavailable") if user else "unavailable"
+    if show_tutorial:
+        host_avatar = user.discord_avatar_url if user and user.discord_user_id == "1263248306264608871" else None
+        if not host_avatar:
+            try:
+                with Session(engine) as tutorial_db:
+                    host = tutorial_db.scalar(select(User).where(User.discord_user_id == "1263248306264608871"))
+                    host_avatar = host.discord_avatar_url if host else None
+            except SQLAlchemyError:
+                host_avatar = None
+        if not host_avatar or not host_avatar.startswith(("https://cdn.discordapp.com/", "https://media.discordapp.net/")):
+            host_avatar = "/static/avatar.svg"
+        values.setdefault("tutorial_grey_avatar", host_avatar)
     if user:
         discord_role_details=getattr(user,"_discord_role_details",[])
         if not discord_role_details:
@@ -1190,47 +1202,67 @@ def persist_qualification_adjustment(db:Session,user_id:int,mqp:int,segments:int
     return target,before,after
 
 
-async def render_staff_panel(request:Request,q:str,db:Session,required:str):
+async def render_staff_panel(request:Request,q:str,db:Session,required:str,directory_page:int=1):
     actor=await ({"STAFF":require_staff,"ADMIN":require_admin,"OWNER":require_owner}[required])(request,db); users=[]
-    await crew_roles_for_display(request,actor.discord_user_id)
+    # Authorization above already checked live Discord roles. Avoid another
+    # network fetch solely to decorate the staff page.
     if q: users=db.scalars(select(User).where(or_(User.discord_display_name.ilike(f"%{q}%"),User.discord_username.ilike(f"%{q}%"),User.discord_user_id==q,User.roblox_username.ilike(f"%{q}%"),User.roblox_user_id==q,User.skymiles_number.ilike(f"%{q}%"))).limit(25)).all()
     terminal_cutoff=datetime.now(timezone.utc)-FLIGHT_TERMINAL_GRACE
     flights=db.scalars(select(Flight).where(or_(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.updated_at>terminal_cutoff)).order_by(Flight.starts_at.desc()).limit(20)).all() if required in {"ADMIN","OWNER"} else []
     flight_logs=db.scalars(select(Flight).where(Flight.status.in_([FlightStatus.CANCELLED,FlightStatus.COMPLETED]),Flight.updated_at<=terminal_cutoff).order_by(Flight.updated_at.desc()).limit(100)).all() if required in {"ADMIN","OWNER"} else []
     feedback=db.execute(select(Feedback,User).join(User,Feedback.user_id==User.id).order_by(Feedback.created_at.desc()).limit(50)).all() if required=="OWNER" else []
     last_award=func.max(Transaction.created_at).label("last_award")
-    member_directory=db.execute(select(User,last_award).outerjoin(Transaction,(Transaction.user_id==User.id) & (Transaction.miles_change>0)).where(User.account_status==Status.ACTIVE).group_by(User.id).order_by(last_award.desc().nullslast(),User.created_at.desc())).all()
+    directory_total=db.scalar(select(func.count(User.id)).where(User.account_status==Status.ACTIVE)) or 0
+    directory_page=max(1,min(directory_page, max(1,(directory_total+23)//24)))
+    member_directory=db.execute(select(User,last_award)
+        .outerjoin(Transaction,(Transaction.user_id==User.id) & (Transaction.miles_change>0))
+        .where(User.account_status==Status.ACTIVE)
+        .group_by(User.id)
+        .order_by(last_award.desc().nullslast(),User.created_at.desc())
+        .limit(24).offset((directory_page-1)*24)).all()
     guild_roles=[]
-    if required=="OWNER":
+    if required=="OWNER" and request.query_params.get("show_roles") == "1":
         try: guild_roles=await discord_guild_roles(settings)
         except Exception: pass
-    audit_logs=db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
-    moderation_logs=db.scalars(select(ModerationAction).order_by(ModerationAction.created_at.desc()).limit(200)).all() if required=="OWNER" else []
-    notification_logs=db.scalars(select(NotificationLog).order_by(NotificationLog.created_at.desc()).limit(200)).all() if required=="OWNER" else []
+    audit_logs=db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(50)).all() if required=="OWNER" else []
+    moderation_logs=db.scalars(select(ModerationAction).order_by(ModerationAction.created_at.desc()).limit(50)).all() if required=="OWNER" else []
+    notification_logs=db.scalars(select(NotificationLog).order_by(NotificationLog.created_at.desc()).limit(50)).all() if required=="OWNER" else []
     sheet_sync_counts={}; sheet_sync_logs=[]
     if required=="OWNER":
         sheet_sync_counts={status:count for status,count in db.execute(select(SheetSyncEvent.status,func.count()).group_by(SheetSyncEvent.status)).all()}
         sheet_sync_logs=db.scalars(select(SheetSyncEvent).order_by(SheetSyncEvent.updated_at.desc()).limit(100)).all()
-    directory_users=db.scalars(select(User)).all() if required=="OWNER" else []
-    user_map={item.id:item for item in directory_users}
-    member_bookings={member.id:db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id).where(Booking.user_id==member.id).order_by(Booking.created_at.desc()).limit(10)).all() for member in users}
-    moderation={member.id:db.scalars(select(ModerationAction).where(ModerationAction.user_id==member.id).order_by(ModerationAction.created_at.desc()).limit(20)).all() for member in users}
+    lookup_ids=set()
+    if required=="OWNER":
+        lookup_ids={item.staff_user_id for item in audit_logs} | {item.target_user_id for item in audit_logs if item.target_user_id}
+    user_map={item.id:item for item in db.scalars(select(User).where(User.id.in_(lookup_ids))).all()} if lookup_ids else {}
+    member_bookings={member.id:[] for member in users}
+    moderation={member.id:[] for member in users}
+    if users:
+        ids=[member.id for member in users]
+        # Batch related records rather than causing 2x queries per member.
+        for booking,flight in db.execute(select(Booking,Flight).join(Flight,Booking.flight_id==Flight.id)
+                                         .where(Booking.user_id.in_(ids)).order_by(Booking.created_at.desc())
+                                         .limit(180)).all():
+            if len(member_bookings[booking.user_id])<10: member_bookings[booking.user_id].append((booking,flight))
+        for item in db.scalars(select(ModerationAction).where(ModerationAction.user_id.in_(ids))
+                               .order_by(ModerationAction.created_at.desc()).limit(250)).all():
+            if len(moderation[item.user_id])<20: moderation[item.user_id].append(item)
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
     announcement_settings=db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id==1)) if required=="OWNER" else None
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings))
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings,directory_total=directory_total,directory_page=directory_page,directory_pages=max(1,(directory_total+23)//24),guild_roles_loaded=request.query_params.get("show_roles") == "1"))
 
 
 @app.get("/staff",response_class=HTMLResponse)
-async def staff_panel(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"STAFF")
+async def staff_panel(request:Request,q:str="",directory_page:int=1,db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"STAFF",directory_page)
 
 
 @app.get("/admin",response_class=HTMLResponse)
-async def admin(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"ADMIN")
+async def admin(request:Request,q:str="",directory_page:int=1,db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"ADMIN",directory_page)
 
 
 @app.get("/owner",response_class=HTMLResponse)
-async def owner_panel(request:Request,q:str="",db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"OWNER")
+async def owner_panel(request:Request,q:str="",directory_page:int=1,db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"OWNER",directory_page)
 
 
 @app.post("/owner/announcement")

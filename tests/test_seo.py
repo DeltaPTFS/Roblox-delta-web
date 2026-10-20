@@ -13,7 +13,7 @@ def test_robots_txt_points_to_public_sitemap_without_exposing_member_routes():
     response = robots_txt()
     text = response.body.decode("utf-8")
     assert response.media_type == "text/plain"
-    assert "Allow: /\\n" in text
+    assert "Allow: /\n" in text
     assert "Disallow: /admin" in text
     assert "Disallow: /dashboard" in text
     assert "Disallow: /auth/" in text

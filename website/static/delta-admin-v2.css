@@ -190,3 +190,38 @@ font-size:14px;font-weight:800}
 .owner-announcement-fields label:last-child{grid-column:auto}.owner-announcement-layout{gap:15px}
 .owner-announcement-preview{padding:18px}.owner-announcement-submit{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.owner-announcement-preview .owner-preview-strip,.owner-announcement-state.is-live i{animation:none!important}}
+
+/* Fast, task-first panels: small pages and deferred directory media. */
+.delta-admin-v2 .delta-admin-quickstart{padding:26px clamp(18px,3vw,36px);border-radius:19px;
+  background:linear-gradient(135deg,#0d2b50,#182846);border:1px solid #7c9cb15a;margin:22px 0}
+.delta-admin-quickstart h2{font-size:clamp(24px,3vw,38px);letter-spacing:-.045em;margin:10px 0 6px}
+.delta-admin-quickstart>div>p{font-size:14px;color:#bdcee4;line-height:1.65}
+.delta-admin-quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin-top:20px}
+.delta-admin-quick-grid a{display:flex;flex-direction:column;position:relative;gap:9px;min-height:120px;padding:17px;
+  border:1px solid #8da7c44a;background:#183457;border-radius:12px;color:#fff;text-decoration:none!important;
+  transition:transform .2s,border-color .2s,background .2s}
+.delta-admin-quick-grid a:hover{transform:translateY(-3px);background:#234466;border-color:#fd809d7a}
+.delta-admin-quick-grid a>span{font-size:12px;color:#ff8bad;font-weight:900}
+.delta-admin-quick-grid strong{font-size:16px;color:#fff}
+.delta-admin-quick-grid small{color:#bfcee1;font-size:12px;line-height:1.45}
+.delta-admin-quick-grid i{position:absolute;right:15px;top:15px;font-style:normal;color:#ff93b0}
+.delta-admin-pagination{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px;
+ padding:17px;border-top:1px solid #c4d4ee30;font-size:13px;color:#d0e0f1}
+.delta-admin-pagination a{display:inline-flex;align-items:center;justify-content:center;min-height:37px;padding:7px 12px;
+ color:#fff;background:#24486b;border:1px solid #668da9;border-radius:9px;font-weight:850;text-decoration:none}
+.delta-admin-pagination a:hover{background:#36628d}
+.owner-preview-author{display:flex;align-items:center;gap:9px;margin-top:17px;border-top:1px solid #ffffff23;padding:13px 0 0}
+.owner-preview-author img{width:32px;height:32px;object-fit:cover;border-radius:50%;border:1px solid #ffffff52}
+.owner-preview-author span{display:grid;gap:2px}
+.owner-preview-author strong{font-size:12px;color:#fff}
+.owner-preview-author small{font-size:11px;color:#b9cfe7}
+/* Lists no longer cast heavyweight full-page GPU blurs. */
+.delta-admin-v2 .directory-list a,.delta-admin-v2 .admin-member,.delta-admin-v2 .audit-table article{box-shadow:none!important;backdrop-filter:none!important}
+.delta-admin-v2 .page-card:not(.owner-announcement-editor){backdrop-filter:none!important}
+.delta-admin-v2 .directory-list img,.delta-admin-v2 .admin-member img{content-visibility:auto}
+.delta-admin-v2 .ownership-logs,.delta-admin-v2 .flight-archive,.delta-admin-v2 .sheet-sync-admin,
+.delta-admin-v2 .member-directory,.delta-admin-v2 .feedback-admin{content-visibility:auto;contain-intrinsic-size:auto 500px}
+@media(max-width:630px){.delta-admin-quick-grid{grid-template-columns:1fr 1fr}.delta-admin-quick-grid a{padding:13px;min-height:121px}
+ .delta-admin-quick-grid strong{font-size:14px}.delta-admin-quick-grid small{font-size:11px}}
+@media(max-width:390px){.delta-admin-quick-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.delta-admin-quick-grid a{transition:none}.delta-admin-quick-grid a:hover{transform:none}}

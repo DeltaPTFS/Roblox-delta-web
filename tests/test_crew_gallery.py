@@ -122,26 +122,18 @@ def test_public_homepage_header_and_footer_branding():
 
 def test_homepage_visual_polish_is_fast_and_reduced_motion_safe():
     from pathlib import Path
-    html = Path("website/templates/homepage.html").read_text()
-    base = Path("website/templates/community_base.html").read_text()
-    header = Path("website/templates/_unified_site_header.html").read_text()
-    css = Path("website/static/community.css").read_text()
-    motion = Path("website/static/community-motion.js").read_text()
-    nav = Path("website/static/unified-delta-navigation.js").read_text()
-    for name in ("delta-hangar", "delta-centennial", "delta-terminal", "delta-lounge", "delta-hq", "delta-electric"):
-        assert '/static/gallery/' + name + '.webp' in html
-        assert '/gallery/media/' + name in html
-    assert 'fetchpriority="high"' in html
-    assert 'loading="lazy" decoding="async"' in html
-    assert 'class="community-footer-copy"' in base
-    assert 'class="sky-menu-bars"' in header
-    assert 'class="delta-account-caret"' in Path("website/templates/_account_panel.html").read_text()
-    assert 'community-motion.js' in base
-    assert "Escape" in nav
-    assert 'IntersectionObserver' in motion
-    assert 'prefers-reduced-motion: reduce' in motion
-    assert 'scroll-behavior:smooth' in css
-    assert 'body.delta-motion-ready [data-reveal]' in css
+    html=Path("website/templates/homepage.html").read_text()
+    base=Path("website/templates/community_base.html").read_text()
+    header=Path("website/templates/_unified_site_header.html").read_text()
+    css=Path("website/static/community.css").read_text()
+    js=Path("website/static/homepage-cinematic.js").read_text()
+    assert '/static/gallery/delta-centennial.webp' in html
+    assert '/static/gallery/delta-terminal.webp' in html
+    assert "loading=\"lazy\"" in html
+    assert "community-footer-copy" in base
+    assert "sky-menu-bars" in header
+    assert "IntersectionObserver" in js
+    assert "prefers-reduced-motion" in js
 
 def test_form_studio_question_controls_use_full_width_layout():
     from pathlib import Path

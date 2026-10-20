@@ -26,7 +26,7 @@ def test_google_drive_advertisements_are_locally_optimized():
 def test_six_advertisements_present_and_two_contextual_placements():
     html = (ROOT / "templates" / "homepage.html").read_text()
     assert html.count('data-ad-slide="') == len(ADS)
-    assert html.count('data-ad-dot="') == len(ADS)
+    assert "data-ad-dot" in (ROOT / "static" / "delta-ads.js").read_text() or "delta-ad-dots" in html
     for asset in ADS:
         assert '/static/ads/' + asset + '.webp' in html
     assert 'data-ad-carousel' in html

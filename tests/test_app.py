@@ -102,10 +102,14 @@ def test_mobile_title_channel_and_equal_tutorial_hosts():
     base=Path("website/templates/base.html").read_text()
     assert 'apple-mobile-web-app-title" content="DAL-roblox.com' in base
     assert "1541156846579089519" in Settings().discord_skymiles_channel_url
-    assert base.count("speaker:'Gre1'")==3
-    assert base.count("speaker:'Cookie'")==3
-    assert "Start Tutorial" in Path("website/templates/_account_panel.html").read_text() and "user.discord_display_name|tojson" in base
-    assert "tutorial-progress-bar" in base and "Follow the glowing highlight" in base
+    tour=Path("website/templates/_skymiles_tutorial.html").read_text()
+    guide=Path("website/static/skymiles-tour.js").read_text()
+    assert "Start Tutorial" in Path("website/templates/_account_panel.html").read_text()
+    assert "user.discord_display_name|tojson" in base
+    assert "tutorial-progress-bar" in tour and "Follow the highlighted part" in tour
+    assert "Grey R." in guide and "Cookie" in guide
+    assert "sessionStorage.setItem" in guide and "/trips" in guide and "/rewards" in guide
+    assert "tutorial_grey_avatar" in tour
 
 
 def test_member_name_uses_discord_server_profile_name():
@@ -138,7 +142,7 @@ def test_login_has_safe_oauth_and_disclaimer():
         assert "Log in with Discord" in response.text
         assert "Sign up with Roblox" in response.text
         assert "Access Forms with Discord" in response.text
-        assert "COMMUNITY OPERATIONS" in response.text
+        assert "DELTA DIGITAL EXPERIENCE" in response.text
         assert 'id="auth-tab-login"' in response.text
         assert 'id="auth-tab-signup"' in response.text
         assert '/static/auth-refresh.css?v=' in response.text
@@ -151,6 +155,8 @@ def test_login_has_safe_oauth_and_disclaimer():
 
 
 def test_signup_and_login_are_distinct_oauth_flows():
+    from website.app.database import Base, engine
+    Base.metadata.create_all(engine)
     with TestClient(app) as client:
         signup=client.get("/login?mode=signup&next=/flights")
         assert 'id="auth-panel-signup"' in signup.text

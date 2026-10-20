@@ -108,7 +108,7 @@ def test_repeated_signin_renders_welcome_audio_and_already_signed_in_message():
     response=signin_success(request,db=FakeDatabase(linked_user()))
     assert response.status_code==200
     assert b"already signed in." in response.body
-    assert b"play-welcome-sound" in response.body
+    assert b"play-welcome-sound" not in response.body
     assert b"delta-signin.mp3" in response.body
     finish=finish_signin_celebration(request)
     assert finish.headers["location"]=="/dashboard"
@@ -219,8 +219,8 @@ def test_sound_and_four_second_animation_are_bundled_as_real_assets():
     assert "You're <em>signed in.</em>" in html
     assert "success-check-svg" in html
     assert "/static/audio/delta-signin.mp3" in html
-    assert "setTimeout(activate, 3900)" in js
-    assert "audio.play()" in js
+    assert "setTimeout(enable, 3900)" in js
+    assert "sound.play()" in js
     assert "sound-button" not in html
     assert "autoplay-note" not in html
     assert 'href="/signin/finish"' in html

@@ -68,10 +68,11 @@ def test_premium_navigation_has_live_signup_and_mobile_access():
 def test_welcome_sound_replays_when_page_is_revisited():
     js = Path("website/static/signin-success.js").read_text()
     html = Path("website/templates/signin_success.html").read_text()
-    assert 'addEventListener(\'pageshow\', startWelcomeSound)' in js
-    assert 'audio.currentTime = 0' in js
-    assert 'audio.play()' in js
-    assert 'resumeOnGesture' in js
+    assert "window.addEventListener('pageshow'" in js
+    assert 'sound.currentTime = 0' in js
+    assert 'sound.play()' in js
+    assert "handleGesture" in js
+    assert 'play-welcome-sound' not in html
     assert 'delta-signin.mp3' in html
 
 
