@@ -396,7 +396,9 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
     target = safe_login_target(next)
     user = linked_user_from_session(request, db)
     if user and user.account_status == Status.ACTIVE:
-        return RedirectResponse(target, 303)
+        # Reopening Log In or Sign Up while authenticated should be explicit.
+        separator = "&" if "?" in target else "?"
+        return RedirectResponse(target + separator + "already_signed_in=1", 303)
     guest = request.session.get("forms_identity")
     if isinstance(guest, dict) and target.startswith("/forms"):
         return RedirectResponse(target, 303)
@@ -517,11 +519,12 @@ def start_discord_forms_login(request: Request, next: str = "/forms", force: boo
 @app.get("/auth/discord/login")
 @limiter.limit("10/minute")
 def start_discord_login(request: Request, next: str = "/dashboard", db: Session=Depends(get_db)):
-    if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
     target=safe_login_target(next)
     user=linked_user_from_session(request,db)
     if user and user.account_status==Status.ACTIVE:
-        return RedirectResponse(target,303)
+        separator = "&" if "?" in target else "?"
+        return RedirectResponse(target + separator + "already_signed_in=1", 303)
+    if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
     request.session["login_return"]=target
     request.session["discord_login_only"]=True
     state, challenge = oauth_values(request, "discord")
@@ -687,7 +690,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     request.session["discord_join_status"]=identity.get("join_status","not_confirmed")
     return queue_signin_success(request,display_name=user.discord_display_name,
                                 destination=login_return + ("&tutorial=1" if "?" in login_return else "?tutorial=1") if created_new and login_return == "/dashboard" else login_return,
-                                kind="skymiles",join_status=identity.get("join_status","not_confirmed"))
+                                kind="signup" if created_new else "skymiles",join_status=identity.get("join_status","not_confirmed"))
 
 
 async def refresh_discord_authorization(user: User, db: Session) -> str:

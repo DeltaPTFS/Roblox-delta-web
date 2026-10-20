@@ -84,7 +84,17 @@ def test_existing_linked_member_skips_skymiles_login_screen():
     result=login(request,db=FakeDatabase(linked_user()))
     assert isinstance(result,RedirectResponse)
     assert result.status_code==303
-    assert result.headers["location"]=="/dashboard"
+    assert result.headers["location"]=="/dashboard?already_signed_in=1"
+
+
+def test_logged_in_member_sees_explicit_already_signed_in_notice():
+    request=request_with_session({"user_id":17},path="/login")
+    result=login(request,mode="signup",db=FakeDatabase(linked_user()))
+    assert result.status_code==303
+    assert result.headers["location"]=="/dashboard?already_signed_in=1"
+    login_markup=Path("website/templates/base.html").read_text()
+    assert "You're already signed in!" in login_markup
+    assert 'request.query_params.get(\'already_signed_in\')' in login_markup
 
 
 def test_signin_success_stays_until_continue_to_original_destination_and_rotates_cookie_id():
@@ -125,6 +135,18 @@ def test_discord_only_success_cannot_claim_skymiles_membership():
     assert page.status_code==200
     assert b"Your Discord identity is confirmed" in page.body
     assert b"Your Delta SkyMiles account is connected" not in page.body
+
+
+def test_first_time_signup_gets_distinct_confirmation_page():
+    request=request_with_session({"user_id":17},path="/signin/success")
+    response=queue_signin_success(request,display_name="Captain Delta",
+                                  destination="/dashboard?tutorial=1",
+                                  kind="signup",join_status="joined")
+    assert response.headers["location"]=="/signin/success"
+    rendered=signin_success(request,db=FakeDatabase(linked_user()))
+    assert rendered.status_code==200
+    assert b"You've <em>signed up.</em>" in rendered.body
+    assert b"Your new Delta Roblox SkyMiles account is ready!" in rendered.body
 
 
 def test_sound_and_four_second_animation_are_bundled_as_real_assets():

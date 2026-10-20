@@ -132,3 +132,8 @@ body{background:#06132d;color:var(--white);font-family:Inter,ui-sans-serif,-appl
 .success-return-home:hover svg{transform:translateX(4px)}
 .success-return-home:focus-visible{outline:3px solid #baffdd;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){.success-finish{opacity:1;transform:none;pointer-events:auto}}
+
+.success-secondary-nav{position:relative;z-index:2;text-align:center;padding:12px 20px 32px}
+.success-secondary-nav a{display:inline-flex;gap:8px;align-items:center;color:#b8d4f7;border-bottom:1px solid #688dad;padding-bottom:4px;font-size:13px;font-weight:800;text-decoration:none}
+.success-secondary-nav a:hover{color:white;border-color:#fff}
+.success-secondary-nav a:focus-visible{outline:2px solid #7dedc7;outline-offset:6px}

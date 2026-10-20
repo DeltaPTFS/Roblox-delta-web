@@ -80,3 +80,44 @@
 @media(max-width:1100px){.core-hero-inner{grid-template-columns:1fr;max-width:820px;padding:70px 0 90px}.core-hero-art{max-width:700px;width:100%;margin-inline:auto}.core-hero h1{font-size:clamp(54px,9vw,80px)}.core-hero-stamp{right:-8px}.core-facts>div{padding:10px 16px}.core-benefit-grid{grid-template-columns:repeat(2,1fr)}.core-eligibility{align-items:flex-start;flex-direction:column}.core-tiers{justify-content:flex-start}.core-sky-section{grid-template-columns:1fr}.core-sky-copy{padding:85px 7vw}.core-sky-visual{min-height:450px}}
 @media(max-width:700px){.core-content-width{width:calc(100% - 40px)}.core-hero-inner{width:calc(100% - 42px);padding:52px 0 78px;gap:35px}.core-overline{font-size:9px;letter-spacing:.12em}.core-issue{font-size:10px;line-height:1.6}.core-hero h1{font-size:clamp(43px,9.5vw,64px);letter-spacing:-.06em}.core-lede{font-size:14px}.core-actions{flex-direction:column}.core-button{width:100%;justify-content:space-between}.core-partner-graphic{padding:17px 15px;transform:none}.core-graphic-topline,.core-graphic-footer{font-size:7px}.core-brands{min-height:240px;gap:3px;grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr)}.core-brand .core-delta-mark{height:55px;width:55px}.core-delta-word{font-size:20px}.core-brand span{font-size:6px;letter-spacing:.08em}.core-brand-cross{font-size:22px}.core-brand-virgin img{height:95px}.core-virgin-word{font-size:17px}.core-hero-stamp{right:-12px;bottom:-25px;padding:10px 13px;font-size:8px}.core-hero-stamp strong{font-size:9px}.core-facts{grid-template-columns:1fr;padding:13px 25px}.core-facts>div{border-right:0;border-bottom:1px solid #ffffff20;padding:18px 0;grid-template-columns:85px 1fr}.core-facts>div:last-child{border-bottom:0}.core-facts span{font-size:25px}.core-intro{padding-top:76px;padding-bottom:80px}.core-intro-grid{grid-template-columns:1fr;gap:15px}.core-intro-grid p,.core-sky-copy p,.core-connect-panel p{font-size:14px}.core-benefits{padding:75px 0}.core-section-heading{display:block}.core-section-number{display:none}.core-benefit-grid{grid-template-columns:1fr}.core-benefit{min-height:200px}.core-benefit h3{margin-top:23px}.core-eligibility{padding:20px}.core-sky-copy{padding:70px 20px}.core-sky-visual{min-height:350px}.core-connect{padding-top:75px;padding-bottom:80px}.core-connect-panel{grid-template-columns:1fr}.core-connect-panel-copy{padding:35px 23px}.core-final{padding:75px 20px 65px}.core-final-top{font-size:9px;letter-spacing:.1em;gap:8px}.core-final h2{font-size:48px}.core-signoff{margin-top:45px}}
 @media(prefers-reduced-motion:reduce){.core-button{transition:none}.core-button:hover{transform:none}}
+
+/* Partnership readability & cinematic polish */
+.core-section-kicker{font-size:clamp(12px,1vw,15px);line-height:1.6;letter-spacing:.19em}
+.core-overline{font-size:12px;line-height:1.65}
+.core-issue{font-size:13px;letter-spacing:.08em}
+.core-lede{font-size:clamp(16px,1.35vw,20px);line-height:1.82}
+.core-disclaimer{font-size:13px;line-height:1.75;color:#bdcbdf}
+.core-graphic-topline,.core-graphic-footer{font-size:11px;letter-spacing:.09em}
+.core-brand span{font-size:10px;letter-spacing:.09em}
+.core-hero-stamp{font-size:12px}
+.core-section-heading p,.core-intro-grid p,.core-sky-copy p,.core-connect-panel p{font-size:clamp(16px,1.25vw,19px);line-height:1.8}
+.core-benefit{border-radius:14px;transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.core-benefit:hover{transform:translateY(-7px);box-shadow:0 22px 50px #0d1e3f24;border-color:#d83963}
+.core-benefit h3{font-size:22px}
+.core-benefit p{font-size:15px;line-height:1.75}
+.core-eligibility-heading span{font-size:12px}
+.core-eligibility-heading strong{font-size:17px}
+.core-tiers span{font-size:13px;padding:12px 16px;border-radius:8px}
+.core-facts strong{font-size:17px}
+.core-facts small{font-size:14px}
+.core-graphic-footer .core-connected{font-size:11px}
+.core-reward-features{font-size:16px}
+.core-connect-panel-copy span{font-size:13px}
+.core-sky-visual-overlay span,.core-sky-visual-overlay small{font-size:13px;letter-spacing:.1em}
+.core-text-link{font-size:15px}
+.core-hero{background:linear-gradient(97deg,#07112efa,#111b36bd 58%,#34113591),url('/static/ads/delta-lax.webp') center center / cover no-repeat}
+.core-partner-graphic{box-shadow:0 52px 100px #0008,0 0 0 1px #d27aaa38;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.core-final{background:radial-gradient(ellipse at 50% 100%,#842a72,transparent 70%),linear-gradient(130deg,#071f46,#17143b)}
+@media(max-width:700px){
+  .core-overline{font-size:11px}
+  .core-issue{font-size:12px}
+  .core-disclaimer{font-size:12px}
+  .core-graphic-topline,.core-graphic-footer{font-size:9px}
+  .core-brand span{font-size:8px}
+  .core-benefit h3{font-size:20px}
+  .core-benefit p{font-size:15px}
+  .core-intro-grid p,.core-sky-copy p,.core-connect-panel p{font-size:16px}
+  .core-facts strong{font-size:16px}
+  .core-facts small{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){.core-benefit:hover{transform:none}.core-benefit{transition:none}}

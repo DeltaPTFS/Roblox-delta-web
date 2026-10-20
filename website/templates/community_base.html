@@ -24,27 +24,55 @@
 <meta name="twitter:card" content="summary_large_image">
 {% endif %}
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
-<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
+<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/premium-header.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
 <body>
-<header class="community-header">
-  <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
-  <nav class="community-primary-nav" aria-label="Primary navigation">
-    <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
-    <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
-  </nav>
-  <details class="community-mobile-menu"><summary aria-label="Open menu"><span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span></summary>
-    <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
-    <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
-    <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
-  </details>
-  <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option></select></label>
-  {% if viewer %}
-    <div class="community-account-slot">{% include "_account_panel.html" %}</div>
-  {% else %}
-    <a class="community-account" href="/login?intent=forms&amp;next=/forms">Sign in <span class="account-chevron" aria-hidden="true"></span></a>
-  {% endif %}
+<header class="community-header premium-header" id="site-header">
+  <div class="premium-announcement">
+    <div class="premium-announcement-inner">
+      {% if viewer %}
+      <span class="premium-announcement-label"><span class="premium-live-pulse"></span> YOUR JOURNEY CONTINUES WITH DELTA ROBLOX</span>
+      {% else %}
+      <a class="premium-signup-message" href="/signup"><span class="premium-live-pulse" aria-hidden="true"></span><span>NEW TO DELTA ROBLOX?</span> <strong>SIGN UP <span aria-hidden="true">↗</span></strong></a>
+      {% endif %}
+      <a class="premium-announcement-partner" href="/core-partnerships" aria-label="Explore our Virgin Atlantic core partnership">
+        <span class="premium-partner-label">OUR FIRST CORE PARTNER</span><strong>VIRGIN ATLANTIC</strong><span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+  <div class="premium-nav-shell">
+    <a class="community-brand" href="/" aria-label="Delta Roblox homepage">
+      <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
+      <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
+    </a>
+    <nav class="community-primary-nav" aria-label="Primary navigation">
+      <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
+      <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
+    </nav>
+    <div class="premium-header-actions">
+      <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option></select></label>
+      {% if viewer %}
+      <div class="community-account-slot">{% include "_account_panel.html" %}</div>
+      {% else %}
+      <a class="premium-get-started" href="/signup" aria-label="Sign up for Delta Roblox">Join Now <span aria-hidden="true">↗</span></a>
+      {% endif %}
+      <details class="community-mobile-menu"><summary aria-label="Open navigation menu"><span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span><span class="premium-menu-label">Menu</span></summary>
+        <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
+        <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
+        {% if not viewer %}<a class="premium-mobile-signup" href="/signup">Sign Up <span aria-hidden="true">↗</span></a>{% endif %}
+        <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
+      </details>
+    </div>
+  </div>
+  <span class="premium-header-accent" aria-hidden="true"></span>
 </header>
-<main>{% block content %}{% endblock %}</main>
+<main>
+{% if viewer and request.query_params.get('already_signed_in') == '1' %}
+<div class="delta-already-signed-in" role="status" aria-live="polite">
+<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+<div><strong>You're already signed in!</strong><p>Your Delta Roblox session is still active. There's no need to log in again.</p></div>
+</div>
+{% endif %}
+{% block content %}{% endblock %}</main>
 <footer class="community-footer"><div><div class="community-footer-brand"><img src="/static/delta-emblem.svg" alt="" width="60" height="54" decoding="async"><div class="community-footer-copy"><strong>DELTA AIR LINES</strong><p>Keep Climbing.</p></div></div></div>
 <div><p>Independent Roblox aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</p>
 <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}" class="footer-discord-link" {% if main_discord_member is defined and main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join our Discord" }} <span class="link-chevron" aria-hidden="true"></span></a></div></footer>

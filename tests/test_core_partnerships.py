@@ -43,3 +43,29 @@ def test_partner_link_in_site_navigation_and_homepage():
     assert base.count('<a href="/core-partnerships">Partnerships</a>') == 2
     assert 'href="/core-partnerships"' in home
     assert "/static/partnerships/virgin-flag.svg" in home
+
+
+def test_premium_navigation_has_live_signup_and_mobile_access():
+    template = Path("website/templates/community_base.html").read_text()
+    css = Path("website/static/premium-header.css").read_text()
+    motion = Path("website/static/community-motion.js").read_text()
+    assert 'class="premium-announcement"' in template
+    assert 'class="premium-signup-message" href="/signup"' in template
+    assert 'class="premium-get-started" href="/signup"' in template
+    assert 'class="community-mobile-menu"' in template
+    assert 'class="premium-nav-shell"' in template
+    assert 'href="/core-partnerships"' in template
+    assert '@media(max-width:430px)' in css
+    assert '@media(prefers-reduced-motion:reduce)' in css
+    assert 'data-premium-reveal' in motion
+    assert 'unobserve(entry.target)' in motion
+
+
+def test_welcome_sound_replays_when_page_is_revisited():
+    js = Path("website/static/signin-success.js").read_text()
+    html = Path("website/templates/signin_success.html").read_text()
+    assert 'addEventListener(\'pageshow\', startWelcomeSound)' in js
+    assert 'audio.currentTime = 0' in js
+    assert 'audio.play()' in js
+    assert 'resumeOnGesture' in js
+    assert 'delta-signin.mp3' in html
