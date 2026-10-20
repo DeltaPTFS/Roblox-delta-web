@@ -30,9 +30,10 @@
 <meta name="twitter:image" content="https://roblox-delta-web.vercel.app/static/gallery/delta-centennial.webp">
 {% endif %}
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
-<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/premium-header.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
+<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/premium-header.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/site-announcement.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
 <body>
 <header class="community-header premium-header" id="site-header">
+{% include "_site_announcement.html" %}
   <div class="premium-announcement">
     <div class="premium-announcement-inner">
       {% if viewer %}
