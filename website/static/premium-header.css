@@ -167,3 +167,6 @@ font-size:12px;color:#aabbd7;line-height:1.6}.community-join-card-footer span{fl
 .community-join-card{padding:27px 24px;border-radius:18px}
 .community-join-brandline{font-size:10px;letter-spacing:.12em}}
 @media(prefers-reduced-motion:reduce){.community-join-primary{transition:none}.community-join-primary:hover{transform:none}}
+
+.community-join-warning{padding:15px 17px;border:1px solid #fac27e99;border-left:4px solid #ffc079;background:#5d371c80;
+color:#fff4e1;font-weight:700;font-size:14px;line-height:1.65;border-radius:12px}
