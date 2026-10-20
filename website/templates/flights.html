@@ -1,6 +1,91 @@
-{% extends "base.html" %}{% block title %}Book a Flight{% endblock %}{% block content %}
-<section class="flight-hero"><span class="eyebrow light">COMMUNITY SCHEDULE</span><h1>Where will you fly next?</h1><p>Available flights are published by our operations team or synchronized from scheduled Discord events.</p><div class="flight-local-clock" data-live-clock><span>YOUR LOCAL TIME</span><strong>--:--:--</strong><small>Detecting your timezone…</small></div></section>
-{% if request.query_params.get('booked') %}<div class="toast">✓ Reservation saved. Your selected amenities apply to this flight only.</div>{% endif %}{% if request.query_params.get('cancelled') %}<div class="toast">✓ You left the flight. Eligible booking items and flight-only amenities have been returned.</div>{% endif %}
-<section class="flight-list">{% for flight in flights %}{% set booking=bookings.get(flight.id) %}{% set active=booking and booking.status == 'CONFIRMED' %}<article class="flight-card"><div class="flight-image" {% if flight.image_url %}style="background-image:url('{{ flight.image_url }}')"{% endif %}><span class="flight-status status-{{ flight.status.value|lower }}">{{ flight.status.value }}</span><span class="flight-number">{{ flight.flight_number }}</span></div><div class="flight-details"><span class="eyebrow">{{ flight.departure_airport }} → {{ flight.destination_airport }}</span><h2>{{ flight.name }}</h2><p>{{ flight.description or 'Join the Delta Roblox community for a hosted flight from departure through arrival, with coordinated boarding and in-flight service.' }}</p>{% if flight.status_message %}<div class="flight-alert">{{ flight.status_message }}</div>{% endif %}<div class="flight-meta"><div><small>DEPARTURE · YOUR TIME</small><b data-local-time="{{ flight.starts_at.isoformat() }}">{{ flight.starts_at.strftime('%b %d · %H:%M UTC') }}</b></div><div><small>ROUTE</small><b>{{ flight.departure_airport }} → {{ flight.destination_airport }}</b></div><div><small>PUBLISHED REWARD</small><b>+{{ "{:,}".format(flight.miles_reward) }} MILES</b></div></div>{% if flight.status.value in ['CANCELLED','COMPLETED'] %}<button class="button terminal-flight-button" disabled>{{ flight.status.value|title }} · Moving to My Trips shortly</button>{% else %}<button class="button primary open-booking" data-flight="{{ flight.id }}" data-name="{{ flight.flight_number }} · {{ flight.name|e }}" data-description="{{ (flight.description or 'A hosted Delta Roblox community flight.')|e }}" data-active="{{ 'true' if active else 'false' }}" data-amenities='{{ booking.amenities|tojson if active else "[]" }}'>{{ 'Manage Booking' if active else 'Rebook This Flight' if booking else 'Book This Flight!' }}</button>{% endif %}</div></article>{% else %}<div class="empty-flight"><span>✈</span><h2>No flights are boarding yet</h2><p>When staff publish a flight or schedule a Discord event, it will appear here.</p></div>{% endfor %}</section>
+{% extends "base.html" %}
+{% block title %}Current Flights | Delta Roblox{% endblock %}
+{% block content %}
+<div class="flight-terminal">
+  <section class="flight-terminal-hero" aria-labelledby="flights-title">
+    <div class="flight-terminal-aurora" aria-hidden="true"></div>
+    <div class="flight-terminal-runway" aria-hidden="true"></div>
+    <div class="flight-terminal-hero-inner">
+      <nav class="flight-terminal-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">DELTA ROBLOX</a><span aria-hidden="true">/</span><strong>FLIGHT OPERATIONS</strong>
+      </nav>
+      <div class="flight-terminal-live"><i aria-hidden="true"></i> DELTA OPERATIONS CENTER <span>·</span> COMMUNITY FLIGHTS</div>
+      <h1 id="flights-title">Your next flight<br><em>starts here.</em></h1>
+      <p>Track our hosted Roblox flights, check upcoming departure details, and discover where the community is flying next.</p>
+      <div class="flight-terminal-stats">
+        <div><span>AVAILABLE FLIGHTS</span><strong>{{ flights|length }}</strong><small>Scheduled or delayed</small></div>
+        <div><span>FLIGHT STATUS</span><strong>{{ 'OPEN' if flights else 'STANDBY' }}</strong><small>{{ 'Departures published' if flights else 'Awaiting new departures' }}</small></div>
+        <div class="flight-terminal-clock" data-live-clock><span>YOUR LOCAL TIME</span><strong>--:--:--</strong><small>Detecting your timezone…</small></div>
+      </div>
+    </div>
+    <div class="flight-terminal-plane" aria-hidden="true"><span>✈</span></div>
+  </section>
+
+  {% if request.query_params.get('booked') %}<div class="toast" role="status">✓ Reservation saved. Your selected amenities apply to this flight only.</div>{% endif %}
+  {% if request.query_params.get('cancelled') %}<div class="toast" role="status">✓ You left the flight. Eligible booking items and flight-only amenities have been returned.</div>{% endif %}
+
+  <section class="flight-terminal-content" id="current-flights" aria-labelledby="flight-board-title">
+    <div class="flight-terminal-board-header">
+      <div><span class="flight-terminal-eyebrow">LIVE COMMUNITY SCHEDULE</span><h2 id="flight-board-title">Current flights</h2>
+        <p>Only scheduled or delayed departures that are still current appear below.</p></div>
+      <div class="flight-terminal-board-meta"><span class="flight-terminal-bullet"></span>{{ flights|length }} {{ 'FLIGHT' if flights|length == 1 else 'FLIGHTS' }} LISTED</div>
+    </div>
+    {% if sync_error %}
+    <div class="flight-terminal-warning" role="status">Our live Discord schedule couldn't be refreshed just now. Showing the latest flights already saved on the website.</div>
+    {% endif %}
+    <div class="flight-terminal-list">
+    {% for flight in flights %}
+      {% set booking = bookings.get(flight.id) %}
+      {% set active = booking and booking.status == 'CONFIRMED' %}
+      <article class="flight-terminal-card">
+        <div class="flight-terminal-card-media" {% if flight.image_url %}style="background-image:url('{{ flight.image_url|e }}')"{% endif %}>
+          <span class="flight-terminal-flight-number">{{ flight.flight_number or 'DAL FLIGHT' }}</span>
+          <span class="flight-terminal-status status-{{ flight.status.value|lower }}"><i aria-hidden="true"></i>{{ flight.status.value }}</span>
+          <span class="flight-terminal-image-label">DELTA ROBLOX AVIATION</span>
+        </div>
+        <div class="flight-terminal-card-body">
+          <div class="flight-terminal-route"><span>{{ flight.departure_airport or 'TBA' }}</span><span class="flight-terminal-route-line" aria-label="to">✈</span><span>{{ flight.destination_airport or 'TBA' }}</span></div>
+          <h3>{{ flight.name }}</h3>
+          <p>{{ flight.description or 'Join a hosted Delta Roblox community flight, from boarding through arrival.' }}</p>
+          {% if flight.status_message %}<div class="flight-terminal-alert">{{ flight.status_message }}</div>{% endif %}
+          <div class="flight-terminal-card-facts">
+            <div><small>DEPARTURE · YOUR TIME</small><strong data-local-time="{{ flight.starts_at.isoformat() }}">{{ flight.starts_at.strftime('%b %d · %H:%M UTC') }}</strong></div>
+            <div><small>AIRCRAFT</small><strong>{{ flight.aircraft or 'To be announced' }}</strong></div>
+            <div><small>SKYMILES REWARD</small><strong>+{{ "{:,}".format(flight.miles_reward) }} miles</strong></div>
+          </div>
+          {% if can_book %}
+            <button class="flight-terminal-book open-booking" type="button"
+               data-flight="{{ flight.id }}"
+               data-name="{{ flight.flight_number }} · {{ flight.name|e }}"
+               data-description="{{ (flight.description or 'A hosted Delta Roblox community flight.')|e }}"
+               data-active="{{ 'true' if active else 'false' }}"
+               data-amenities='{{ booking.amenities|tojson if active else "[]" }}'>
+               {{ 'Manage your booking' if active else 'Rebook this flight' if booking else 'Book this flight' }} <span aria-hidden="true">→</span>
+            </button>
+          {% else %}
+            <a class="flight-terminal-book" href="/login?mode=signup&amp;next=%2Fflights">Activate SkyMiles to book <span aria-hidden="true">→</span></a>
+          {% endif %}
+        </div>
+      </article>
+    {% else %}
+      <div class="flight-terminal-empty" role="status">
+        <div class="flight-terminal-empty-art" aria-hidden="true">
+          <span class="flight-terminal-empty-ring"></span><span class="flight-terminal-empty-ring inner"></span>
+          <span class="flight-terminal-empty-aircraft">✈</span>
+        </div>
+        <span class="flight-terminal-empty-kicker"><i aria-hidden="true"></i> DEPARTURE BOARD ON STANDBY</span>
+        <h3>No flights scheduled right now.</h3>
+        <p>There are currently no upcoming Delta Roblox flights published. When our flight operations team schedules a new departure, it will appear here.</p>
+        <div class="flight-terminal-empty-actions">
+          <a href="{{ settings.discord_invite_url }}" target="_blank" rel="noopener noreferrer">Visit Delta Discord <span aria-hidden="true">↗</span></a>
+          <a href="/" class="flight-terminal-empty-outline">Back to Homepage <span aria-hidden="true">←</span></a>
+        </div>
+        <div class="flight-terminal-empty-foot">KEEP CLIMBING · THE NEXT ADVENTURE IS COMING</div>
+      </div>
+    {% endfor %}
+    </div>
+    <div class="flight-terminal-note">Published flight details are managed by Delta Roblox operations. Rewards are reviewed and awarded by authorized staff after eligible flights.</div>
+  </section>
+</div>
 <dialog id="booking-modal" class="booking-modal"><form method="post" id="booking-form"><button type="button" class="modal-close" aria-label="Close">×</button><span class="eyebrow">YOUR FLIGHT BOOKING</span><h2 id="booking-title">Book this flight</h2><p class="booking-description" id="booking-description"></p><div class="refund-notice" id="refund-notice" hidden><b>Leaving this flight?</b><span>You will receive a refund for any eligible SkyMiles booking items, and all flight-only amenities will be returned. This does not refund separately fulfilled rewards.</span></div><input type="hidden" name="csrf" value="{{ csrf }}"><div class="amenity-list">{% for item in amenities %}<label class="amenity"><input type="checkbox" name="amenities" value="{{ item.id }}"><span><b>{{ item.name }}</b><small>{{ item.description }}</small></span><i>ADD</i></label>{% endfor %}</div><button class="button primary" id="booking-submit">Confirm Flight Booking</button><button class="button booking-leave" type="submit" id="booking-leave" hidden>Leave Flight &amp; Request Refund</button><small class="modal-note">Flight rewards are reviewed and applied by authorized staff; they are not added automatically.</small></form></dialog>
 <script>const modal=document.querySelector('#booking-modal'),form=document.querySelector('#booking-form'),title=document.querySelector('#booking-title'),description=document.querySelector('#booking-description'),leave=document.querySelector('#booking-leave'),refund=document.querySelector('#refund-notice'),submit=document.querySelector('#booking-submit');document.querySelectorAll('.open-booking').forEach(button=>button.addEventListener('click',()=>{const active=button.dataset.active==='true',selected=JSON.parse(button.dataset.amenities||'[]');form.action=`/flights/${button.dataset.flight}/book`;title.textContent=(active?'Manage ':'Book ')+button.dataset.name;description.textContent=button.dataset.description;submit.textContent=active?'Save Booking Changes':'Confirm Flight Booking';leave.hidden=!active;refund.hidden=!active;leave.formAction=`/flights/${button.dataset.flight}/cancel`;form.querySelectorAll('[name=amenities]').forEach(x=>x.checked=selected.includes(x.value));modal.showModal()}));document.querySelector('.modal-close').onclick=()=>modal.close();modal.onclick=e=>{if(e.target===modal)modal.close()}</script>{% endblock %}
