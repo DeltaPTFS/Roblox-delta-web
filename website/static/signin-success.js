@@ -1,58 +1,41 @@
-/* Delta welcome audio — repeatable on each confirmed sign-in/sign-up. */
+/* Play the Delta welcome audio on every successful login/return.
+   Audible autoplay cannot be forced when a browser blocks it. In that case
+   play on the visitor's first actual interaction, with no visible sound UI. */
 (() => {
   'use strict';
-  const audio = document.getElementById('signin-sound');
+  const sound = document.getElementById('signin-sound');
   const finish = document.getElementById('success-finish');
-  const replay = document.getElementById('play-welcome-sound');
-  const label = document.getElementById('welcome-sound-label');
-  const hint = document.getElementById('welcome-sound-hint');
-  if (!audio || !finish || !replay || !label || !hint) return;
-
-  audio.volume = .9;
-  audio.playsInline = true;
-  audio.preload = 'auto';
-  const showBlocked = () => {
-    // iOS Safari and some browsers forbid audible autoplay after OAuth.
-    // A real button click is always an explicit playback request.
-    label.textContent = 'Tap to play welcome sound';
-    hint.hidden = false;
-    replay.setAttribute('aria-label', 'Tap to play welcome sound');
-  };
-  const showPlaying = () => {
-    label.textContent = 'Replay welcome sound';
-    hint.hidden = true;
-    replay.setAttribute('aria-label', 'Replay welcome sound');
-  };
-  const playWelcomeSound = () => {
+  if (!sound || !finish) return;
+  sound.volume = .9;
+  sound.preload = 'auto';
+  let fallbackPending = false;
+  let started = false;
+  let attemptId = 0;
+  function play() {
+    if (started) return;
+    const id = ++attemptId;
     try {
-      audio.pause();
-      audio.currentTime = 0;
-      const attempt = audio.play();
-      if (attempt && typeof attempt.then === 'function') {
-        attempt.then(showPlaying).catch(showBlocked);
-      } else {
-        showPlaying();
-      }
-    } catch (_) {
-      showBlocked();
-    }
-  };
-
-  // A user-initiated click works on browsers where automatic sound is blocked.
-  replay.addEventListener('click', playWelcomeSound);
-
-  // Fire on fresh navigation as well as back/forward-cache page restoration.
-  // Only plays on the authenticated welcome page, never throughout the site.
-  window.addEventListener('pageshow', playWelcomeSound);
-
+      const promise = sound.play();
+      if (promise && typeof promise.then === 'function') {
+        promise.then(() => { if (id === attemptId) { started = true; fallbackPending = false; } })
+          .catch(() => { if (id === attemptId) fallbackPending = true; });
+      } else { started = true; fallbackPending = false; }
+    } catch (_) { fallbackPending = true; }
+  }
+  function handleGesture() { if (fallbackPending && !started) play(); }
+  document.addEventListener('pointerdown', handleGesture, {passive:true});
+  document.addEventListener('keydown', handleGesture);
+  window.addEventListener('pageshow', () => {
+    try { sound.pause(); sound.currentTime = 0; } catch (_) {}
+    started = false;
+    fallbackPending = false;
+    play();
+  });
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const activate = () => {
+  const enable = () => {
     finish.classList.add('is-ready');
     const link = finish.querySelector('a');
     if (link) link.removeAttribute('aria-disabled');
   };
-  if (reduced) activate();
-  else window.setTimeout(activate, 3900);
-
-  // No automatic navigation. The member chooses when to leave the page.
+  if (reduced) enable(); else window.setTimeout(enable, 3900);
 })();
