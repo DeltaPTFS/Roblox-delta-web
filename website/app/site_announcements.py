@@ -12,7 +12,8 @@ from .models import SiteAnnouncement
 def announcement_for_page(request):
     """A Jinja context processor (works across separate site template engines)."""
     path = request.url.path
-    if path == "/forms" or path.startswith("/forms/"):
+    if (path == "/forms" or path.startswith("/forms/")
+            or (path == "/login" and request.query_params.get("intent") == "forms")):
         return {"site_announcement": None}
     try:
         with SessionLocal() as db:
