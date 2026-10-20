@@ -105,7 +105,7 @@
 .core-connect-panel-copy span{font-size:13px}
 .core-sky-visual-overlay span,.core-sky-visual-overlay small{font-size:13px;letter-spacing:.1em}
 .core-text-link{font-size:15px}
-.core-hero{background:linear-gradient(97deg,#07112efa,#111b36bd 58%,#34113591),url('/static/ads/delta-lax.webp') center center / cover no-repeat}
+.core-hero{background:linear-gradient(97deg,#07112ef0,#111b36b3 56%,#3411357a),url('/static/gallery/delta-terminal.webp') center center / cover no-repeat}
 .core-partner-graphic{box-shadow:0 52px 100px #0008,0 0 0 1px #d27aaa38;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .core-final{background:radial-gradient(ellipse at 50% 100%,#842a72,transparent 70%),linear-gradient(130deg,#071f46,#17143b)}
 @media(max-width:700px){
