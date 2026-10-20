@@ -1,0 +1,92 @@
+/* Current flights / Delta Roblox flight operations board */
+.flight-terminal{background:#07142d;color:#f8faff;min-height:85vh;font-family:Manrope,DM Sans,Arial,sans-serif;overflow:hidden}
+.flight-terminal-hero{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(90deg,#061228ed 2%,#0c234aee 55%,#071b389e),url('/static/ads/delta-lax.webp') center 47% /cover no-repeat;border-bottom:1px solid #94acd83b}
+.flight-terminal-aurora{position:absolute;inset:-30% -10%;pointer-events:none;z-index:-1;background:radial-gradient(circle at 76% 36%,#ff386c2e,transparent 35%),radial-gradient(ellipse at 35% 10%,#3571dd3d,transparent 55%);filter:blur(9px)}
+.flight-terminal-runway{position:absolute;right:-15%;bottom:-23%;height:550px;width:850px;border:1px solid #ffffff19;border-radius:50%;transform:rotate(-18deg);pointer-events:none}
+.flight-terminal-runway:before{content:"";position:absolute;inset:70px;border:1px solid #ffffff13;border-radius:50%}
+.flight-terminal-hero-inner{width:min(1410px,calc(100% - 8vw));padding:clamp(52px,8vw,110px) 0 68px;margin:0 auto;position:relative;z-index:2}
+.flight-terminal-breadcrumb{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:850;letter-spacing:.14em;color:#a9c7e6}
+.flight-terminal-breadcrumb a:hover{color:#fff}
+.flight-terminal-breadcrumb strong{font-size:11px;color:#f5b1c6}
+.flight-terminal-live{margin-top:53px;display:flex;align-items:center;gap:11px;color:#d0ddf4;font-size:11px;font-weight:850;letter-spacing:.19em}
+.flight-terminal-live i,.flight-terminal-empty-kicker i,.flight-terminal-bullet,.flight-terminal-status i{display:inline-block;width:8px;height:8px;flex:none;border-radius:50%;background:#f75c87;box-shadow:0 0 0 5px #f75c8725,0 0 15px #ff638798}
+.flight-terminal-live>span{color:#f078a0}
+.flight-terminal-hero h1{font-size:clamp(52px,6.8vw,105px);font-weight:850;line-height:1.03;letter-spacing:-.07em;margin:24px 0;max-width:1000px}
+.flight-terminal-hero h1 em{font-style:normal;background:linear-gradient(90deg,#fff 0%,#d0dbfa 45%,#fc86b7);background-clip:text;-webkit-background-clip:text;color:transparent}
+.flight-terminal-hero-inner>p{font-size:clamp(16px,1.6vw,21px);line-height:1.75;color:#c4d1e4;max-width:670px;margin:20px 0 48px}
+.flight-terminal-stats{display:flex;flex-wrap:wrap;gap:0;width:min(770px,100%);background:#07132bb8;border:1px solid #8db1d03b;border-radius:15px;box-shadow:0 20px 46px #0004;backdrop-filter:blur(18px)}
+.flight-terminal-stats>div{padding:21px 26px;display:flex;flex-direction:column;gap:6px;flex:1;min-width:175px;border-right:1px solid #d0daea1c}
+.flight-terminal-stats>div:last-child{border:0}
+.flight-terminal-stats span{font-size:10px;letter-spacing:.16em;color:#adc0db;font-weight:850}
+.flight-terminal-stats strong{font-size:29px;font-weight:850;line-height:1.17;color:#f8fbff;letter-spacing:-.025em}
+.flight-terminal-stats small{font-size:11px;color:#aebfda}
+.flight-terminal-plane{position:absolute;right:7%;top:28%;font-size:clamp(95px,18vw,240px);line-height:1;transform:rotate(-23deg);color:#ffffff0b;z-index:1;pointer-events:none;text-shadow:0 0 90px #ffffff0d}
+.flight-terminal-content{width:min(1410px,calc(100% - 8vw));margin:0 auto;padding:74px 0 105px}
+.flight-terminal-board-header{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:34px}
+.flight-terminal-eyebrow{font-size:12px;color:#f57c9e;letter-spacing:.24em;font-weight:850}
+.flight-terminal-board-header h2{font-size:clamp(39px,4.2vw,66px);line-height:1.12;letter-spacing:-.06em;margin:14px 0 11px}
+.flight-terminal-board-header p{font-size:16px;color:#aebed9;line-height:1.72;margin:0}
+.flight-terminal-board-meta{border:1px solid #85a6d54c;padding:12px 17px;border-radius:999px;display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:.1em;color:#e8efff;font-weight:850;white-space:nowrap}
+.flight-terminal-bullet{background:#77c9e5;box-shadow:0 0 0 4px #77c9e524,0 0 13px #77c9e55c}
+.flight-terminal-warning{background:#554122aa;border:1px solid #ffbd7d91;padding:16px 20px;border-radius:11px;font-size:14px;color:#ffefdc;line-height:1.65;margin-bottom:24px}
+.flight-terminal-list{display:grid;gap:24px}
+.flight-terminal-card{display:grid;grid-template-columns:minmax(270px,.37fr) 1fr;border:1px solid #7798c041;background:linear-gradient(120deg,#112347,#0b1b37);border-radius:18px;overflow:hidden;box-shadow:0 18px 42px #0003;transition:transform .25s,box-shadow .25s,border-color .25s}
+.flight-terminal-card:hover{transform:translateY(-4px);border-color:#d1acc17b;box-shadow:0 23px 56px #0006}
+.flight-terminal-card-media{position:relative;min-height:360px;display:flex;align-items:flex-start;justify-content:space-between;flex-direction:column;gap:15px;padding:25px;background:linear-gradient(180deg,#07112968,#091c3ec7),url('/static/gallery/delta-terminal.webp') center/cover no-repeat}
+.flight-terminal-flight-number{font-size:13px;letter-spacing:.18em;font-weight:850;color:#fff;background:#050f27a9;padding:11px 14px;border-radius:8px;border:1px solid #c9e4ff3a}
+.flight-terminal-status{display:inline-flex;gap:12px;align-items:center;font-size:12px;font-weight:850;letter-spacing:.13em;color:#f7faff;background:#14284fbf;padding:11px 14px;border-radius:8px;text-transform:uppercase;border:1px solid #d6e9ff45}
+.flight-terminal-status i{width:6px;height:6px;background:#78efd0}
+.flight-terminal-status.status-delayed i{background:#ffbb70}
+.flight-terminal-image-label{font-size:10px;letter-spacing:.14em;font-weight:850;color:#c3ddf5}
+.flight-terminal-card-body{padding:34px clamp(25px,4vw,53px)}
+.flight-terminal-route{display:flex;align-items:center;gap:16px;font-weight:900;font-size:clamp(20px,2.3vw,34px);letter-spacing:.16em;color:#fff}
+.flight-terminal-route-line{position:relative;display:inline-grid;place-items:center;flex:0 1 140px;min-width:45px;color:#ff708e;font-size:23px;font-weight:500}
+.flight-terminal-route-line:before,.flight-terminal-route-line:after{content:"";height:1px;background:#c7d5e96c;flex:1;position:absolute;width:35%;top:50%}
+.flight-terminal-route-line:before{left:0}.flight-terminal-route-line:after{right:0}
+.flight-terminal-card h3{font-size:clamp(23px,2.4vw,34px);letter-spacing:-.045em;line-height:1.16;margin:22px 0 12px}
+.flight-terminal-card-body>p{font-size:15px;color:#c2d0e4;line-height:1.78;max-width:800px;margin:0 0 22px}
+.flight-terminal-alert{border-left:3px solid #ffb17a;background:#f39b6b1c;padding:12px 15px;color:#ffe5ca;margin:12px 0}
+.flight-terminal-card-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:24px 0;border-top:1px solid #ffffff25}
+.flight-terminal-card-facts>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.flight-terminal-card-facts small{font-size:10px;font-weight:800;letter-spacing:.11em;color:#91a9cf}
+.flight-terminal-card-facts strong{font-size:14px;font-weight:800;color:#fff;overflow-wrap:anywhere}
+.flight-terminal-book{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:15px 21px;
+ background:linear-gradient(115deg,#c8102e,#ea3056);border:1px solid #f6647e;color:#fff;
+ font-size:14px;font-weight:850;border-radius:10px;cursor:pointer;max-width:360px;min-height:50px}
+.flight-terminal-book:hover{color:#fff;background:#ed375f}.flight-terminal-book span{font-size:19px}
+.flight-terminal-empty{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(42px,7vw,95px) 22px 58px;border:1px solid #718ab85b;border-radius:23px;background:radial-gradient(ellipse at 50% 0%,#2e39667b,transparent 65%),linear-gradient(145deg,#0b2450,#080e25)}
+.flight-terminal-empty:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 15%,#ffffff08 46%,transparent 73%);transform:translateX(-80%)}
+.flight-terminal-empty-art{position:relative;display:grid;place-items:center;width:185px;height:185px;margin:0 0 15px}
+.flight-terminal-empty-ring{position:absolute;inset:8px;border:1px dashed #bdcdea66;border-radius:50%}
+.flight-terminal-empty-ring.inner{inset:32px;border:1px solid #e6b3d33c}
+.flight-terminal-empty-aircraft{font-size:73px;line-height:1;transform:rotate(-34deg);color:#f7a1bd;text-shadow:0 0 45px #e33e74a3}
+.flight-terminal-empty-kicker{display:flex;align-items:center;gap:14px;font-size:11px;font-weight:850;color:#d9adc2;letter-spacing:.17em}
+.flight-terminal-empty-kicker i{background:#ffa7bf}
+.flight-terminal-empty h3{font-size:clamp(31px,3.7vw,55px);letter-spacing:-.06em;margin:23px 0 12px;line-height:1.12}
+.flight-terminal-empty>p{font-size:clamp(15px,1.4vw,18px);color:#b4c7e2;max-width:680px;line-height:1.85;margin:0}
+.flight-terminal-empty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:13px;margin:30px 0}
+.flight-terminal-empty-actions a{display:inline-flex;justify-content:space-between;gap:26px;align-items:center;min-height:52px;padding:14px 20px;border:1px solid #ec5f83;background:#c8102e;border-radius:10px;font-size:13px;font-weight:850;color:#fff}
+.flight-terminal-empty-actions a.flight-terminal-empty-outline{border-color:#829dc46c;background:#ffffff0c}
+.flight-terminal-empty-actions a:hover{filter:brightness(1.15)}
+.flight-terminal-empty-foot{font-size:10px;color:#95b0d2;font-weight:850;letter-spacing:.18em;margin-top:27px}
+.flight-terminal-note{font-size:12px;line-height:1.7;color:#8ea3c4;margin-top:28px}
+@media(min-width:951px) and (prefers-reduced-motion:no-preference){.flight-terminal-empty:before{animation:terminal-sweep 9s ease-in-out infinite}.flight-terminal-empty-ring{animation:terminal-rotate 27s linear infinite}
+.flight-terminal-plane{animation:terminal-aircraft 7s ease-in-out infinite alternate}
+.flight-terminal-hero-inner{animation:terminal-appear .9s ease-out both}
+@keyframes terminal-appear{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:none}}
+@keyframes terminal-sweep{0%,35%{transform:translateX(-80%)}68%,100%{transform:translateX(120%)}}
+@keyframes terminal-aircraft{from{transform:translate(-18px,10px) rotate(-23deg)}to{transform:translate(25px,-18px) rotate(-23deg)}}
+@keyframes terminal-rotate{to{transform:rotate(360deg)}}}
+@media(max-width:950px){.flight-terminal-card{grid-template-columns:1fr}.flight-terminal-card-media{min-height:260px}.flight-terminal-card-body{padding:30px}
+.flight-terminal-hero-inner{padding:55px 0 55px}.flight-terminal-plane{right:-12%;top:32%}}
+@media(max-width:650px){.flight-terminal-content,.flight-terminal-hero-inner{width:calc(100% - 36px)}
+.flight-terminal-hero h1{font-size:clamp(46px,11vw,70px)}
+.flight-terminal-hero-inner>p{font-size:16px}.flight-terminal-live{margin-top:37px;font-size:10px;letter-spacing:.09em}
+.flight-terminal-board-header{align-items:flex-start;flex-direction:column;gap:15px}.flight-terminal-board-header p{font-size:14px}
+.flight-terminal-stats{display:grid;grid-template-columns:1fr 1fr}.flight-terminal-stats>div{min-width:0;padding:16px}
+.flight-terminal-stats>div:nth-child(2){border-right:0}.flight-terminal-stats>div:last-child{grid-column:span 2;border-top:1px solid #ffffff25}
+.flight-terminal-content{padding:55px 0}.flight-terminal-card-media{min-height:220px}
+.flight-terminal-card-facts{grid-template-columns:1fr 1fr}.flight-terminal-card-facts>div:last-child{grid-column:span 2}
+.flight-terminal-route{font-size:22px}.flight-terminal-book{max-width:none;width:100%}
+.flight-terminal-empty{padding:42px 20px 45px}.flight-terminal-empty-actions{width:100%;flex-direction:column}.flight-terminal-empty-actions a{width:100%}.flight-terminal-empty-foot{line-height:1.7}}
+@media(prefers-reduced-motion:reduce){.flight-terminal-card{transition:none}.flight-terminal-card:hover{transform:none}.flight-terminal-plane,.flight-terminal-empty-ring,.flight-terminal-empty:before{animation:none!important}}

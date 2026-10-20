@@ -166,7 +166,7 @@ def test_protected_pages_redirect_to_unified_login_with_return_path():
     with TestClient(app) as client:
         for path, expected in (
             ("/admin", "/login?next=%2Fadmin"),
-            ("/flights", "/login?next=%2Fflights"),
+            ("/flights", "/login?intent=community&next=%2Fflights"),
             ("/dashboard", "/login?next=%2Fdashboard"),
             ("/trips", "/login?next=%2Ftrips"),
             ("/forms", "/login?intent=forms&next=%2Fforms"),
@@ -190,7 +190,7 @@ def test_flight_management_is_manual_and_local_time_enabled():
     assert 'if new_status == FlightStatus.COMPLETED' not in main_source
     assert 'data-local-time' in flight_template
     assert 'Leave Flight &amp; Request Refund' in flight_template
-    assert 'Rebook This Flight' in flight_template
+    assert 'Rebook this flight' in flight_template
 
 
 def test_invalid_flight_form_preserves_submitted_values():

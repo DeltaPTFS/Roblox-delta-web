@@ -1,4 +1,7 @@
 {% extends "community_base.html" %}{% block title %}Delta Air Lines Roblox | Flights, Crew & SkyMiles Roleplay{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="/static/homepage-cinematic.css?v={{ asset_version }}">
+{% endblock %}
 {% block content %}
 <section class="delta-advertising" aria-roledescription="carousel" aria-label="Delta Air Lines advertising showcase" id="advertisements">
   <div class="delta-ad-bar"><div><span class="delta-ad-live-dot" aria-hidden="true"></span><span>DELTA SPOTLIGHT</span><span class="delta-ad-bar-divider">/</span><span class="delta-ad-bar-muted">FEATURED CAMPAIGNS</span></div><span class="delta-ad-sponsored">ROBLOX AVIATION ROLEPLAY</span></div>
@@ -33,12 +36,23 @@
     </div>
   </div>
 </section>
-<section class="community-hero" id="top">
+<div class="home-flight-ticker" aria-label="Delta Roblox community highlights">
+  <div class="home-ticker-inner">
+    <span><i aria-hidden="true">✦</i> VIRTUAL AVIATION</span>
+    <span><i aria-hidden="true">✈</i> HOSTED FLIGHTS</span>
+    <span><i aria-hidden="true">✦</i> SKYMILES REWARDS</span>
+    <span><i aria-hidden="true">✈</i> VIRGIN ATLANTIC PARTNERSHIP</span>
+    <span><i aria-hidden="true">✦</i> KEEP CLIMBING</span>
+  </div>
+</div>
+<section class="community-hero home-cinematic-hero" id="top">
+  <div class="home-cinematic-ambient" aria-hidden="true"><span class="home-ambient-one"></span><span class="home-ambient-two"></span></div>
+  <div class="home-flight-trails" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="hero-photo"><img src="/static/gallery/delta-terminal.webp" alt="Delta airport terminal and aviation experience" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.classList.add('image-unavailable')};this.src='/gallery/media/delta-terminal'"></div>
   <div class="hero-content"><div class="eyebrow"><span class="pulse-dot"></span> DELTA AIR LINES · ROBLOX ROLEPLAY</div>
   <h1>Every flight.<br><em>A new experience.</em></h1>
   <p>Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.</p>
-  <div class="hero-actions"><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join our Discord" }}</a><a class="community-btn outlined" href="/login?intent=forms&amp;next=/forms">Get Started</a><a class="community-btn outlined" href="/forms">Explore applications</a></div></div>
+  <div class="hero-actions"><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join our Discord" }}</a><a class="community-btn outlined" href="/signup">Get Started</a><a class="community-btn outlined" href="/forms">Explore applications</a></div></div>
   <a class="scroll-cue" href="#discover">SCROLL TO EXPLORE <span class="scroll-cue-icon" aria-hidden="true"></span></a>
 </section>
 <section class="community-section discover" id="discover"><div class="section-head"><span class="eyebrow">WELCOME ABOARD</span>
@@ -74,4 +88,5 @@
 </section>
 <section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/login">Access SkyMiles</a></div></div></section>
 <section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
+<script src="/static/homepage-cinematic.js?v={{ asset_version }}" defer></script>
 {% endblock %}

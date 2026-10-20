@@ -408,35 +408,23 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
     return templates.TemplateResponse("login.html", context(
         request, login_next=target,
         login_mode="signup" if mode == "signup" else "login",
-        login_intent="forms" if intent == "forms" or target.startswith("/forms") else "skymiles",
-        discord_login_href="/auth/discord/login?next=" + quote(target, safe=""),
+        login_intent="community" if intent == "community" else "forms" if intent == "forms" or target.startswith("/forms") else "skymiles",
+        discord_login_href="/auth/discord/community?next=" + quote(target, safe="") if intent == "community" else "/auth/discord/login?next=" + quote(target, safe=""),
         discord_forms_href="/auth/discord/forms?next=" + quote(forms_target, safe=""),
-        signup_href="/auth/roblox?next=" + quote(target, safe=""),
+        signup_href=("/join" if target == "/welcome" else "/auth/discord/community?next=" + quote(target, safe="")) if intent == "community" else "/auth/roblox?next=" + quote(target, safe=""),
         discord_connected=bool(request.session.get("forms_identity") or request.query_params.get("discord_connected")),
+        community_join_unconfirmed=bool(intent == "community" and request.query_params.get("join") == "unconfirmed"),
     ))
 
 
-@app.get("/signup", response_class=HTMLResponse)
-def signup(request: Request, next: str = "/", db: Session = Depends(get_db)):
-    """Public Discord community enrollment, separate from optional SkyMiles signup."""
-    user = linked_user_from_session(request, db)
-    guest = request.session.get("forms_identity")
-    viewer = {"id": user.discord_user_id, "name": user.discord_display_name} if user else (
-        guest if isinstance(guest, dict) else None
+@app.get("/signup")
+def signup(request: Request, next: str = "/welcome"):
+    """Use the existing polished login/sign-up UI for general Discord community enrollment."""
+    target = safe_login_target(next, "/welcome")
+    warning = "&join=unconfirmed" if request.query_params.get("join") == "unconfirmed" else ""
+    return RedirectResponse(
+        "/login?mode=signup&intent=community&next=" + quote(target, safe="") + warning, 303
     )
-    join_status = request.session.get("discord_join_status", "not_confirmed")
-    community_member = bool(
-        join_status in ("joined", "already_member")
-        or (isinstance(guest, dict) and guest.get("main_member"))
-        or (user and user.discord_verified_at and user.discord_role_ids)
-    )
-    return templates.TemplateResponse("community_signup.html", context(
-        request, viewer=viewer, main_discord_member=community_member,
-        discord_href="https://discord.com/channels/" + settings.discord_guild_id
-        if community_member and settings.discord_guild_id else settings.discord_invite_url,
-        access=permission(user, settings) if user else "MEMBER",
-        community_member=community_member, 
-    ), headers={"Cache-Control": "private, no-store"})
 
 
 @app.get("/auth/roblox")
@@ -507,10 +495,11 @@ def join_discord(request: Request):
 
 @app.get("/auth/discord/community")
 @limiter.limit("10/minute")
-def start_discord_community_join(request: Request):
-    """General community Discord OAuth; no SkyMiles or Forms authorization."""
+def start_discord_community_join(request: Request, next: str = "/welcome"):
+    """General community Discord OAuth; preserve only approved internal return routes."""
     if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
         return RedirectResponse(settings.discord_invite_url, 303)
+    request.session["community_login_return"] = next if next in ("/welcome", "/flights") else "/welcome"
     request.session["discord_community_join"] = True
     state, challenge = oauth_values(request, "discord")
     return RedirectResponse(discord_authorize(settings, state, challenge))
@@ -642,6 +631,9 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     try: identity = await discord_identity(settings, code, verifier)
     except Exception: return RedirectResponse("/error?kind=discord",303)
     if community_login:
+        community_return = request.session.pop("community_login_return", "/welcome")
+        if community_return not in ("/welcome", "/flights"):
+            community_return = "/welcome"
         join_status = identity.get("join_status", "not_confirmed")
         if join_status not in ("joined", "already_member"):
             request.session.clear()
@@ -667,7 +659,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         request.session["discord_join_status"] = join_status
         return queue_signin_success(
             request, display_name=identity["display_name"],
-            destination="/welcome", kind="community", join_status=join_status,
+            destination=community_return, kind="community", join_status=join_status,
         )
     if forms_login:
         roles=await memberships(identity["id"])
@@ -1023,16 +1015,47 @@ async def sync_flights(db: Session) -> int:
 
 
 @app.get("/flights", response_class=HTMLResponse)
-async def flights(request:Request,db:Session=Depends(get_db)):
-    user=current_user(request,db)
-    auth=await refresh_discord_authorization(user,db)
-    try: await sync_flights(db)
-    except Exception: pass
-    terminal_cutoff=datetime.now(timezone.utc)-FLIGHT_TERMINAL_GRACE
-    available=db.scalars(select(Flight).where(or_(Flight.status.in_([FlightStatus.SCHEDULED,FlightStatus.DELAYED]),Flight.updated_at>terminal_cutoff)).order_by(Flight.starts_at)).all()
-    member_bookings=db.scalars(select(Booking).where(Booking.user_id==user.id)).all()
-    bookings={booking.flight_id:booking for booking in member_bookings}
-    return templates.TemplateResponse("flights.html",context(request,user=user,flights=available,bookings=bookings,amenities=eligible_amenities(user),auth=auth))
+async def flights(request: Request, db: Session = Depends(get_db)):
+    """Show published flight departures to authenticated community members.
+
+    Discord-only community membership is enough to view flight schedules.
+    Existing SkyMiles authentication is still required for actual bookings.
+    """
+    user = linked_user_from_session(request, db)
+    guest = request.session.get("forms_identity")
+    discord_member = bool(
+        isinstance(guest, dict)
+        and str(guest.get("id", "")).isdecimal()
+        and request.session.get("discord_join_status") in ("joined", "already_member")
+    )
+    if not user and not discord_member:
+        return RedirectResponse("/login?intent=community&next=%2Fflights", 303)
+    auth = await refresh_discord_authorization(user, db) if user else "MEMBER"
+    sync_error = False
+    try:
+        await sync_flights(db)
+    except Exception:
+        sync_error = True  # Continue displaying the previously published departures.
+    terminal_cutoff = datetime.now(timezone.utc) - FLIGHT_TERMINAL_GRACE
+    available = db.scalars(
+        select(Flight)
+        .where(
+            Flight.status.in_([FlightStatus.SCHEDULED, FlightStatus.DELAYED]),
+            or_(
+                Flight.starts_at >= terminal_cutoff,
+                and_(Flight.status == FlightStatus.DELAYED, Flight.updated_at >= terminal_cutoff),
+            ),
+        )
+        .order_by(Flight.starts_at.asc())
+    ).all()
+    member_bookings = db.scalars(select(Booking).where(Booking.user_id == user.id)).all() if user else []
+    bookings = {booking.flight_id: booking for booking in member_bookings}
+    return templates.TemplateResponse("flights.html", context(
+        request, user=user, flights=available, bookings=bookings,
+        amenities=eligible_amenities(user) if user else [],
+        auth=auth, can_book=bool(user), sync_error=sync_error,
+        community_member=discord_member or bool(user),
+    ))
 
 
 @app.post("/flights/{flight_id}/book")

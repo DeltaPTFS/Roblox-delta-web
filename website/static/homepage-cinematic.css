@@ -1,0 +1,94 @@
+/* Cinematic Delta Roblox homepage */
+.home-flight-ticker{position:relative;z-index:2;overflow:hidden;background:#08132b;border-top:1px solid #ec567443;border-bottom:1px solid #b1c5ec2e;box-shadow:0 9px 24px #0005}
+.home-ticker-inner{display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:17px 35px;min-height:54px;width:min(1540px,calc(100% - 40px));margin:auto;padding:9px 0;color:#d3dff0}
+.home-ticker-inner span{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;font-size:11px;font-weight:850;letter-spacing:.15em}
+.home-ticker-inner i{font-size:14px;color:#f2749d;font-style:normal}
+.home-cinematic-hero{isolation:isolate}
+.home-cinematic-hero .hero-photo{transform:scale(1.035);transform-origin:center}
+.home-cinematic-hero .hero-content{isolation:isolate}
+.home-cinematic-ambient{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+.home-cinematic-ambient span{position:absolute;display:block;width:550px;height:550px;border-radius:50%;opacity:.2;filter:blur(56px)}
+.home-ambient-one{left:-18%;top:-30%;background:radial-gradient(circle,#6497e6,transparent 68%)}
+.home-ambient-two{right:-10%;bottom:-45%;background:radial-gradient(circle,#ff527c,transparent 72%)}
+.home-flight-trails{position:absolute;inset:0;overflow:hidden;z-index:2;pointer-events:none}
+.home-flight-trails i{position:absolute;display:block;left:-56%;top:39%;width:48%;height:2px;transform:rotate(-13deg);
+background:linear-gradient(90deg,transparent,#cfdaff80,#ffffffdf,transparent);box-shadow:0 0 9px #8ccfff71;opacity:0}
+.home-flight-trails i:nth-child(2){top:47%;width:37%;height:1px}
+.home-flight-trails i:nth-child(3){top:31%;width:26%;height:1px}
+.home-cinematic-hero .hero-content .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1vw,15px);letter-spacing:.16em}
+.home-cinematic-hero .hero-content h1{max-width:1030px;letter-spacing:-.07em}
+.home-cinematic-hero .hero-content h1 em{background:linear-gradient(105deg,#ff658e,#f9afbd 65%,#fff);
+  background-clip:text;-webkit-background-clip:text;color:transparent}
+.home-cinematic-hero .hero-content p{font-size:clamp(17px,1.6vw,22px);line-height:1.75;color:#edf3ff}
+.home-cinematic-hero .hero-content .community-btn{font-size:13px;min-height:51px;border-radius:9px;box-shadow:0 14px 25px #0003}
+.home-cinematic-hero .hero-actions .community-btn.primary{background:linear-gradient(115deg,#d00d35,#f1466b);box-shadow:0 11px 35px #ce284d63}
+.home-cinematic-hero .hero-actions .community-btn:hover{filter:brightness(1.08);box-shadow:0 15px 35px #0007}
+.home-cinematic-hero .scroll-cue{font-size:12px;letter-spacing:.16em}
+.discover .section-head .eyebrow,.showcase .section-head .eyebrow,.delta-ad-secondary .section-head .eyebrow,.core-home-copy .eyebrow{font-size:12px;letter-spacing:.17em}
+.community-section .section-head h2{font-size:clamp(42px,4.5vw,76px);letter-spacing:-.06em}
+.discover .section-head p{font-size:clamp(16px,1.5vw,20px);line-height:1.7}
+.feature-grid{gap:19px}
+.feature-card{position:relative;overflow:hidden;border-radius:15px;transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .35s}
+.feature-card:before{content:"";pointer-events:none;position:absolute;inset:0;background:radial-gradient(circle at 90% -5%,#dc365c36,transparent 62%);opacity:.5;transition:opacity .35s}
+.feature-card:hover:before{opacity:1}
+.feature-card:hover{transform:translateY(-9px);border-color:#e7669188;box-shadow:0 25px 57px #01061caa}
+.feature-card h3{font-size:clamp(24px,2.3vw,32px)}
+.feature-card p{font-size:15px;line-height:1.85}
+.feature-card .feature-index{font-size:11px}
+.showcase .gallery-card{border-radius:14px;overflow:hidden;box-shadow:0 18px 30px #0004;transition:box-shadow .35s,transform .35s}
+.showcase .gallery-card:hover{box-shadow:0 30px 52px #0009;transform:translateY(-7px)}
+.showcase .gallery-card img{transition:transform 1s cubic-bezier(.16,1,.3,1),filter .5s}
+.showcase .gallery-card:hover img{transform:scale(1.09);filter:brightness(1.13)}
+.showcase .gallery-card h3{font-size:clamp(20px,1.8vw,27px)}
+.core-home-card{position:relative;border-radius:19px;box-shadow:0 30px 63px #0007}
+.core-home-card:after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+background:linear-gradient(110deg,transparent,#ffffff07 46%,transparent 85%);opacity:.6}
+.core-home-partner{position:relative;z-index:1}
+.core-home-partner img{filter:drop-shadow(0 15px 29px #0005)}
+.home-cinematic-section .section-head{position:relative}
+/* Animate sections only after the observer is ready; content stays visible if scripts fail. */
+body.home-cinematic-ready .home-reveal:not(.home-visible){opacity:0;filter:blur(6px);transform:translate3d(0,54px,0)}
+body.home-cinematic-ready .home-reveal{will-change:opacity,transform;transition:opacity .9s cubic-bezier(.16,1,.3,1),filter .9s cubic-bezier(.16,1,.3,1),transform .95s cubic-bezier(.16,1,.3,1)}
+body.home-cinematic-ready .home-reveal.home-visible{opacity:1;filter:blur(0);transform:translate3d(0,0,0)}
+body.home-cinematic-ready .home-reveal.home-from-left:not(.home-visible){transform:translate3d(-70px,20px,0)}
+body.home-cinematic-ready .home-reveal.home-from-right:not(.home-visible){transform:translate3d(70px,20px,0)}
+body.home-cinematic-ready .home-reveal.home-visible:nth-child(2){transition-delay:.05s}
+body.home-cinematic-ready .home-reveal.home-visible:nth-child(3){transition-delay:.12s}
+body.home-cinematic-ready .home-reveal.home-visible:nth-child(4){transition-delay:.18s}
+@media(prefers-reduced-motion:no-preference){
+  @keyframes home-hero-picture{from{transform:scale(1.13);filter:brightness(.75)}to{transform:scale(1.035);filter:brightness(1)}}
+  @keyframes home-hero-part{from{opacity:0;transform:translate3d(0,55px,0);filter:blur(7px)}to{opacity:1;transform:none;filter:blur(0)}}
+  @keyframes home-flight-path{0%,6%{opacity:0;transform:translate(-25%,22vh) rotate(-13deg)}13%{opacity:.8}42%{opacity:.1}62%,100%{opacity:0;transform:translate(290%,-45vh) rotate(-13deg)}}
+  @keyframes home-ambient-drift{from{transform:translate(0,0)}to{transform:translate(5vw,-3vw)}}
+  @keyframes home-pulse-light{50%{box-shadow:0 0 30px #ff5e93,0 0 0 9px #d1163822}}
+  .home-cinematic-hero .hero-photo{animation:home-hero-picture 1.7s cubic-bezier(.16,1,.3,1) both}
+  .home-cinematic-hero .hero-content .eyebrow{animation:home-hero-part .75s cubic-bezier(.16,1,.3,1) .08s both}
+  .home-cinematic-hero .hero-content h1{animation:home-hero-part 1s cubic-bezier(.16,1,.3,1) .18s both}
+  .home-cinematic-hero .hero-content>p{animation:home-hero-part 1s cubic-bezier(.16,1,.3,1) .32s both}
+  .home-cinematic-hero .hero-content .hero-actions{animation:home-hero-part .9s cubic-bezier(.16,1,.3,1) .48s both}
+  .home-flight-trails i{animation:home-flight-path 10s ease-in-out infinite}
+  .home-flight-trails i:nth-child(2){animation-delay:2.5s;animation-duration:11s}
+  .home-flight-trails i:nth-child(3){animation-delay:5.5s;animation-duration:13s}
+  .home-ambient-one{animation:home-ambient-drift 12s ease-in-out infinite alternate}
+  .home-ambient-two{animation:home-ambient-drift 17s ease-in-out infinite alternate-reverse}
+  .home-cinematic-hero .pulse-dot{animation:home-pulse-light 2.6s ease-in-out infinite}
+}
+@media(max-width:800px){.home-ticker-inner{gap:11px 20px;padding:10px 0}.home-ticker-inner span{font-size:10px}
+.home-cinematic-hero .hero-content{padding:45px 25px;max-width:750px}
+.home-cinematic-hero .hero-content h1{font-size:clamp(47px,10vw,82px)}
+.home-cinematic-hero .hero-content p{font-size:16px}
+.home-cinematic-hero .hero-actions .community-btn{flex:1 1 160px}
+.home-flight-trails i{display:none}
+.feature-card:hover,.showcase .gallery-card:hover{transform:none}}
+@media(max-width:500px){.home-ticker-inner{justify-content:center;gap:7px 17px}
+.home-ticker-inner span{font-size:9px;letter-spacing:.07em}
+.home-ticker-inner span:nth-child(n+4){display:none}
+.home-cinematic-hero .hero-content h1{font-size:clamp(43px,11vw,63px)}
+.home-cinematic-hero .hero-actions .community-btn{flex:1 1 100%}
+.community-section .section-head h2{font-size:clamp(35px,9vw,55px)}}
+@media(prefers-reduced-motion:reduce){
+  .home-flight-trails i,.home-cinematic-hero .hero-photo,.home-cinematic-hero .hero-content > *,
+  .home-ambient-one,.home-ambient-two,.home-cinematic-hero .pulse-dot{animation:none!important}
+  body.home-cinematic-ready .home-reveal{opacity:1!important;filter:none!important;transform:none!important;transition:none!important;will-change:auto}
+  .showcase .gallery-card,.feature-card,.showcase .gallery-card img{transition:none!important}
+}

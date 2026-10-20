@@ -19,7 +19,7 @@
       <div class="auth-kicker"><span class="auth-kicker-line"></span> DELTA DIGITAL EXPERIENCE <span class="auth-constellation" aria-hidden="true">✧</span></div>
       
       <h1 id="auth-page-title">Welcome <em>aboard.</em></h1>
-      <p class="auth-lead">Sign in for flights, forms, and SkyMiles.</p>
+      <p class="auth-lead">{% if login_intent == 'community' %}Join our aviation community, discover virtual flights, and meet our crew.{% else %}Sign in for flights, forms, and SkyMiles.{% endif %}</p>
       <div class="auth-advantage-grid" aria-label="Member features" hidden>
         <div class="auth-advantage"><span class="auth-advantage-symbol"><svg><use href="#auth-icon-plane"></use></svg></span><div><b>Flights &amp; trips</b><span>Book and manage your flights</span></div></div>
         <div class="auth-advantage"><span class="auth-advantage-symbol"><svg><use href="#auth-icon-id"></use></svg></span><div><b>Forms &amp; careers</b><span>Apply with your Discord identity</span></div></div>
@@ -37,6 +37,9 @@
       {% elif login_next != "/dashboard" %}
       <div class="auth-destination" role="status"><svg><use href="#auth-icon-plane"></use></svg><span>Sign in to continue to <strong>{{ "Flight Booking" if login_next.startswith("/flights") else "your requested page" }}</strong>.</span></div>
       {% endif %}
+      {% if community_join_unconfirmed %}
+      <div class="auth-destination" role="status"><svg><use href="#auth-icon-shield"></use></svg><span>Discord authorization finished, but we couldn't confirm your community membership. Open the <a href="{{ settings.discord_invite_url }}" target="_blank" rel="noopener noreferrer">Delta Discord invitation</a> and try again.</span></div>
+      {% endif %}
       {% if discord_connected %}
       <div class="auth-connected" role="status"><svg><use href="#auth-icon-check"></use></svg><span>Discord connected. If you don't have SkyMiles yet, select <strong>Sign Up</strong> to verify Roblox and complete enrollment.</span></div>
       {% endif %}
@@ -45,29 +48,30 @@
         <button id="auth-tab-signup" type="button" class="{{ 'is-selected' if login_mode == 'signup' else '' }}" role="tab" data-auth-tab="signup" aria-controls="auth-panel-signup" aria-selected="{{ 'true' if login_mode == 'signup' else 'false' }}" tabindex="{{ 0 if login_mode == 'signup' else -1 }}"><svg aria-hidden="true"><use href="#auth-icon-rocket"></use></svg> Sign Up</button>
       </div>
       <div id="auth-panel-login" class="auth-mode-panel" role="tabpanel" tabindex="0" aria-labelledby="auth-tab-login" {% if login_mode != 'login' %}hidden{% endif %}>
-        <div class="auth-panel-heading"><span class="auth-panel-sparkle" aria-hidden="true">✦</span><h2>Welcome back.</h2><p>Sign in to your existing SkyMiles account.</p></div>
-        <a class="auth-action auth-action-primary" href="{{ discord_forms_href if login_intent == 'forms' else discord_login_href }}"><span class="auth-action-icon auth-discord-glyph" aria-hidden="true">◈</span><span>{{ "Continue with Discord for Forms" if login_intent == "forms" else "Log in with Discord" }}<small>Secure authorization · No password required</small></span><svg class="auth-arrow" aria-hidden="true"><use href="#auth-icon-arrow"></use></svg></a>
+        <div class="auth-panel-heading"><span class="auth-panel-sparkle" aria-hidden="true">✦</span><h2>Welcome back.</h2><p>{% if login_intent == 'community' %}Reconnect with your existing Delta Roblox community membership.{% else %}Sign in to your existing SkyMiles account.{% endif %}</p></div>
+        <a class="auth-action auth-action-primary" href="{{ discord_forms_href if login_intent == 'forms' else discord_login_href }}"><span class="auth-action-icon auth-discord-glyph" aria-hidden="true">◈</span><span>{{ "Continue with Discord for Forms" if login_intent == "forms" else "Continue with Discord" if login_intent == "community" else "Log in with Discord" }}<small>Secure authorization · No password required</small></span><svg class="auth-arrow" aria-hidden="true"><use href="#auth-icon-arrow"></use></svg></a>
         {% if login_intent == "forms" %}
         <div class="auth-hint"><svg><use href="#auth-icon-check"></use></svg><span><strong>SkyMiles is optional for forms.</strong> Your Discord verification is all you need to apply for available opportunities.</span></div>
         {% else %}
-        <div class="auth-hint"><svg><use href="#auth-icon-lock"></use></svg><span>Returning SkyMiles members are recognized through their linked Discord account. New members can use Sign Up.</span></div>
+        <div class="auth-hint"><svg><use href="#auth-icon-lock"></use></svg><span>{% if login_intent == 'community' %}Already in the community? Discord will recognize your membership and welcome you back.{% else %}Returning SkyMiles members are recognized through their linked Discord account. New members can use Sign Up.{% endif %}</span></div>
         {% endif %}
-        <div class="auth-secondary-route"><span>Don't have an account?</span><button type="button" data-open-signup>Create your SkyMiles account <span aria-hidden="true">↗</span></button></div>
+        <div class="auth-secondary-route"><span>Don't have an account?</span><button type="button" data-open-signup>{{ "Join Delta Roblox" if login_intent == 'community' else "Create your SkyMiles account" }} <span aria-hidden="true">↗</span></button></div>
       </div>
       <div id="auth-panel-signup" class="auth-mode-panel" role="tabpanel" tabindex="0" aria-labelledby="auth-tab-signup" {% if login_mode != 'signup' %}hidden{% endif %}>
-        <div class="auth-panel-heading"><span class="auth-panel-sparkle" aria-hidden="true">✧</span><h2>Let's get you flying.</h2><p>Verify Roblox, then connect Discord.</p></div>
+        <div class="auth-panel-heading"><span class="auth-panel-sparkle" aria-hidden="true">✧</span><h2>{% if login_intent == 'community' %}Join Delta Roblox.{% else %}Let's get you flying.{% endif %}</h2><p>{% if login_intent == 'community' %}Connect with Discord to join our aviation community. No SkyMiles membership or Forms application required.{% else %}Verify Roblox, then connect Discord.{% endif %}</p></div>
         <div class="auth-signup-steps" hidden>
           <div><span class="auth-step-number">01</span><span><strong>Verify your Roblox account</strong><small>Confirm your identity and community membership.</small></span><svg><use href="#auth-icon-check"></use></svg></div>
           <div><span class="auth-step-number">02</span><span><strong>Link your Discord account</strong><small>Get your SkyMiles number and access member benefits.</small></span><svg><use href="#auth-icon-check"></use></svg></div>
         </div>
-        <a class="auth-action auth-action-primary" href="{{ signup_href }}"><span class="auth-action-icon auth-roblox-glyph" aria-hidden="true">◆</span><span>Sign up with Roblox<small>Begin your new SkyMiles membership</small></span><svg class="auth-arrow" aria-hidden="true"><use href="#auth-icon-arrow"></use></svg></a>
-        <div class="auth-hint"><svg><use href="#auth-icon-shield"></use></svg><span>No password creation, fake accounts, or manual verification forms. You'll authorize only through Roblox and Discord.</span></div>
+        <a class="auth-action auth-action-primary" href="{{ signup_href }}"><span class="auth-action-icon {{ 'auth-discord-glyph' if login_intent == 'community' else 'auth-roblox-glyph' }}" aria-hidden="true">{{ '◈' if login_intent == 'community' else '◆' }}</span><span>{{ "Continue with Discord" if login_intent == 'community' else "Sign up with Roblox" }}<small>{{ "Join Delta Roblox community" if login_intent == 'community' else "Begin your new SkyMiles membership" }}</small></span><svg class="auth-arrow" aria-hidden="true"><use href="#auth-icon-arrow"></use></svg></a>
+        <div class="auth-hint"><svg><use href="#auth-icon-shield"></use></svg><span>{% if login_intent == 'community' %}Join through secure Discord authorization. SkyMiles and job applications remain separate, optional programs.{% else %}No password creation, fake accounts, or manual verification forms. You'll authorize only through Roblox and Discord.{% endif %}</span></div>
         <div class="auth-secondary-route"><span>Already a member?</span><button type="button" data-open-login>Log in instead <span aria-hidden="true">↗</span></button></div>
       </div>
-      <div class="auth-forms-access">
+      {% if login_intent != 'community' %}<div class="auth-forms-access">
         <span class="auth-forms-symbol"><svg><use href="#auth-icon-id"></use></svg></span>
         <div><strong>Just here for forms?</strong><span>Access applications using Discord.</span><a href="{{ discord_forms_href }}">Access Forms with Discord <span aria-hidden="true">→</span></a></div>
       </div>
+      {% endif %}
       <div class="auth-card-footer"><svg><use href="#auth-icon-lock"></use></svg> We never ask for your Roblox or Discord passwords. <a href="https://discord.com/channels/1538738611988467782/1539651325615153233" rel="noopener noreferrer" target="_blank">Need help?</a></div>
     </div>
   </div>

@@ -52,9 +52,10 @@
       <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
       <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
     </a>
+    {% set nav_level = auth if auth is defined else (access if access is defined else "MEMBER") %}
     <nav class="community-primary-nav" aria-label="Primary navigation">
       <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
-      <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
+      <a href="/dashboard">SkyMiles</a>{% if nav_level in ("OWNER","ADMIN","STAFF") %}<a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}">{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>{% endif %}
     </nav>
     <div class="premium-header-actions">
       <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option></select></label>
@@ -65,7 +66,7 @@
       {% endif %}
       <details class="community-mobile-menu"><summary aria-label="Open navigation menu"><span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span><span class="premium-menu-label">Menu</span></summary>
         <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
-        <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
+        <a href="/dashboard">SkyMiles</a>{% if nav_level in ("OWNER","ADMIN","STAFF") %}<a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}">{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>{% endif %}
         {% if not viewer %}<a class="premium-mobile-signup" href="/signup">Sign Up <span aria-hidden="true">↗</span></a>{% endif %}
         <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
       </details>
