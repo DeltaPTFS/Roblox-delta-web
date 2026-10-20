@@ -1,0 +1,41 @@
+{% extends "community_base.html" %}
+{% block title %}Join the Delta Roblox Community{% endblock %}
+{% block content %}
+<section class="community-join-page" aria-labelledby="community-join-title">
+  <div class="community-join-glow" aria-hidden="true"></div>
+  <div class="community-join-layout">
+    <div class="community-join-story">
+      <div class="community-join-kicker"><span class="premium-live-pulse" aria-hidden="true"></span> DELTA AIR LINES · ROBLOX COMMUNITY</div>
+      {% if community_member %}
+      <h1 id="community-join-title">You're already<br><em>on board.</em></h1>
+      <p>Your Discord community membership is already connected. Welcome back to Delta Roblox.</p>
+      {% else %}
+      <h1 id="community-join-title">Your journey<br><em>starts here.</em></h1>
+      <p>Join the Delta Roblox aviation community to connect with fellow flyers, discover virtual flights and follow our latest news and events.</p>
+      {% endif %}
+      <div class="community-join-points" aria-label="Community highlights">
+        <div><span aria-hidden="true">✈</span><span>Meet the aviation community</span></div>
+        <div><span aria-hidden="true">✦</span><span>Discover flights and events</span></div>
+        <div><span aria-hidden="true">↗</span><span>Connect with our partner communities</span></div>
+      </div>
+      <span class="community-join-brandline">KEEP CLIMBING · DELTA ROBLOX</span>
+    </div>
+    <div class="community-join-card">
+      <div class="community-join-card-top"><span>WELCOME ABOARD</span><span aria-hidden="true">✳</span></div>
+      <img class="community-join-logo" src="/static/delta-emblem.svg" alt="" width="88" height="88" decoding="async">
+      {% if community_member %}
+      <h2>You're all set.</h2>
+      <p>You're already connected to the Delta Roblox community. There's no need to sign up again.</p>
+      <a class="community-join-primary" href="/">Return to Delta Home <span aria-hidden="true">→</span></a>
+      <a class="community-join-secondary" href="{{ discord_href }}" target="_blank" rel="noopener noreferrer">Open Delta Discord <span aria-hidden="true">↗</span></a>
+      {% else %}
+      <h2>Join our community.</h2>
+      <p>Connect with Discord to join Delta Roblox. No SkyMiles enrollment or application form is required.</p>
+      <a class="community-join-primary" href="/join">Continue with Discord <span aria-hidden="true">↗</span></a>
+      <p class="community-join-privacy">You'll authorize your Discord account to join the community. Complete any required server verification in Discord.</p>
+      {% endif %}
+      <div class="community-join-card-footer"><span aria-hidden="true">◈</span> Independent Roblox aviation roleplay community, not affiliated with the real-world airline.</div>
+    </div>
+  </div>
+</section>
+{% endblock %}
