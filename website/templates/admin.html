@@ -33,11 +33,93 @@
   <a href="#member-actions">Member Actions</a>
   {% if panel_level in ('OWNER','ADMIN') %}<a href="#create-flight">Create Flight</a><a href="#flight-operations">Flight Operations</a>{% endif %}
   <a href="/forms">Forms</a>
-  {% if panel_level == 'OWNER' %}<a href="#system-integrations">Integrations</a><a href="#audit-trail">Audit Logs</a>{% endif %}
+  {% if panel_level == 'OWNER' %}<a href="#site-announcement-editor">Website Announcement</a><a href="#system-integrations">Integrations</a><a href="#audit-trail">Audit Logs</a>{% endif %}
 </nav>
 {% if request.query_params.get('skymiles_applied') %}<div class="toast admin-success" role="status">✓ SkyMiles Applied!</div>{% endif %}
 {% if request.query_params.get('qualifications_applied') %}<div class="toast admin-success" role="status">✓ MQP and segments applied! New totals: {{ request.query_params.get('mqp_total') }} MQP · {{ request.query_params.get('segments_total') }} segments.</div>{% endif %}
 {% if request.query_params.get('moderation_applied') %}<div class="toast admin-success" role="status">✓ Moderation action recorded and member notified.</div>{% endif %}{% if request.query_params.get('access_updated') %}<div class="toast admin-success" role="status">✓ Member access updated!</div>{% endif %}
+
+{% if panel_level == 'OWNER' %}
+<section class="card page-card owner-announcement-editor" id="site-announcement-editor" aria-labelledby="announcement-editor-title">
+  <div class="owner-announcement-top">
+    <div><span class="eyebrow">OWNERSHIP ONLY · WEBSITE BROADCASTS</span>
+      <h2 id="announcement-editor-title">Website Announcements</h2>
+      <p>Post a short animated update above the website navigation for everyone. It will appear on the homepage, Flights, SkyMiles, Partnerships and other site pages — <strong>never on Forms pages.</strong> You can change or hide it anytime.</p>
+    </div>
+    <span class="owner-announcement-state {{ 'is-live' if announcement_settings and announcement_settings.enabled else '' }}">
+      <i aria-hidden="true"></i>{{ 'LIVE ON WEBSITE' if announcement_settings and announcement_settings.enabled else 'NOT PUBLISHED' }}
+    </span>
+  </div>
+  {% if request.query_params.get('announcement_saved') %}
+  <div class="notice success" role="status">Announcement settings saved. {{ 'Your message is live across the website.' if announcement_settings and announcement_settings.enabled else 'The announcement is hidden.' }}</div>
+  {% endif %}
+  <div class="owner-announcement-layout">
+    <form class="owner-announcement-form" action="/owner/announcement" method="post" id="owner-announcement-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label for="owner-news-message">Announcement message <small>Up to 220 characters</small></label>
+      <textarea name="message" id="owner-news-message" maxlength="220" rows="3" placeholder="Example: Our next community flight is boarding this Saturday!" aria-describedby="owner-news-count">{{ announcement_settings.message if announcement_settings else '' }}</textarea>
+      <div class="owner-announcement-count" id="owner-news-count">220 characters maximum</div>
+      <div class="owner-announcement-fields">
+        <label for="owner-news-tone">Type
+          <select name="tone" id="owner-news-tone">
+            <option value="UPDATE" {% if not announcement_settings or announcement_settings.tone == 'UPDATE' %}selected{% endif %}>Community Update</option>
+            <option value="EVENT" {% if announcement_settings and announcement_settings.tone == 'EVENT' %}selected{% endif %}>Event / Flight</option>
+            <option value="IMPORTANT" {% if announcement_settings and announcement_settings.tone == 'IMPORTANT' %}selected{% endif %}>Important Notice</option>
+          </select>
+        </label>
+        <label for="owner-news-link-label">Optional button text
+          <input type="text" id="owner-news-link-label" name="link_label" maxlength="32" placeholder="See upcoming flights" value="{{ announcement_settings.link_label if announcement_settings else '' }}">
+        </label>
+        <label for="owner-news-link-path">Optional website destination
+          <input type="text" id="owner-news-link-path" name="link_path" maxlength="255" placeholder="/flights" value="{{ announcement_settings.link_path if announcement_settings else '' }}">
+        </label>
+      </div>
+      <label class="owner-announcement-publish">
+        <input type="checkbox" name="enabled" value="on" id="owner-news-enabled" {% if announcement_settings and announcement_settings.enabled %}checked{% endif %}>
+        <span><strong>Publish announcement</strong><small>Uncheck and save to hide it everywhere immediately.</small></span>
+      </label>
+      <button type="submit" class="button primary owner-announcement-submit">Save Website Announcement <span aria-hidden="true">↗</span></button>
+      <p class="owner-announcement-safety">Links must stay on this website (for example <code>/flights</code> or <code>/core-partnerships</code>). External links and HTML formatting are disabled for visitor safety.</p>
+    </form>
+    <div class="owner-announcement-preview">
+      <span class="eyebrow">LIVE PREVIEW</span>
+      <p>This is how the announcement will look above the website header.</p>
+      <div class="owner-preview-strip" id="owner-news-preview" data-tone="{{ announcement_settings.tone if announcement_settings else 'UPDATE' }}">
+        <span class="owner-preview-pulse" aria-hidden="true"></span>
+        <div><small id="owner-news-preview-type">{{ 'IMPORTANT' if announcement_settings and announcement_settings.tone == 'IMPORTANT' else 'EVENT' if announcement_settings and announcement_settings.tone == 'EVENT' else 'DELTA UPDATE' }}</small>
+          <strong id="owner-news-preview-text">{{ announcement_settings.message if announcement_settings and announcement_settings.message else 'Your announcement will appear here.' }}</strong>
+          <span id="owner-news-preview-link">{{ announcement_settings.link_label if announcement_settings and announcement_settings.link_label else '' }}</span>
+        </div>
+      </div>
+      <p class="owner-announcement-preview-caption">The published banner slides smoothly into view. Animation is automatically disabled for visitors who prefer reduced motion.</p>
+    </div>
+  </div>
+</section>
+<script>
+(() => {
+  const form = document.getElementById('owner-announcement-form');
+  if (!form) return;
+  const message = form.querySelector('#owner-news-message');
+  const tone = form.querySelector('#owner-news-tone');
+  const linkLabel = form.querySelector('#owner-news-link-label');
+  const text = document.getElementById('owner-news-preview-text');
+  const label = document.getElementById('owner-news-preview-type');
+  const link = document.getElementById('owner-news-preview-link');
+  const counter = document.getElementById('owner-news-count');
+  const preview = document.getElementById('owner-news-preview');
+  const sync = () => {
+    text.textContent = message.value.trim() || 'Your announcement will appear here.';
+    label.textContent = tone.value === 'IMPORTANT' ? 'IMPORTANT' : tone.value === 'EVENT' ? 'EVENT' : 'DELTA UPDATE';
+    link.textContent = linkLabel.value.trim();
+    counter.textContent = message.value.length + ' / 220 characters';
+    preview.dataset.tone = tone.value;
+  };
+  form.addEventListener('input', sync);
+  form.addEventListener('change', sync);
+  sync();
+})();
+</script>
+{% endif %}
 
 <section class="card page-card member-directory" id="member-directory"><details><summary><span><b>SkyMiles Member Directory</b><small>Every active member · recently awarded first</small></span><strong>{{ member_directory|length }} MEMBERS ⌄</strong></summary><div class="directory-list">{% for member, last_award in member_directory %}<a href="{{ '/owner' if panel_level == 'OWNER' else '/admin' if panel_level == 'ADMIN' else '/staff' }}?q={{ member.skymiles_number }}"><img src="{{ member.discord_avatar_url or '/static/avatar.svg' }}" alt=""><span><b>{{ member.discord_display_name }}</b><small>{{ member.skymiles_number }} · @{{ member.roblox_username }}</small></span><em>{% if last_award %}Miles applied {{ last_award.strftime('%b %d') }}{% else %}New member{% endif %}</em></a>{% endfor %}</div></details></section>
 
