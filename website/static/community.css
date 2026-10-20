@@ -250,3 +250,16 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
   .forms-empty-dialog{max-height:80dvh}
   .forms-dialog-inner{padding:27px 22px}
 }
+
+
+/* Virgin Atlantic core-partner spotlight on the public homepage */
+.core-home-spotlight{background:#080f27;padding-top:58px;padding-bottom:58px}
+.core-home-card{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(270px,.7fr);align-items:center;gap:30px;min-height:420px;padding:clamp(30px,5vw,75px);background:radial-gradient(circle at 85% 30%,#66215e 0%,transparent 50%),linear-gradient(125deg,#0a2852,#0c112d 70%);border:1px solid #ffffff34;overflow:hidden}
+.core-home-copy h2{font-size:clamp(38px,4.8vw,70px);line-height:1.1;letter-spacing:-.055em;margin:18px 0}
+.core-home-copy h2 em{color:#f081ba}
+.core-home-copy p{color:#d2dbea;line-height:1.8;max-width:650px;font-size:15px;margin-bottom:30px}
+.core-home-partner{display:flex;align-items:center;flex-direction:column;text-align:center;justify-content:center;min-width:0}
+.core-home-partner img{max-width:100%;object-fit:contain;width:260px;height:230px}
+.core-home-partner strong{font-size:clamp(22px,3vw,37px);font-weight:500;letter-spacing:-.06em;color:#f1bee5;white-space:nowrap}
+.core-home-partner small{color:#bea6cf;font-size:9px;letter-spacing:.12em;font-weight:800;margin-top:12px}
+@media(max-width:700px){.core-home-card{grid-template-columns:1fr;padding:30px 24px;gap:10px}.core-home-partner img{width:180px;height:160px}.core-home-partner strong{font-size:28px}.core-home-copy p{font-size:14px}}
