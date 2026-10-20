@@ -396,9 +396,11 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
     target = safe_login_target(next)
     user = linked_user_from_session(request, db)
     if user and user.account_status == Status.ACTIVE:
-        # Reopening Log In or Sign Up while authenticated should be explicit.
-        separator = "&" if "?" in target else "?"
-        return RedirectResponse(target + separator + "already_signed_in=1", 303)
+        # Preserve the session while replaying the welcome screen and audio.
+        return queue_signin_success(
+            request, display_name=user.discord_display_name or user.roblox_display_name or "Member",
+            destination=target, kind="already", join_status="already_member",
+        )
     guest = request.session.get("forms_identity")
     if isinstance(guest, dict) and target.startswith("/forms"):
         return RedirectResponse(target, 303)
@@ -421,9 +423,16 @@ def signup(request: Request, next: str = "/dashboard"):
 
 @app.get("/auth/roblox")
 @limiter.limit("10/minute")
-def start_roblox(request: Request, next: str = "/dashboard"):
+def start_roblox(request: Request, next: str = "/dashboard", db: Session = Depends(get_db)):
+    target = safe_login_target(next)
+    user = linked_user_from_session(request, db)
+    if user and user.account_status == Status.ACTIVE:
+        return queue_signin_success(
+            request, display_name=user.discord_display_name or user.roblox_display_name or "Member",
+            destination=target, kind="already", join_status="already_member",
+        )
     if not settings.roblox_client_id or not settings.roblox_group_id: raise HTTPException(503, "Roblox OAuth is not configured")
-    request.session["login_return"] = safe_login_target(next)
+    request.session["login_return"] = target
     state, challenge = oauth_values(request, "roblox")
     return RedirectResponse(roblox_authorize(settings, state, challenge))
 
@@ -447,7 +456,10 @@ async def roblox_callback(request: Request, code: str, state: str, db: Session=D
         request.session["link_user_id"] = existing.id
         if existing.discord_verified_at and existing.account_status == Status.ACTIVE:
             request.session.clear(); request.session["user_id"]=existing.id; request.session["authorization"]=permission(existing,settings); request.session["theme"]=existing.theme_preference
-            return RedirectResponse(login_return,303)
+            return queue_signin_success(
+                request, display_name=existing.discord_display_name or existing.roblox_display_name or "Member",
+                destination=login_return, kind="skymiles", join_status="already_member",
+            )
     return RedirectResponse("/connect-discord", 303)
 
 
@@ -522,8 +534,10 @@ def start_discord_login(request: Request, next: str = "/dashboard", db: Session=
     target=safe_login_target(next)
     user=linked_user_from_session(request,db)
     if user and user.account_status==Status.ACTIVE:
-        separator = "&" if "?" in target else "?"
-        return RedirectResponse(target + separator + "already_signed_in=1", 303)
+        return queue_signin_success(
+            request, display_name=user.discord_display_name or user.roblox_display_name or "Member",
+            destination=target, kind="already", join_status="already_member",
+        )
     if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
     request.session["login_return"]=target
     request.session["discord_login_only"]=True
