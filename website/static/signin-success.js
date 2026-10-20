@@ -1,27 +1,49 @@
-/* Delta OAuth welcome. The browser may prohibit autoplay after a redirect. */
+/* Delta OAuth welcome. Playback may require a gesture on mobile browsers. */
 (() => {
   'use strict';
   const audio = document.getElementById('signin-sound');
   const finish = document.getElementById('success-finish');
   if (!audio || !finish) return;
 
-  // Begin the supplied audio as soon as the page loads.
-  // Never loop it, autoplay on other pages, or require an extra UI control.
   audio.volume = .9;
-  audio.autoplay = true;
   audio.playsInline = true;
-  try {
-    const attempt = audio.play();
-    if (attempt && typeof attempt.catch === 'function') {
-      attempt.catch(() => {
-        // Safari/iPadOS may block playback without a fresh user gesture.
-        // There is deliberately no sound button, by request.
-      });
-    }
-  } catch (_) {
-    // Audio is optional; verification must remain successful if blocked.
-  }
+  let awaitingGesture = false;
+  let gestureConsumed = false;
 
+  const resumeOnGesture = () => {
+    if (gestureConsumed || !awaitingGesture) return;
+    gestureConsumed = true;
+    awaitingGesture = false;
+    // Mobile Safari may only authorize sound in a direct user gesture.
+    audio.play().catch(() => {});
+  };
+
+  const startWelcomeSound = () => {
+    gestureConsumed = false;
+    awaitingGesture = false;
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      const attempt = audio.play();
+      if (attempt && typeof attempt.catch === 'function') {
+        attempt.catch(() => {
+          // Autoplay can be blocked after OAuth redirects. A tap or key press
+          // on this success page supplies the required gesture.
+          awaitingGesture = true;
+          document.addEventListener('pointerdown', resumeOnGesture, { passive: true });
+          document.addEventListener('keydown', resumeOnGesture);
+        });
+      }
+    } catch (_) {
+      awaitingGesture = true;
+      document.addEventListener('pointerdown', resumeOnGesture, { passive: true });
+      document.addEventListener('keydown', resumeOnGesture);
+    }
+  };
+
+  // pageshow fires for a fresh visit and a back-forward cache restoration.
+  // Replay the confirmation on each visit, without playing across the site.
+  window.addEventListener('pageshow', startWelcomeSound);
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const activate = () => {
     finish.classList.add('is-ready');
