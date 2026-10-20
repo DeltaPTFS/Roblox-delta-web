@@ -580,8 +580,21 @@ async def internal_skymiles(request: Request, action: str, db: Session = Depends
         raise HTTPException(403, "An active website Admin account is required")
     # The bot's cached roles or Manage Server permission are never sufficient.
     # Verify the staff member's current main-server roles from Discord itself.
-    roles = await memberships(actor_id)
-    live_main = set(roles.get("airlines", []))
+    if not settings.discord_guild_id or not settings.discord_bot_token:
+        raise HTTPException(503, "Live Discord staff verification is unavailable")
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(
+                f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{actor_id}",
+                headers={"Authorization": "Bot " + settings.discord_bot_token},
+            )
+    except httpx.HTTPError:
+        raise HTTPException(503, "Discord staff verification is temporarily unavailable")
+    if response.status_code == 404:
+        raise HTTPException(403, "Staff member not found in Delta Discord")
+    if response.status_code != 200:
+        raise HTTPException(503, "Discord staff verification is temporarily unavailable")
+    live_main = set(map(str, response.json().get("roles", [])))
     staff_admin_roles = settings.ids(settings.owner_discord_role_ids) | settings.ids(settings.admin_discord_role_ids)
     if not (live_main & staff_admin_roles):
         raise HTTPException(403, "Only Ownership and Staff Admin may modify SkyMiles")
