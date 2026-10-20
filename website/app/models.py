@@ -271,3 +271,16 @@ class SiteGalleryImage(Base):
     mime_type: Mapped[str] = mapped_column(String(24))
     content: Mapped[bytes] = mapped_column(LargeBinary)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class SiteAnnouncement(Base):
+    """One durable, owner-controlled banner for non-Forms website pages."""
+    __tablename__ = "site_announcements"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    message: Mapped[str] = mapped_column(String(220), default="", nullable=False)
+    tone: Mapped[str] = mapped_column(String(20), default="UPDATE", nullable=False)
+    link_label: Mapped[str] = mapped_column(String(32), default="", nullable=False)
+    link_path: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    updated_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
