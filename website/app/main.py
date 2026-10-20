@@ -396,7 +396,9 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
     target = safe_login_target(next)
     user = linked_user_from_session(request, db)
     if user and user.account_status == Status.ACTIVE:
-        return RedirectResponse(target, 303)
+        # Reopening Log In or Sign Up while authenticated should be explicit.
+        separator = "&" if "?" in target else "?"
+        return RedirectResponse(target + separator + "already_signed_in=1", 303)
     guest = request.session.get("forms_identity")
     if isinstance(guest, dict) and target.startswith("/forms"):
         return RedirectResponse(target, 303)
