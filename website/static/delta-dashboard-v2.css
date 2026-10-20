@@ -7,9 +7,9 @@ body:has(.delta-dashboard-v2){background:#09162d;color:#eef4ff}
   min-height:320px;padding:clamp(28px,4.7vw,62px);background:radial-gradient(ellipse at 85% 4%,#365c9170,transparent 55%),
   linear-gradient(112deg,#102e56 2%,#0a1a36 57%,#102247 100%)!important;
   box-shadow:0 24px 65px #02091869}
-.delta-dash-hero:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
-  background-image:url('/static/gallery/delta-tail.webp');background-repeat:no-repeat;background-size:cover;
-  background-position:75% 45%}
+.delta-dash-hero:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.25;
+  background:radial-gradient(ellipse at 87% 28%,#9a466b48,transparent 42%),
+    repeating-linear-gradient(120deg,transparent 0 95px,#d9e6ff0a 95px 96px,transparent 96px 190px)}
 .delta-dash-hero-body,.delta-dash-hero-side{position:relative;z-index:1;min-width:0}
 .delta-dash-hero-body>.eyebrow{font-size:10px!important;letter-spacing:.19em;color:#ff9ab3!important;display:flex;align-items:center;gap:8px}
 .delta-status-light{display:inline-block;height:7px;width:7px;border-radius:50%;background:#72e6b3;box-shadow:0 0 11px #6fe6c28b}
