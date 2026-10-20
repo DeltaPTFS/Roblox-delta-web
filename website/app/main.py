@@ -502,7 +502,18 @@ def join_discord(request: Request):
     if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
         # Never leave visitors on a blank OAuth 503 screen.
         return RedirectResponse(settings.discord_invite_url, 303)
-    return RedirectResponse("/auth/discord/forms?next=%2Fwelcome&force=1", 303)
+    return RedirectResponse("/auth/discord/community", 303)
+
+
+@app.get("/auth/discord/community")
+@limiter.limit("10/minute")
+def start_discord_community_join(request: Request):
+    """General community Discord OAuth; no SkyMiles or Forms authorization."""
+    if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
+        return RedirectResponse(settings.discord_invite_url, 303)
+    request.session["discord_community_join"] = True
+    state, challenge = oauth_values(request, "discord")
+    return RedirectResponse(discord_authorize(settings, state, challenge))
 
 
 @app.get("/welcome", response_class=HTMLResponse)
@@ -624,10 +635,40 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     login_return = safe_login_target(request.session.get("login_return"))
     direct_login = bool(request.session.pop("discord_login_only",False))
     forms_login = bool(request.session.pop("discord_login_for_forms",False))
-    if not pending and not direct_login and not forms_login: raise HTTPException(401, "Verification session expired")
+    community_login = bool(request.session.pop("discord_community_join",False))
+    if not pending and not direct_login and not forms_login and not community_login:
+        raise HTTPException(401, "Verification session expired")
     verifier = consume_oauth(request, "discord", state)
     try: identity = await discord_identity(settings, code, verifier)
     except Exception: return RedirectResponse("/error?kind=discord",303)
+    if community_login:
+        join_status = identity.get("join_status", "not_confirmed")
+        if join_status not in ("joined", "already_member"):
+            request.session.clear()
+            return RedirectResponse("/signup?join=unconfirmed", 303)
+        # Discord identity is verified, and Discord confirmed this main-guild
+        # membership. Community registration requires no role eligibility.
+        existing = db.scalar(select(User).where(User.discord_user_id == identity["id"]))
+        linked = bool(
+            existing and existing.account_status == Status.ACTIVE
+            and not existing.permanent_ban
+            and (not existing.restricted_until or existing.restricted_until <= datetime.now(timezone.utc))
+        )
+        request.session.clear()
+        if linked:
+            request.session["user_id"] = existing.id
+            request.session["authorization"] = permission(existing, settings)
+            request.session["theme"] = existing.theme_preference
+        else:
+            request.session["forms_identity"] = {
+                "id": identity["id"], "name": identity["display_name"][:100],
+                "main_member": True,
+            }
+        request.session["discord_join_status"] = join_status
+        return queue_signin_success(
+            request, display_name=identity["display_name"],
+            destination="/welcome", kind="community", join_status=join_status,
+        )
     if forms_login:
         roles=await memberships(identity["id"])
         # Newly added Discord members can briefly be absent from guild role
