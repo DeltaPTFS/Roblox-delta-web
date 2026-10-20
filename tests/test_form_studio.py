@@ -116,14 +116,16 @@ def test_invalid_scale_cannot_be_saved(monkeypatch):
 
 def test_sky_miles_menu_has_futuristic_panel_and_protected_form_link():
     html=Path("website/templates/base.html").read_text()
+    shared=Path("website/templates/_unified_site_header.html").read_text()
     css=Path("website/static/sky-nav-future.css").read_text()
-    assert 'href="/forms/new"' in html
-    assert '{% if auth in (' in html
-    assert 'sky-menu-grid' in html
+    behavior=Path("website/static/unified-delta-navigation.js").read_text()
+    assert '{% include "_unified_site_header.html" %}' in html
+    assert 'href="/forms/new"' in shared
+    assert '{% if nav_level in ("OWNER","ADMIN","STAFF") %}' in shared
+    assert 'sky-menu-grid' in shared
     assert 'deltaMenuReveal' in css
     assert 'prefers-reduced-motion' in css
-    assert "Escape" in html
-
+    assert "Escape" in behavior
 
 def test_discord_oauth_explicitly_requests_join_permission():
     assert "guilds.join" in oauth.discord_authorize(Settings(discord_client_id="123",
