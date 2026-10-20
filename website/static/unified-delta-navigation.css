@@ -1,0 +1,102 @@
+/* Universal Delta Roblox navigation: homepage styling + SkyMiles menu hub.
+ * Loaded last on both public and authenticated layouts. */
+.unified-delta-header{position:sticky!important;top:0!important;z-index:210!important;width:100%;color:#fff;
+  font-family:Manrope,Inter,Arial,sans-serif}
+.unified-delta-header a{color:inherit;text-decoration:none}
+.unified-delta-header .premium-announcement{display:block!important}
+.unified-delta-header .community-brand{display:flex!important;align-items:center!important;gap:13px!important;
+  font-size:clamp(20px,1.8vw,27px)!important;font-weight:900!important;letter-spacing:.16em!important;
+  white-space:nowrap;color:#fff!important}
+.unified-delta-header .community-brand:hover{color:#fff!important}
+.unified-delta-header .premium-brand-words{font-size:clamp(20px,1.8vw,27px)!important;line-height:1!important}
+.unified-delta-header .premium-brand-words small{display:block!important;margin:0!important;line-height:1.1!important}
+.unified-delta-header .community-primary-nav{display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:clamp(2px,.6vw,12px)!important;overflow:visible!important;min-width:0!important}
+.unified-delta-header .community-primary-nav a{white-space:nowrap}
+.unified-delta-header .community-account-slot{display:flex;align-items:center;margin:0!important;flex:none}
+.unified-delta-header .premium-header-actions{display:flex!important;align-items:center;justify-content:flex-end!important;gap:10px!important;flex:none}
+.unified-delta-header .unified-menu-shell.sky-nav{display:block!important;position:relative!important;top:auto!important;right:auto!important;
+  height:auto!important;min-height:0!important;min-width:0!important;width:auto!important;max-width:none!important;
+  padding:0!important;margin:0!important;gap:0!important;flex:none!important;
+  background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+  overflow:visible!important;z-index:230!important;line-height:normal}
+.unified-delta-header .unified-menu-dropdown.sky-nav-dropdown{display:block!important;position:relative!important;z-index:231!important;
+  margin:0!important;order:initial!important}
+.unified-delta-header .unified-menu-dropdown>summary{display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:11px!important;list-style:none!important;cursor:pointer!important;min-height:48px!important;
+  padding:10px 15px!important;font-size:13px!important;line-height:1.2!important;font-weight:850!important}
+.unified-delta-header .unified-menu-dropdown>summary::-webkit-details-marker{display:none}
+.unified-delta-header .unified-menu-dropdown>summary .sky-menu-label{white-space:nowrap}
+.unified-delta-header .sky-nav .sky-nav-panel{display:block!important;position:absolute!important;
+  right:0!important;left:auto!important;top:calc(100% + 12px)!important;
+  width:min(450px,calc(100vw - 24px))!important;min-width:0!important;
+  max-height:min(75dvh,740px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain;scrollbar-width:thin;z-index:250!important;
+  color:#fff!important;background:linear-gradient(145deg,#172e51,#0d1d38 50%,#08162d)!important;
+  border:1px solid #6b8bb474!important;box-shadow:0 22px 65px #0009!important;border-radius:18px!important}
+.unified-delta-header .unified-menu-dropdown:not([open])>.sky-nav-panel{display:none!important}
+.unified-delta-header .sky-menu-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.unified-delta-header .sky-menu-grid .sky-menu-item{display:flex!important;align-items:center!important;gap:10px!important;
+  background:#ffffff08!important;border:1px solid #6c8fb424!important;border-radius:11px!important;
+  padding:12px 10px!important;white-space:normal!important;text-transform:none!important;
+  letter-spacing:normal!important;min-height:62px!important}
+.unified-delta-header .sky-menu-grid .sky-menu-item:hover{background:#2b4f7c!important;border-color:#9fbedb6f!important}
+.unified-delta-header .sky-menu-grid .sky-menu-item>span:last-child{min-width:0!important}
+.unified-delta-header .sky-menu-grid .sky-menu-item b{font-size:12px!important;font-weight:850!important;line-height:1.2!important;
+  letter-spacing:0!important;display:block!important}
+.unified-delta-header .sky-menu-grid .sky-menu-item small{font-size:10px!important;font-weight:600!important;
+  line-height:1.4!important;letter-spacing:0!important;display:block!important}
+.unified-delta-header .sky-menu-bottom a{display:flex!important;align-items:center!important;gap:11px!important;
+  white-space:normal!important;text-transform:none!important;letter-spacing:0!important}
+.unified-delta-header .sky-menu-heading{display:flex!important;align-items:center!important}
+.unified-delta-header .sky-menu-icon{flex:none!important}
+.unified-delta-header .delta-account-menu>summary.delta-account-trigger{min-width:155px!important}
+.unified-delta-header .premium-get-started{display:inline-flex!important}
+.unified-delta-header .sky-nav-panel a:focus-visible,
+.unified-delta-header .unified-menu-dropdown>summary:focus-visible{outline:3px solid #f696b1!important;outline-offset:2px!important}
+.unified-delta-header .sky-nav-dropdown .sky-menu-bars i{background:#fa546c!important}
+/* Public pages and SkyMiles pages both inherit the same brand/header styling. */
+@media(max-width:1320px){
+  .unified-delta-header .community-primary-nav a{font-size:13px!important;padding-inline:9px!important}
+  .unified-delta-header .premium-nav-shell{gap:14px!important}
+}
+@media(max-width:1180px){
+  .unified-delta-header .community-primary-nav{display:none!important}
+  .unified-delta-header .premium-nav-shell{min-height:76px!important}
+  .unified-delta-header .unified-menu-dropdown>summary{min-width:110px!important}
+}
+@media(max-width:760px){
+  .unified-delta-header .premium-nav-shell{min-height:68px!important}
+  .unified-delta-header .community-brand{font-size:17px!important;letter-spacing:.09em!important}
+  .unified-delta-header .premium-brand-words{font-size:17px!important}
+  .unified-delta-header .premium-get-started{padding:10px 12px!important}
+  .unified-delta-header .unified-menu-dropdown>summary{min-width:48px!important;padding:10px!important;gap:6px!important}
+  .unified-delta-header .unified-menu-dropdown .sky-menu-label{display:none!important}
+  .unified-delta-header .unified-menu-dropdown .sky-menu-chevron{display:none!important}
+  .unified-delta-header .sky-nav .sky-nav-panel{max-height:min(77dvh,700px)!important}
+  .unified-delta-header .premium-header-actions{gap:7px!important}
+}
+@media(max-width:540px){
+  .unified-delta-header .delta-language-switch{display:none!important}
+  .unified-delta-header .premium-announcement-partner{display:none!important}
+  .unified-delta-header .premium-header-actions{min-width:0!important}
+  .unified-delta-header .premium-brand-icon{width:40px;height:40px;border-radius:9px}
+  .unified-delta-header .premium-brand-icon img{width:32px!important;height:32px!important}
+  .unified-delta-header .community-brand{gap:7px!important}
+  .unified-delta-header .premium-brand-words{font-size:15px!important;letter-spacing:.12em}
+  .unified-delta-header .premium-brand-words small{font-size:7px!important;letter-spacing:.04em!important}
+  .unified-delta-header .delta-account-menu>summary.delta-account-trigger{min-width:0!important;max-width:125px!important;padding:7px!important}
+  .unified-delta-header .delta-account-trigger-label{display:none!important}
+  .unified-delta-header .delta-account-caret{display:none!important}
+  .unified-delta-header .delta-account-trigger>img{width:34px!important;height:34px!important}
+  .unified-delta-header .premium-get-started{font-size:11px!important;white-space:nowrap!important;padding:10px 10px!important}
+  .unified-delta-header .sky-menu-heading{padding:17px 15px!important}
+  .unified-delta-header .sky-menu-grid{gap:7px!important;padding:0 9px 12px!important}
+  .unified-delta-header .sky-menu-grid .sky-menu-item{padding:9px 8px!important;min-height:57px!important;gap:7px!important}
+  .unified-delta-header .sky-menu-grid .sky-menu-item b{font-size:11px!important}
+  .unified-delta-header .sky-menu-grid .sky-menu-item small{font-size:9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .unified-delta-header .sky-nav .sky-nav-panel{animation:none!important}
+ .unified-delta-header .sky-menu-item{transition:none!important}
+}
