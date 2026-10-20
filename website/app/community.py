@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .database import get_db
-from .models import CommunityForm, CommunityFormResponse, Flight, FlightStatus, User
+from .models import CommunityForm, CommunityFormResponse, Flight, FlightStatus, User, Status, Transaction, AuditLog
 from .security import check_csrf, csrf_token, current_user
 from .sheet_sync import enqueue_event, add_transaction
 from .crew_bridge import queue_event
@@ -544,42 +544,91 @@ def internal_secret(request: Request):
 
 @router.post("/internal/skymiles/{action}")
 async def internal_skymiles(request: Request, action: str, db: Session = Depends(get_db)):
-    """One authoritative balance for bot and website; Sheets is a mirror."""
+    """Shared website/bot ledger. Every mutation requires LIVE admin-level roles."""
     internal_secret(request)
-    if action not in {"balance", "leaderboard", "award"}:
+    if action not in {"balance", "leaderboard", "award", "set", "history"}:
         raise HTTPException(404, "Unknown SkyMiles action")
     data = await request.json()
+    if not isinstance(data, dict):
+        raise HTTPException(422, "Invalid SkyMiles payload")
     if action == "leaderboard":
-        users = db.scalars(select(User).order_by(User.miles_balance.desc()).limit(10)).all()
-        return {"leaders": [{"userId": user.discord_user_id, "displayName": user.discord_display_name,
-                             "balance": user.miles_balance} for user in users]}
+        users = db.scalars(select(User).where(User.account_status == Status.ACTIVE)
+                           .order_by(User.miles_balance.desc()).limit(10)).all()
+        return {"leaders": [{"userId": u.discord_user_id, "displayName": u.discord_display_name,
+                             "balance": u.miles_balance} for u in users]}
     discord_id = str(data.get("user_id") or "")
     if not re.fullmatch(r"\d{15,22}", discord_id):
         raise HTTPException(422, "Invalid Discord ID")
     user = db.scalar(select(User).where(User.discord_user_id == discord_id).with_for_update())
-    if not user:
-        raise HTTPException(404, "This member must enroll in SkyMiles before their balance can be changed")
+    if not user or user.account_status != Status.ACTIVE:
+        raise HTTPException(404, "This member must have an active SkyMiles account")
     if action == "balance":
         return {"userId": discord_id, "balance": user.miles_balance}
-    amount = data.get("miles")
-    reason = str(data.get("reason") or "").strip()[:255]
+    if action == "history":
+        history = db.scalars(select(Transaction).where(Transaction.user_id == user.id)
+                             .order_by(Transaction.created_at.desc()).limit(12)).all()
+        return {"userId": discord_id, "balance": user.miles_balance,
+                "transactions": [{"change": t.miles_change, "reason": t.description,
+                                   "reference": t.reference or "", "when": t.created_at.isoformat()}
+                                  for t in history]}
+
     actor_id = str(data.get("awarded_by_id") or "")
-    if isinstance(amount, bool) or not isinstance(amount, int) or not -1000000 <= amount <= 1000000 or amount == 0 or not reason:
-        raise HTTPException(422, "Provide a nonzero amount and reason")
     if not re.fullmatch(r"\d{15,22}", actor_id):
-        raise HTTPException(422, "Invalid award author")
+        raise HTTPException(422, "Invalid staff author")
     actor = db.scalar(select(User).where(User.discord_user_id == actor_id))
+    if not actor or actor.account_status != Status.ACTIVE:
+        raise HTTPException(403, "An active website Admin account is required")
+    # The bot's cached roles or Manage Server permission are never sufficient.
+    # Verify the staff member's current main-server roles from Discord itself.
+    roles = await memberships(actor_id)
+    live_main = set(roles.get("airlines", []))
+    staff_admin_roles = settings.ids(settings.owner_discord_role_ids) | settings.ids(settings.admin_discord_role_ids)
+    if not (live_main & staff_admin_roles):
+        raise HTTPException(403, "Only Ownership and Staff Admin may modify SkyMiles")
+    if action == "set":
+        final_balance = data.get("balance")
+        if isinstance(final_balance, bool) or not isinstance(final_balance, int) or not 0 <= final_balance <= 100000000:
+            raise HTTPException(422, "Set a balance between zero and 100,000,000")
+        signed = final_balance - user.miles_balance
+        if abs(signed) > 1_000_000:
+            raise HTTPException(422, "A single adjustment may not exceed 1,000,000 miles")
+    else:
+        signed = data.get("miles")
+        if isinstance(signed, bool) or not isinstance(signed, int) or not -1_000_000 <= signed <= 1_000_000 or signed == 0:
+            raise HTTPException(422, "Enter a nonzero amount up to 1,000,000 miles")
+    reason = str(data.get("reason") or "").strip()[:255]
+    if not reason:
+        raise HTTPException(422, "A reason is required")
+    reference = str(data.get("reference") or data.get("flight_id") or "").strip()[:100]
+    # Discord snowflake uniquely identifies each command, preventing accidental
+    # duplicate miles if Discord retries a completed interaction.
+    interaction_id = str(data.get("interaction_id") or "")
+    if not re.fullmatch(r"\d{15,22}", interaction_id):
+        raise HTTPException(422, "A unique Discord command ID is required")
+    idempotency_ref = "bot:" + interaction_id
+    prior = db.scalar(select(Transaction).where(
+        Transaction.user_id == user.id, Transaction.reference == idempotency_ref
+    ))
+    if prior:
+        return {"userId": discord_id, "balance": user.miles_balance,
+                "actual_change": prior.miles_change, "duplicate": True}
+
     before = user.miles_balance
-    after = max(0, before + amount)
+    after = max(0, before + signed)
     changed = after - before
     user.miles_balance = after
     if changed > 0:
         user.lifetime_miles += changed
     add_transaction(db, user, type="BOT_AWARD" if changed > 0 else "BOT_CORRECTION",
-                    description=reason, reference=str(data.get("flight_id") or "")[:100],
-                    miles_change=changed, balance_before=before, balance_after=after, actor=actor)
+                    description=reason + (" [" + reference + "]" if reference else ""),
+                    reference=idempotency_ref, miles_change=changed,
+                    balance_before=before, balance_after=after, actor=actor)
+    db.add(AuditLog(staff_user_id=actor.id, target_user_id=user.id,
+                    action="BOT_SKYMILES_ADJUSTMENT", old_value={"balance": before},
+                    new_value={"balance": after, "change": changed, "reference": reference},
+                    reason=reason, security_metadata={"discord_interaction_id": interaction_id}))
     db.commit()
-    return {"userId": discord_id, "balance": after, "actual_change": changed}
+    return {"userId": discord_id, "balance": after, "actual_change": changed, "duplicate": False}
 
 
 @router.get("/internal/flights/{flight_id}")
