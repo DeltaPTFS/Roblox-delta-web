@@ -40,10 +40,12 @@
       </div>
     </div>
     <p class="success-status"><span class="success-online-dot"></span> DISCORD VERIFIED</p>
-    <h1>You're <em>signed in.</em></h1>
+    <h1>{% if event.kind == "signup" %}You've <em>signed up.</em>{% else %}You're <em>signed in.</em>{% endif %}</h1>
     <p class="success-name">Welcome aboard, <strong>{{ display_name }}.</strong></p>
     <p class="success-description">
-      {% if event.kind == "skymiles" %}
+      {% if event.kind == "signup" %}
+      Your new Delta Roblox SkyMiles account is ready! You're now part of our aviation community. Explore flights, miles, and rewards.
+      {% elif event.kind == "skymiles" %}
       Your Delta SkyMiles account is connected and ready. Your existing miles, flights, and rewards are waiting.
       {% elif event.kind == "forms" %}
       Your Discord identity is confirmed. Your available forms and applications are ready.
@@ -68,7 +70,7 @@
     </div>
   </main>
   <footer class="success-page-footer"><span>KEEP CLIMBING, DELTA AIR LINES.</span><span>INDEPENDENT ROBLOX AVIATION ROLEPLAY COMMUNITY</span></footer>
-  <audio id="signin-sound" src="/static/audio/delta-signin.mp3" preload="auto"></audio>
+  <audio id="signin-sound" src="/static/audio/delta-signin.mp3" preload="auto" playsinline></audio>
   
 </body>
 </html>
