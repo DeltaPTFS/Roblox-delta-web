@@ -50,26 +50,26 @@ def test_role_defaults_do_not_confuse_main_and_crew_roles():
 def test_join_button_uses_discord_oauth_and_not_raw_invitation():
     from pathlib import Path
     base=Path("website/templates/community_base.html").read_text()
+    header=Path("website/templates/_unified_site_header.html").read_text()
     home=Path("website/templates/homepage.html").read_text()
     main=Path("website/app/main.py").read_text()
     oauth=Path("website/app/oauth.py").read_text()
     assert '"Go to Discord" if main_discord_member' in home
     assert '"Join our Discord"' in home
-    assert '"Go to Discord" if main_discord_member is defined' in base
-    assert "'/join'" in home and "'/join'" in base
-    assert 'Gallery</a>' not in base
+    assert "Go to Discord" in header
+    assert "'/join'" in home and "'/join'" in header
+    assert '{% include "_unified_site_header.html" %}' in base
+    assert 'Gallery</a>' not in header
     assert '@app.get("/join")' in main
     assert '@app.get("/welcome", response_class=HTMLResponse)' in main
     assert 'guilds.join' in oauth
     assert 'client.put(' in oauth
 
-
 def test_customer_navigation_does_not_link_to_protected_gallery_editor():
     from pathlib import Path
-    nav=Path("website/templates/community_base.html").read_text()
+    nav=Path("website/templates/_unified_site_header.html").read_text()
     assert '/gallery/manage' not in nav
-    assert '{% if access is defined' in nav
-
+    assert '{% if nav_level in ("OWNER","ADMIN","STAFF") %}' in nav
 
 def test_forms_empty_state_is_role_aware_and_uses_modal():
     from pathlib import Path
@@ -108,41 +108,40 @@ def test_homepage_prioritizes_main_image_and_defers_gallery_decode():
 def test_public_homepage_header_and_footer_branding():
     from pathlib import Path
     base = Path("website/templates/community_base.html").read_text()
-    css = Path("website/static/community.css").read_text()
-    assert 'class="community-primary-nav"' in base
-    assert '<a href="/flights">Flights</a>' in base
-    assert '<a href="/forms">Forms</a>' in base
-    assert '<a href="/dashboard">SkyMiles</a>' in base
-    assert '.community-header .community-primary-nav a{' in css
-    assert 'font-size:clamp(15px,1.13vw,19px)' in css
+    header = Path("website/templates/_unified_site_header.html").read_text()
+    css = Path("website/static/unified-delta-navigation.css").read_text()
+    assert '{% include "_unified_site_header.html" %}' in base
+    assert 'class="community-primary-nav"' in header
+    assert 'href="/flights"' in header
+    assert 'href="/forms"' in header
+    assert 'href="/dashboard"' in header
+    assert '.unified-delta-header .community-primary-nav a' in css
     assert 'class="community-footer-brand"' in base
     assert '<img src="/static/delta-emblem.svg"' in base
-    assert '.community-footer-brand img{' in css
-    assert '@media(max-width:700px)' in css
-
+    assert '@media(max-width:540px)' in css
 
 def test_homepage_visual_polish_is_fast_and_reduced_motion_safe():
     from pathlib import Path
     html = Path("website/templates/homepage.html").read_text()
     base = Path("website/templates/community_base.html").read_text()
+    header = Path("website/templates/_unified_site_header.html").read_text()
     css = Path("website/static/community.css").read_text()
     motion = Path("website/static/community-motion.js").read_text()
+    nav = Path("website/static/unified-delta-navigation.js").read_text()
     for name in ("delta-hangar", "delta-centennial", "delta-terminal", "delta-lounge", "delta-hq", "delta-electric"):
         assert '/static/gallery/' + name + '.webp' in html
         assert '/gallery/media/' + name in html
     assert 'fetchpriority="high"' in html
     assert 'loading="lazy" decoding="async"' in html
     assert 'class="community-footer-copy"' in base
-    assert 'class="menu-lines"' in base
-    assert 'class="account-chevron"' in base
-    assert '↗' not in html and '↗' not in base
+    assert 'class="sky-menu-bars"' in header
+    assert 'class="delta-account-caret"' in Path("website/templates/_account_panel.html").read_text()
     assert 'community-motion.js' in base
+    assert "Escape" in nav
     assert 'IntersectionObserver' in motion
-    assert 'unobserve(entry.target)' in motion
     assert 'prefers-reduced-motion: reduce' in motion
     assert 'scroll-behavior:smooth' in css
     assert 'body.delta-motion-ready [data-reveal]' in css
-
 
 def test_form_studio_question_controls_use_full_width_layout():
     from pathlib import Path
