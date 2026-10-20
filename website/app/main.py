@@ -409,10 +409,11 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
         request, login_next=target,
         login_mode="signup" if mode == "signup" else "login",
         login_intent="community" if intent == "community" else "forms" if intent == "forms" or target.startswith("/forms") else "skymiles",
-        discord_login_href="/auth/discord/community" if intent == "community" else "/auth/discord/login?next=" + quote(target, safe=""),
+        discord_login_href="/auth/discord/community?next=" + quote(target, safe="") if intent == "community" else "/auth/discord/login?next=" + quote(target, safe=""),
         discord_forms_href="/auth/discord/forms?next=" + quote(forms_target, safe=""),
-        signup_href="/join" if intent == "community" else "/auth/roblox?next=" + quote(target, safe=""),
+        signup_href=("/join" if target == "/welcome" else "/auth/discord/community?next=" + quote(target, safe="")) if intent == "community" else "/auth/roblox?next=" + quote(target, safe=""),
         discord_connected=bool(request.session.get("forms_identity") or request.query_params.get("discord_connected")),
+        community_join_unconfirmed=bool(intent == "community" and request.query_params.get("join") == "unconfirmed"),
     ))
 
 
@@ -420,8 +421,9 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
 def signup(request: Request, next: str = "/welcome"):
     """Use the existing polished login/sign-up UI for general Discord community enrollment."""
     target = safe_login_target(next, "/welcome")
+    warning = "&join=unconfirmed" if request.query_params.get("join") == "unconfirmed" else ""
     return RedirectResponse(
-        "/login?mode=signup&intent=community&next=" + quote(target, safe=""), 303
+        "/login?mode=signup&intent=community&next=" + quote(target, safe="") + warning, 303
     )
 
 
@@ -493,10 +495,11 @@ def join_discord(request: Request):
 
 @app.get("/auth/discord/community")
 @limiter.limit("10/minute")
-def start_discord_community_join(request: Request):
-    """General community Discord OAuth; no SkyMiles or Forms authorization."""
+def start_discord_community_join(request: Request, next: str = "/welcome"):
+    """General community Discord OAuth; preserve only approved internal return routes."""
     if not (settings.discord_client_id and settings.discord_client_secret and settings.discord_bot_token and settings.discord_guild_id):
         return RedirectResponse(settings.discord_invite_url, 303)
+    request.session["community_login_return"] = next if next in ("/welcome", "/flights") else "/welcome"
     request.session["discord_community_join"] = True
     state, challenge = oauth_values(request, "discord")
     return RedirectResponse(discord_authorize(settings, state, challenge))
@@ -628,6 +631,9 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
     try: identity = await discord_identity(settings, code, verifier)
     except Exception: return RedirectResponse("/error?kind=discord",303)
     if community_login:
+        community_return = request.session.pop("community_login_return", "/welcome")
+        if community_return not in ("/welcome", "/flights"):
+            community_return = "/welcome"
         join_status = identity.get("join_status", "not_confirmed")
         if join_status not in ("joined", "already_member"):
             request.session.clear()
@@ -653,7 +659,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         request.session["discord_join_status"] = join_status
         return queue_signin_success(
             request, display_name=identity["display_name"],
-            destination="/welcome", kind="community", join_status=join_status,
+            destination=community_return, kind="community", join_status=join_status,
         )
     if forms_login:
         roles=await memberships(identity["id"])
