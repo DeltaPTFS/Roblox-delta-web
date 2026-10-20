@@ -519,11 +519,12 @@ def start_discord_forms_login(request: Request, next: str = "/forms", force: boo
 @app.get("/auth/discord/login")
 @limiter.limit("10/minute")
 def start_discord_login(request: Request, next: str = "/dashboard", db: Session=Depends(get_db)):
-    if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
     target=safe_login_target(next)
     user=linked_user_from_session(request,db)
     if user and user.account_status==Status.ACTIVE:
-        return RedirectResponse(target,303)
+        separator = "&" if "?" in target else "?"
+        return RedirectResponse(target + separator + "already_signed_in=1", 303)
+    if not settings.discord_client_id or not settings.discord_guild_id: raise HTTPException(503,"Discord OAuth is not configured")
     request.session["login_return"]=target
     request.session["discord_login_only"]=True
     state, challenge = oauth_values(request, "discord")
