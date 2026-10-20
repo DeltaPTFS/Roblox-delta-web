@@ -137,6 +137,18 @@ def test_discord_only_success_cannot_claim_skymiles_membership():
     assert b"Your Delta SkyMiles account is connected" not in page.body
 
 
+def test_first_time_signup_gets_distinct_confirmation_page():
+    request=request_with_session({"user_id":17},path="/signin/success")
+    response=queue_signin_success(request,display_name="Captain Delta",
+                                  destination="/dashboard?tutorial=1",
+                                  kind="signup",join_status="joined")
+    assert response.headers["location"]=="/signin/success"
+    rendered=signin_success(request,db=FakeDatabase(linked_user()))
+    assert rendered.status_code==200
+    assert b"You've <em>signed up.</em>" in rendered.body
+    assert b"Your new Delta Roblox SkyMiles account is ready!" in rendered.body
+
+
 def test_sound_and_four_second_animation_are_bundled_as_real_assets():
     root=Path("website")
     sound=root/"static/audio/delta-signin.mp3"
