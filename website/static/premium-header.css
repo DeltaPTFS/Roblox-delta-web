@@ -128,7 +128,7 @@
 
 /* General Delta Roblox community sign-up (not SkyMiles or Forms). */
 .community-join-page{position:relative;min-height:min(860px,calc(100svh - 110px));overflow:hidden;
-background:linear-gradient(115deg,#07132eef 5%,#081e46dc 55%,#28173be3),url('/static/ads/delta-lax.webp') center/cover no-repeat;color:#fff;display:grid;align-items:center}
+background:linear-gradient(115deg,#07132ee8 5%,#081e46c9 55%,#28173bba),url('/static/gallery/delta-hq.webp') center/cover no-repeat;color:#fff;display:grid;align-items:center}
 .community-join-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 84% 40%,#ef2c7540,transparent 35%),
 radial-gradient(circle at 25% 25%,#3879ee2e,transparent 32%)}
 .community-join-layout{position:relative;z-index:1;width:min(1420px,calc(100% - 9vw));margin:75px auto;display:grid;
