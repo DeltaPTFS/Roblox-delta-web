@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Delta Air Lines Roblox | Aviation Roleplay{% endblock %}</title>
 <meta name="description" content="Explore Delta Air Lines Roblox aviation roleplay. Join virtual flights, discover SkyMiles-style rewards, crew applications and Discord events.">
-<meta name="robots" content="{% if request.url.path == '/' %}index, follow, max-image-preview:large{% else %}noindex, follow{% endif %}">
+<meta name="robots" content="{% if request.url.path in ['/', '/core-partnerships'] %}index, follow, max-image-preview:large{% else %}noindex, follow{% endif %}">
 {% if request.url.path == '/' %}
 <link rel="canonical" href="https://roblox-delta-web.vercel.app/">
 <meta property="og:type" content="website">
@@ -13,18 +13,27 @@
 <meta property="og:image" content="https://roblox-delta-web.vercel.app/static/ads/delta-centennial-ad.webp">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Delta Air Lines Roblox - Aviation Roleplay Community","url":"https://roblox-delta-web.vercel.app/","description":"Independent Roblox aviation roleplay community. Not affiliated with Delta Air Lines, Inc."}</script>
+{% elif request.url.path == '/core-partnerships' %}
+<link rel="canonical" href="https://roblox-delta-web.vercel.app/core-partnerships">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Delta Roblox">
+<meta property="og:title" content="Virgin Atlantic × Delta Roblox | Core Partnerships">
+<meta property="og:description" content="Delta Roblox's first core partnership with Virgin Atlantic Roblox: virtual Sky Priority benefits, SkyMiles roleplay rewards and shared destinations.">
+<meta property="og:url" content="https://roblox-delta-web.vercel.app/core-partnerships">
+<meta property="og:image" content="https://roblox-delta-web.vercel.app/static/partnerships/virgin-flag.svg">
+<meta name="twitter:card" content="summary_large_image">
 {% endif %}
 <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
-<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}"></head>
+<link rel="stylesheet" href="/static/community.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/delta-ads.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/account-hub.css?v={{ asset_version }}"><link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}">{% block extra_head %}{% endblock %}</head>
 <body>
 <header class="community-header">
   <a class="community-brand" href="/" aria-label="Delta Air Lines homepage"><img src="/static/delta-emblem.svg" alt=""><span>DELTA <small>AIR LINES | ROBLOX</small></span></a>
   <nav class="community-primary-nav" aria-label="Primary navigation">
-    <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
+    <a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
     <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
   </nav>
   <details class="community-mobile-menu"><summary aria-label="Open menu"><span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span></summary>
-    <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a>
+    <div class="community-mobile-links"><a href="/">Home</a><a href="/flights">Flights</a><a href="/forms">Forms</a><a href="/core-partnerships">Partnerships</a>
     <a href="/dashboard">SkyMiles</a>{% if access is defined and access in ("OWNER","ADMIN","STAFF") %}<a href="/admin">Admin</a>{% endif %}
     <a href="{{ discord_href if main_discord_member is defined and main_discord_member else '/join' }}">{{ "Go to Discord" if main_discord_member is defined and main_discord_member else "Join Discord" }}</a></div>
   </details>
