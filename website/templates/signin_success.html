@@ -8,9 +8,11 @@
   <title>Welcome Aboard · Delta Air Lines</title>
   <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
   <link rel="stylesheet" href="/static/signin-success.css?v={{ asset_version }}">
+  <link rel="stylesheet" href="/static/site-announcement.css?v={{ asset_version }}">
   <script src="/static/signin-success.js?v={{ asset_version }}" defer></script>
 </head>
 <body>
+  {% include "_site_announcement.html" %}
   <div class="success-scene" aria-hidden="true">
     <div class="success-grid"></div>
     <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
