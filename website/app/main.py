@@ -416,9 +416,27 @@ def login(request: Request, next: str = "/dashboard", mode: str = "login",
     ))
 
 
-@app.get("/signup")
-def signup(request: Request, next: str = "/dashboard"):
-    return RedirectResponse("/login?mode=signup&next=" + quote(safe_login_target(next), safe=""), 303)
+@app.get("/signup", response_class=HTMLResponse)
+def signup(request: Request, next: str = "/", db: Session = Depends(get_db)):
+    """Public Discord community enrollment, separate from optional SkyMiles signup."""
+    user = linked_user_from_session(request, db)
+    guest = request.session.get("forms_identity")
+    viewer = {"id": user.discord_user_id, "name": user.discord_display_name} if user else (
+        guest if isinstance(guest, dict) else None
+    )
+    join_status = request.session.get("discord_join_status", "not_confirmed")
+    community_member = bool(
+        join_status in ("joined", "already_member")
+        or (isinstance(guest, dict) and guest.get("main_member"))
+        or (user and user.discord_verified_at and user.discord_role_ids)
+    )
+    return templates.TemplateResponse("community_signup.html", context(
+        request, viewer=viewer, main_discord_member=community_member,
+        discord_href="https://discord.com/channels/" + settings.discord_guild_id
+        if community_member and settings.discord_guild_id else settings.discord_invite_url,
+        access=permission(user, settings) if user else "MEMBER",
+        community_member=community_member, 
+    ), headers={"Cache-Control": "private, no-store"})
 
 
 @app.get("/auth/roblox")
@@ -644,7 +662,7 @@ async def discord_callback(request: Request, code: str, state: str, db: Session=
         request.session["discord_join_status"]=identity.get("join_status", "not_confirmed")
         return queue_signin_success(
             request,display_name=identity["display_name"],
-            destination=target,kind="skymiles" if account_linked else "forms",
+            destination=target,kind="community" if target == "/welcome" else "skymiles" if account_linked else "forms",
             join_status=identity.get("join_status","not_confirmed")
         )
     if not identity["member"]: return templates.TemplateResponse("restricted.html", context(request, kind="discord"), status_code=403)
