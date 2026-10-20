@@ -9,6 +9,10 @@
     {% if site_announcement.link_path and site_announcement.link_label %}
       <a class="delta-site-news-link" href="{{ site_announcement.link_path }}">{{ site_announcement.link_label }} <span aria-hidden="true">↗</span></a>
     {% endif %}
+    <div class="delta-site-news-author" title="Posted by Discord member {{ site_announcement.author_username }}">
+      <img src="{{ site_announcement.author_avatar }}" alt="" width="32" height="32" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/static/avatar.svg'">
+      <span><strong>{{ site_announcement.author_name }}</strong>{% if site_announcement.author_username %}<small>@{{ site_announcement.author_username }}</small>{% endif %}</span>
+    </div>
   </div>
 </div>
 {% endif %}
