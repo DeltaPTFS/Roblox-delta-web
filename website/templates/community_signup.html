@@ -29,6 +29,10 @@
       <a class="community-join-primary" href="/">Return to Delta Home <span aria-hidden="true">→</span></a>
       <a class="community-join-secondary" href="{{ discord_href }}" target="_blank" rel="noopener noreferrer">Open Delta Discord <span aria-hidden="true">↗</span></a>
       {% else %}
+      {% if request.query_params.get('join') == 'unconfirmed' %}
+      <div class="community-join-warning" role="status">Discord authorization completed, but we couldn't confirm your server membership. Try joining from Discord, then return here.</div>
+      <a class="community-join-secondary" href="{{ settings.discord_invite_url }}" target="_blank" rel="noopener noreferrer">Open Delta Discord invitation ↗</a>
+      {% endif %}
       <h2>Join our community.</h2>
       <p>Connect with Discord to join Delta Roblox. No SkyMiles enrollment or application form is required.</p>
       <a class="community-join-primary" href="/join">Continue with Discord <span aria-hidden="true">↗</span></a>
