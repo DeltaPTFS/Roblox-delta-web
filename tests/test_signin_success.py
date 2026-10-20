@@ -167,15 +167,15 @@ def test_first_time_signup_gets_distinct_confirmation_page():
     assert b"Your new Delta Roblox SkyMiles account is ready!" in rendered.body
 
 
-def test_community_signup_is_not_skymiles_enrollment_or_forms():
+def test_community_signup_reuses_the_polished_member_access_page():
     from website.app.main import signup
-    response = signup(request_with_session(), db=FakeDatabase(None))
-    assert response.status_code == 200
-    assert b"Join our community." in response.body
-    assert b'Continue with Discord' in response.body
-    assert b'href="/join"' in response.body
-    assert b"No SkyMiles enrollment or application form is required." in response.body
-    assert b"Sign up with Roblox" not in response.body
+    response = signup(request_with_session())
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login?mode=signup&intent=community&next=%2Fwelcome"
+    login_markup = Path("website/templates/login.html").read_text()
+    assert "Join Delta Roblox." in login_markup
+    assert "Continue with Discord" in login_markup
+    assert "No SkyMiles membership or Forms application required." in login_markup
 
 
 def test_general_join_oauth_is_independent_of_forms_roles_and_sky_miles():
