@@ -37,6 +37,9 @@
       {% elif login_next != "/dashboard" %}
       <div class="auth-destination" role="status"><svg><use href="#auth-icon-plane"></use></svg><span>Sign in to continue to <strong>{{ "Flight Booking" if login_next.startswith("/flights") else "your requested page" }}</strong>.</span></div>
       {% endif %}
+      {% if community_join_unconfirmed %}
+      <div class="auth-destination" role="status"><svg><use href="#auth-icon-shield"></use></svg><span>Discord authorization finished, but we couldn't confirm your community membership. Open the <a href="{{ settings.discord_invite_url }}" target="_blank" rel="noopener noreferrer">Delta Discord invitation</a> and try again.</span></div>
+      {% endif %}
       {% if discord_connected %}
       <div class="auth-connected" role="status"><svg><use href="#auth-icon-check"></use></svg><span>Discord connected. If you don't have SkyMiles yet, select <strong>Sign Up</strong> to verify Roblox and complete enrollment.</span></div>
       {% endif %}
