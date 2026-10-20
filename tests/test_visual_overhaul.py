@@ -17,9 +17,9 @@ def test_confirmation_no_longer_redirects_and_has_no_sound_button():
     assert "success-check-svg" in html
     assert "sound-button" not in html
     assert "progress-seconds" not in html
-    assert "audio.play()" in js
+    assert "sound.play()" in js
     assert "window.location.replace" not in js
-    assert "setTimeout(activate, 3900)" in js
+    assert "setTimeout(enable, 3900)" in js
     assert 'request.session.get("signin_celebration")' in main
     assert '@app.get("/signin/finish")' in main
 
