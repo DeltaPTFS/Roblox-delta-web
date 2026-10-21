@@ -11,7 +11,7 @@
       {% else %}
       <a class="premium-signup-message" href="/signup"><span class="premium-live-pulse" aria-hidden="true"></span><span>NEW TO DELTA ROBLOX?</span> <strong>SIGN UP <span aria-hidden="true">↗</span></strong></a>
       {% endif %}
-      <a class="premium-announcement-partner" href="/core-partnerships" aria-label="Explore our Virgin Atlantic core partnership">
+      <a class="premium-announcement-partner" href="/partnerships" aria-label="Explore our Virgin Atlantic core partnership">
         <span class="premium-partner-label">OUR FIRST CORE PARTNER</span><strong>VIRGIN ATLANTIC</strong><span aria-hidden="true">→</span>
       </a>
     </div>
@@ -28,7 +28,7 @@
       <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
       <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
       <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
-      <a href="/core-partnerships" {% if request.url.path == '/core-partnerships' %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
+      <a href="/partnerships" {% if request.url.path in ['/core-partnerships', '/partnerships'] %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
       <a href="/skymiles" {% if request.url.path in ['/dashboard', '/skymiles', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
       {% if nav_level in ("OWNER","ADMIN","STAFF") %}
       <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}"
@@ -60,7 +60,7 @@
               <a href="/home" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">⌂</span><span><b>Delta Home</b><small>Explore the community</small></span></a>
               <a href="/flights" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">✈</span><span><b>Flights</b><small>Upcoming departures</small></span></a>
               <a href="/forms" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▤</span><span><b>Forms</b><small>Applications &amp; fillouts</small></span></a>
-              <a href="/core-partnerships" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◇</span><span><b>Partnerships</b><small>Virgin Atlantic</small></span></a>
+              <a href="/partnerships" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◇</span><span><b>Partnerships</b><small>Virgin Atlantic</small></span></a>
               <a href="/skymiles" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◈</span><span><b>SkyMiles</b><small>Member dashboard</small></span></a>
               {% if header_user %}
               <a href="/miles" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◆</span><span><b>My Miles</b><small>Balance and status</small></span></a>
