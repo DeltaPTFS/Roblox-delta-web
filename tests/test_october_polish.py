@@ -47,7 +47,7 @@ def test_long_tour_uses_discord_grey_avatar_and_takes_members_through_every_page
     partial=src("templates/_skymiles_tutorial.html")
     js=src("static/skymiles-tour.js")
     main=src("app/main.py")
-    for page in ("/dashboard", "/flights", "/miles", "/trips", "/activity",
+    for page in ("/skymiles", "/flights", "/miles", "/trips", "/activity",
                  "/rewards", "/profile", "/settings"):
         assert "path:'"+page+"'" in js
     for name in ("Grey R.", "Cookie"):

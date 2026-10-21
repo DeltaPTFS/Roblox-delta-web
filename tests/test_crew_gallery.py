@@ -114,7 +114,7 @@ def test_public_homepage_header_and_footer_branding():
     assert 'class="community-primary-nav"' in header
     assert 'href="/flights"' in header
     assert 'href="/forms"' in header
-    assert 'href="/dashboard"' in header
+    assert 'href="/skymiles"' in header
     assert '.unified-delta-header .community-primary-nav a' in css
     assert 'class="community-footer-brand"' in base
     assert '<img src="/static/delta-emblem.svg"' in base

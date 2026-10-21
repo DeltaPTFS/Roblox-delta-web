@@ -370,7 +370,7 @@ def test_public_homepage_is_not_a_login_wall():
         assert "Every flight" in response.text
         assert "Delta Air Lines" in response.text
         assert 'href="/forms"' in response.text
-        assert 'href="/dashboard"' in response.text
+        assert 'href="/skymiles"' in response.text
 
 
 def test_guest_form_navigation_starts_at_unified_login():

@@ -297,3 +297,147 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
   .cabin-card:hover img{transform:none!important}
   .cabin-card::after{display:none}
 }
+
+
+/* PERFORMANCE / COMPLETE-PHOTO EDITION (Oct 2026)
+   The originals were cropped into a fixed 12-column/215px-row grid, then
+   covered in semi-transparent gradients and constantly repainted shimmer.
+   Give the photograph its intrinsic height and put captions UNDER it. */
+.cabin-experience .cabin-mosaic {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-auto-rows:auto;
+  align-items:start;
+  gap:clamp(16px,2.1vw,28px);
+}
+.cabin-experience .cabin-card,
+.cabin-experience .cabin-card-wide,
+.cabin-experience .cabin-card-tall,
+.cabin-experience .cabin-card-small:nth-child(3),
+.cabin-experience .cabin-card-small:nth-child(4) {
+  grid-column:auto;
+  grid-row:auto;
+  display:flex;
+  flex-direction:column;
+  height:auto;
+  min-height:0;
+  overflow:hidden;
+  border-radius:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.19);
+  background:#0c1933;
+  transition:none;
+}
+.cabin-experience .cabin-card img,
+.cabin-experience .cabin-card-tall img,
+.cabin-experience .cabin-card:hover img {
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:none;
+  aspect-ratio:auto;
+  object-fit:contain;
+  object-position:center center;
+  transform:none;
+  transition:none;
+  filter:none;
+}
+.cabin-experience .cabin-card::before,
+.cabin-experience .cabin-card::after {
+  display:none!important;
+  content:none!important;
+  animation:none!important;
+}
+.cabin-experience .cabin-card-copy,
+.cabin-experience .cabin-card-small .cabin-card-copy {
+  position:static;
+  z-index:auto;
+  flex:none;
+  left:auto;right:auto;bottom:auto;
+  padding:clamp(15px,1.8vw,23px);
+  border:0;
+  border-top:1px solid rgba(196,219,255,.18);
+  border-radius:0;
+  box-shadow:none;
+  background:#0b1a35;
+  color:#fff;
+}
+.cabin-experience .cabin-card-copy h3,
+.cabin-experience .cabin-card-small .cabin-card-copy h3 {
+  margin:6px 0 0;
+  font-size:clamp(19px,1.85vw,27px);
+}
+.cabin-experience .cabin-card-copy p {display:block;margin:7px 0 0}
+.cabin-experience .cabin-card:hover {box-shadow:0 8px 24px rgba(0,0,0,.19)}
+.showcase .gallery-card img,
+.showcase .gallery-card:hover img {
+  object-fit:contain;
+  object-position:center;
+  transform:none;
+  transition:none;
+}
+.showcase .gallery-card {
+  background-color:#081529;
+  background-image:none;
+}
+.showcase .gallery-card>div {
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  background:#07172be9;
+}
+
+/* Keep animation tasteful and cheap: single opacity/translate entrance, no
+   blur repaint, every-scroll layout scans, per-frame parallax or card sheen. */
+.home-cinematic-hero .hero-photo,
+.home-cinematic-hero .hero-photo img {
+  transform:none!important;
+  will-change:auto!important;
+  filter:none!important;
+  animation:none!important;
+}
+.home-cinematic-ambient span {filter:none!important;animation:none!important;opacity:.09!important}
+.home-flight-trails i,
+.showcase .gallery-card::after,
+.home-flight-ticker::before,
+.core-home-spotlight .core-home-card::before,
+.cabin-experience .cabin-card::after {
+  animation:none!important;
+}
+.home-flight-trails i {opacity:0!important}
+.core-home-spotlight .core-home-partner img {animation:none!important;filter:none!important}
+.home-scroll-meter {display:none}
+@media(prefers-reduced-motion:no-preference) {
+  body.home-cinematic-ready .home-reveal {
+    filter:none!important;
+    will-change:auto;
+    transition:opacity .42s ease-out,transform .45s ease-out;
+    transition-delay:0ms!important;
+  }
+  body.home-cinematic-ready .home-reveal:not(.home-visible),
+  body.home-cinematic-ready .home-reveal.home-from-left:not(.home-visible),
+  body.home-cinematic-ready .home-reveal.home-from-right:not(.home-visible) {
+    opacity:0;
+    filter:none!important;
+    transform:translate3d(0,18px,0);
+  }
+  body.home-cinematic-ready .home-reveal.home-visible {
+    opacity:1;
+    filter:none!important;
+    transform:none;
+  }
+  .cabin-experience .cabin-card:hover img {transform:none!important}
+}
+/* Skip painting below-fold content until needed. This is especially useful
+   for older laptops and remains fully visible without JavaScript. */
+.cabin-experience,
+.core-home-spotlight,
+.future {content-visibility:auto;contain-intrinsic-size:auto 850px}
+@media(max-width:760px) {
+  .cabin-experience .cabin-mosaic{grid-template-columns:1fr;gap:18px}
+  .cabin-experience .cabin-card-copy,
+  .cabin-experience .cabin-card-small .cabin-card-copy{padding:17px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .cabin-experience .cabin-card img,
+  .showcase .gallery-card img {transform:none!important}
+  body.home-cinematic-ready .home-reveal{filter:none!important;transform:none!important}
+}

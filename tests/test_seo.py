@@ -25,7 +25,7 @@ def test_sitemap_lists_only_indexable_public_homepage():
     assert response.media_type == "application/xml"
     root = ElementTree.fromstring(response.body)
     urls = [item.text for item in root.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
-    assert urls == [PUBLIC_SITE_URL + "/", PUBLIC_SITE_URL + "/core-partnerships"]
+    assert urls == [PUBLIC_SITE_URL + "/", PUBLIC_SITE_URL + "/partnerships"]
 
 
 def test_homepage_has_search_metadata_and_private_pages_noindex():
@@ -35,6 +35,6 @@ def test_homepage_has_search_metadata_and_private_pages_noindex():
     assert 'rel="canonical"' in public
     assert 'og:description' in public
     assert 'application/ld+json' in public
-    assert "request.url.path == '/'" in public
+    assert "request.url.path in ['/', '/home']" in public
     assert "Delta Air Lines Roblox" in home
     assert 'content="noindex, nofollow"' in private

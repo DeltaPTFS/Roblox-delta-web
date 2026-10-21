@@ -41,7 +41,7 @@ def test_tutorial_follows_all_skymiles_pages_and_discord_guide():
     assert "tutorial_grey_avatar" in partial
     assert "Cookie" in partial
     assert "Grey R." in partial
-    for path in ("/dashboard","/flights","/miles","/trips","/activity","/rewards","/profile","/settings"):
+    for path in ("/skymiles","/flights","/miles","/trips","/activity","/rewards","/profile","/settings"):
         assert "path:'"+path+"'" in js
     assert "sessionStorage.setItem" in js
     assert "modal.show()" in js

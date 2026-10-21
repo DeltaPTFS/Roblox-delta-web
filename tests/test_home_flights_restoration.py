@@ -60,39 +60,38 @@ def test_flights_link_is_a_real_schedule_with_genuine_empty_state():
     assert "flight-terminal.css" in source("templates/base.html")
 
 
-def test_homepage_reveals_on_scroll_and_replays_on_return():
+def test_homepage_reveals_once_without_per_frame_scroll_work():
     homepage = source("templates/homepage.html")
     js = source("static/homepage-cinematic.js")
     css = source("static/homepage-cinematic.css")
     community_motion = source("static/community-motion.js")
-    assert 'class="home-scroll-meter"' in homepage
+    assert "home-cinematic-hero" in homepage
     assert "IntersectionObserver" in js
-    assert "window.addEventListener('scroll', requestDraw, { passive: true })" in js
-    assert "node.classList.remove('home-visible')" in js
+    assert "observer.unobserve(entry.target)" in js
     assert "node.classList.add('home-visible')" in js
     assert "node.getBoundingClientRect()" in js
+    assert "window.addEventListener('scroll'" not in js
+    assert "--home-parallax" not in js
     assert "home-visible" in css
-    assert ".home-scroll-meter-fill" in css
-    assert "--home-parallax" in js and "--home-parallax" in css
+    assert "filter:none!important" in css
+    assert "content-visibility:auto" in css
     assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in community_motion
     assert "prefers-reduced-motion:reduce" in css
-    assert "observer.unobserve(entry.target)" not in js
 
-
-def test_homepage_animated_scenes_activate_during_scrolling():
+def test_homepage_photos_reveal_lightly_and_fit_without_cropping():
     homepage = source("templates/homepage.html")
     css = source("static/homepage-cinematic.css")
     script = source("static/homepage-cinematic.js")
     assert "home-cinematic-hero" in homepage
-    assert "home-scene-active" in script
     assert "new IntersectionObserver" in script
-    assert ".discover, .showcase, .cabin-experience, .core-home-spotlight, .future, .small-cta" in script
-    assert "homePartnerLevitate" in css
-    assert "homeGallerySweep" in css
-    assert "homeRunwayLight" in css
+    assert "'.cabin-experience .cabin-card'" in script
+    assert ".cabin-experience .cabin-mosaic" in css
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in css
+    assert "object-fit:contain" in css
+    assert "height:auto" in css
+    assert "home-scroll-meter {display:none}" in css
     assert "prefers-reduced-motion:reduce" in css
     assert "url('/static/ads/" not in css
-
 
 def test_discord_login_preserves_flights_destination():
     source_main = source("app/main.py")
