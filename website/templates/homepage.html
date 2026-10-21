@@ -62,7 +62,7 @@
 <p>Step into a realistic Delta-inspired aviation experience: hosted flights, ground operations, team opportunities, and a virtual SkyMiles program.</p></div>
 <div class="feature-grid"><a class="feature-card" href="/flights"><span class="feature-index">01 / OPERATIONS</span><h3>Upcoming Flights</h3><p>Book your next roleplay journey and stay up to date with the crew.</p><span>Explore flights</span></a>
 <a class="feature-card" href="/forms"><span class="feature-index">02 / OPPORTUNITIES</span><h3>Applications & Forms</h3><p>Apply for opportunities or complete your flight fillout using Discord sign-in.</p><span>See open forms</span></a>
-<a class="feature-card" href="/dashboard"><span class="feature-index">03 / RECOGNITION</span><h3>SkyMiles</h3><p>Keep your existing account, trips, Medallion progress and member rewards.</p><span>Visit SkyMiles</span></a></div></section>
+<a class="feature-card" href="/skymiles"><span class="feature-index">03 / RECOGNITION</span><h3>SkyMiles</h3><p>Keep your existing account, trips, Medallion progress and member rewards.</p><span>Visit SkyMiles</span></a></div></section>
 <section class="community-section showcase"><div class="section-head"><span class="eyebrow">BEHIND THE EXPERIENCE</span><h2>Built for the sky.<br><em>Made for you.</em></h2></div>
 <div class="gallery-grid">
 <div class="gallery-card large"><img src="/static/gallery/delta-centennial.webp" alt="Delta airplane flying past palm trees" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-centennial'"><div><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></div></div>
@@ -114,7 +114,7 @@
     <div class="core-home-partner" aria-label="Virgin Atlantic Roblox roleplay partner"><img src="/static/partnerships/virgin-flag.svg" width="260" height="260" alt="Virgin Atlantic inspired flag emblem"><strong>virgin atlantic</strong><small>DELTA ROBLOX × VIRGIN ATLANTIC ROBLOX</small></div>
   </div>
 </section>
-<section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/login">Access SkyMiles</a></div></div></section>
+<section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/skymiles">Access SkyMiles</a></div></div></section>
 <section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
 <script src="/static/homepage-cinematic.js?v={{ asset_version }}" defer></script>
 {% endblock %}
