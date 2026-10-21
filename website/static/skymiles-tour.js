@@ -9,13 +9,13 @@
  const name=JSON.parse(document.getElementById('delta-tour-name')?.textContent||'""') || 'member';
  const staff=document.body.dataset.tutorialStaff==='1';
  const steps=[
-  {speaker:'Grey R.',path:'/dashboard',target:'.delta-dash-hero',title:'Welcome to SkyMiles',copy:'Welcome aboard, '+name+'! This is your personal dashboard, with your account overview and latest updates.'},
-  {speaker:'Grey R.',path:'/dashboard',target:'#site-header',title:'Your Delta navigation',copy:'This top bar works across Delta Home, Flights, Forms, Partnerships and SkyMiles.'},
-  {speaker:'Cookie',path:'/dashboard',target:'#sky-nav-dropdown > summary',open:'menu',title:'The Navigation Hub',copy:'Open MENU to reach every SkyMiles page, trips, rewards, profile tools and community links.'},
-  {speaker:'Grey R.',path:'/dashboard',target:'.delta-account-menu > summary',open:'account',title:'Your Discord account',copy:'This is your verified Discord account dropdown. Find your profile, status, staff links (if eligible) and sign-out controls here.'},
-  {speaker:'Cookie',path:'/dashboard',target:'.delta-balance-card',title:'Available SkyMiles',copy:'Your miles balance updates after eligible flight activity, rewards and authorized staff adjustments.'},
-  {speaker:'Grey R.',path:'/dashboard',target:'.delta-qualification-card',title:'Medallion progress',copy:'MQP and flight segments track progress toward your next Medallion status tier.'},
-  {speaker:'Grey R.',path:'/dashboard',target:'.delta-identity-card',title:'Your verified identity',copy:'You have one linked Roblox identity and a separate verified Discord identity.'},
+  {speaker:'Grey R.',path:'/skymiles',target:'.delta-dash-hero',title:'Welcome to SkyMiles',copy:'Welcome aboard, '+name+'! This is your personal dashboard, with your account overview and latest updates.'},
+  {speaker:'Grey R.',path:'/skymiles',target:'#site-header',title:'Your Delta navigation',copy:'This top bar works across Delta Home, Flights, Forms, Partnerships and SkyMiles.'},
+  {speaker:'Cookie',path:'/skymiles',target:'#sky-nav-dropdown > summary',open:'menu',title:'The Navigation Hub',copy:'Open MENU to reach every SkyMiles page, trips, rewards, profile tools and community links.'},
+  {speaker:'Grey R.',path:'/skymiles',target:'.delta-account-menu > summary',open:'account',title:'Your Discord account',copy:'This is your verified Discord account dropdown. Find your profile, status, staff links (if eligible) and sign-out controls here.'},
+  {speaker:'Cookie',path:'/skymiles',target:'.delta-balance-card',title:'Available SkyMiles',copy:'Your miles balance updates after eligible flight activity, rewards and authorized staff adjustments.'},
+  {speaker:'Grey R.',path:'/skymiles',target:'.delta-qualification-card',title:'Medallion progress',copy:'MQP and flight segments track progress toward your next Medallion status tier.'},
+  {speaker:'Grey R.',path:'/skymiles',target:'.delta-identity-card',title:'Your verified identity',copy:'You have one linked Roblox identity and a separate verified Discord identity.'},
   {speaker:'Cookie',path:'/flights',target:'.flight-terminal-content',title:'Current flights',copy:'Find upcoming hosted community flights here. If there are none, you will see the standby message.'},
   {speaker:'Grey R.',path:'/miles',target:'main',title:'Miles and Medallion status',copy:'Review your current balance, qualifying points and benefits for your membership tier.'},
   {speaker:'Cookie',path:'/trips',target:'main',title:'My Trips',copy:'Your booked trips and flight confirmations appear on this page.'},
@@ -23,8 +23,8 @@
   {speaker:'Grey R.',path:'/rewards',target:'main',title:'Redeem rewards',copy:'Browse available community rewards and the SkyMiles required for each.'},
   {speaker:'Grey R.',path:'/profile',target:'main',title:'Your full profile',copy:'View the Discord and Roblox profiles associated with this SkyMiles membership.'},
   {speaker:'Cookie',path:'/settings',target:'main',title:'Account settings',copy:'Manage preferences and find the option to replay this tutorial.'},
-  ...(staff?[{speaker:'Grey R.',path:'/dashboard',target:'#sky-nav-dropdown > summary',open:'menu',title:'Staff workspace',copy:'If your Discord roles authorize it, the Navigation Hub also contains your Owner, Admin or Staff panel.'}]:[]),
-  {speaker:'Cookie',path:'/dashboard',target:'.delta-dash-hero-actions',title:'Ready to take off?',copy:'That is the full member tour! Explore the site and check back for new flights and benefits.'}
+  ...(staff?[{speaker:'Grey R.',path:'/skymiles',target:'#sky-nav-dropdown > summary',open:'menu',title:'Staff workspace',copy:'If your Discord roles authorize it, the Navigation Hub also contains your Owner, Admin or Staff panel.'}]:[]),
+  {speaker:'Cookie',path:'/skymiles',target:'.delta-dash-hero-actions',title:'Ready to take off?',copy:'That is the full member tour! Explore the site and check back for new flights and benefits.'}
  ];
  const key='delta_skymiles_tour_progress';
  const progress=modal.querySelector('#tutorial-progress');
