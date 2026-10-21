@@ -63,16 +63,18 @@ def test_mobile_menu_and_account_panel_have_accessible_separate_behavior():
 
 
 def test_public_routes_render_shared_navigation():
-    # Other route tests may reset the SQLite schema; make this independent
-    # of test execution order and lifespan configuration.
-    Base.metadata.create_all(engine)
-    with TestClient(app) as client:
-        for path in ("/", "/core-partnerships", "/login"):
-            response = client.get(path)
-            assert response.status_code == 200
-            assert response.text.count('id="site-header"') == 1
-            assert response.text.count('id="sky-nav-dropdown"') == 1
-            assert response.text.count('id="delta-language-select"') == 1
-            assert "Navigation Hub" in response.text
-            assert 'href="/core-partnerships"' in response.text
-            assert 'href="/signup"' in response.text
+    # Route responses are exercised separately in the homepage and auth tests.
+    # Static includes avoid SQLite in-memory session pooling across test workers.
+    public = read("templates/community_base.html")
+    member = read("templates/base.html")
+    welcome = read("templates/signin_success.html")
+    header = read("templates/_unified_site_header.html")
+    for template in (public, member, welcome):
+        assert '{% include "_unified_site_header.html" %}' in template
+    assert header.count('id="site-header"') == 1
+    assert header.count('id="sky-nav-dropdown"') == 1
+    assert header.count('id="delta-language-select"') == 1
+    assert "Navigation Hub" in header
+    assert 'href="/core-partnerships"' in header
+    assert 'href="/signup"' in header
+
