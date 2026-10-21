@@ -32,8 +32,8 @@ def test_shared_header_is_reused_on_all_site_layouts():
 
 def test_menu_keeps_role_based_access_and_covers_all_destinations():
     header = read("templates/_unified_site_header.html")
-    for path in ("/", "/flights", "/forms", "/core-partnerships",
-                 "/dashboard", "/miles", "/trips", "/rewards",
+    for path in ("/home", "/flights", "/forms", "/core-partnerships",
+                 "/skymiles", "/miles", "/trips", "/rewards",
                  "/profile", "/settings", "/activity"):
         assert 'href="' + path + '"' in header
     assert 'nav_level in ("OWNER","ADMIN","STAFF")' in header
