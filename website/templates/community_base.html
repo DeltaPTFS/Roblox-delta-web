@@ -2,8 +2,8 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Delta Air Lines Roblox | Aviation Roleplay{% endblock %}</title>
 <meta name="description" content="Explore Delta Air Lines Roblox aviation roleplay. Join virtual flights, discover SkyMiles-style rewards, crew applications and Discord events.">
-<meta name="robots" content="{% if request.url.path in ['/', '/core-partnerships'] %}index, follow, max-image-preview:large{% else %}noindex, follow{% endif %}">
-{% if request.url.path == '/' %}
+<meta name="robots" content="{% if request.url.path in ['/', '/home', '/core-partnerships'] %}index, follow, max-image-preview:large{% else %}noindex, follow{% endif %}">
+{% if request.url.path in ['/', '/home'] %}
 <link rel="canonical" href="https://roblox-delta-web.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Delta Roblox">
