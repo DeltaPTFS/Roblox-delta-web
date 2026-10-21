@@ -3,6 +3,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 from website.app.main import app
+from website.app.database import Base, engine
 
 
 def read(path):
@@ -62,6 +63,9 @@ def test_mobile_menu_and_account_panel_have_accessible_separate_behavior():
 
 
 def test_public_routes_render_shared_navigation():
+    # Other route tests may reset the SQLite schema; make this independent
+    # of test execution order and lifespan configuration.
+    Base.metadata.create_all(engine)
     with TestClient(app) as client:
         for path in ("/", "/core-partnerships", "/login"):
             response = client.get(path)
