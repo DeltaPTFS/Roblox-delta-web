@@ -60,8 +60,13 @@ def test_gallery_reveals_in_scroll_and_has_responsive_layout():
     css=read("static/homepage-cinematic.css")
     assert "'.cabin-experience .cabin-card'" in js
     assert "'.cabin-experience .section-head > *'" in js
-    assert ".cabin-experience, .core-home-spotlight" in js
-    assert ".cabin-experience.home-scene-active .cabin-card::after" in css
+    assert "observer.unobserve(entry.target)" in js
+    assert "window.addEventListener('scroll'" not in js
+    assert ".cabin-experience .cabin-mosaic" in css
+    assert ".cabin-experience .cabin-card img" in css
+    assert "object-fit:contain" in css
+    assert "height:auto" in css
+    assert "animation:none!important" in css
     assert "@media(max-width:740px)" in css
     assert "@media(max-width:480px)" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
