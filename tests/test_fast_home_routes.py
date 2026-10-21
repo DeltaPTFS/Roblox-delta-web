@@ -12,7 +12,11 @@ def read(path):
 
 def test_home_and_skymiles_are_real_get_routes():
     get_paths = {route.path for route in app.routes if "GET" in (getattr(route, "methods", set()) or set())}
-    for path in ("/", "/home", "/dashboard", "/skymiles"):
+    for path in (
+        "/", "/home", "/dashboard", "/skymiles", "/flights", "/forms",
+        "/partnerships", "/core-partnerships", "/miles", "/trips", "/activity",
+        "/rewards", "/profile", "/settings", "/staff", "/admin", "/owner",
+    ):
         assert path in get_paths
 
 
@@ -64,3 +68,24 @@ def test_optimized_homepage_does_not_block_on_discord_or_replay_heavy_animations
     assert "object-fit:contain" in css
     assert ".cabin-experience .cabin-card-copy" in css
     assert ".cabin-experience .cabin-card::after" in css
+
+
+def test_partnerships_has_clean_url_and_legacy_compatibility():
+    with TestClient(app) as client:
+        clean = client.get("/partnerships")
+        legacy = client.get("/core-partnerships")
+    assert clean.status_code == legacy.status_code == 200
+    assert "Two airlines." in clean.text
+    assert "Virgin Atlantic" in legacy.text
+    assert 'href="/partnerships"' in clean.text
+    assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/partnerships"' in clean.text
+
+
+def test_site_navigation_exposes_all_public_sections_as_clean_paths():
+    header = read("templates/_unified_site_header.html")
+    for slug in ("/home", "/flights", "/forms", "/partnerships", "/skymiles"):
+        assert header.count('href="' + slug + '"') >= 2
+    assert 'href="/core-partnerships"' not in header
+    home = read("templates/homepage.html")
+    assert 'href="/partnerships"' in home
+    assert 'href="/skymiles"' in home
