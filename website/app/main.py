@@ -299,6 +299,7 @@ def robots_txt():
             "Disallow: /signup\n"
             "Disallow: /signin/\n"
             "Disallow: /dashboard\n"
+            "Disallow: /skymiles\n"
             "Disallow: /miles\n"
             "Disallow: /profile\n"
             "Disallow: /trips\n"
@@ -372,6 +373,7 @@ async def core_partnerships(request: Request, db: Session = Depends(get_db)):
 
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/home", response_class=HTMLResponse)
 async def homepage(request: Request, db: Session = Depends(get_db)):
     user=linked_user_from_session(request,db)
     guest=request.session.get("forms_identity")
@@ -822,6 +824,7 @@ async def member_page(request: Request, template: str, db: Session):
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/skymiles", response_class=HTMLResponse)
 async def dashboard(request:Request,db:Session=Depends(get_db)): return await member_page(request,"dashboard.html",db)
 @app.get("/miles", response_class=HTMLResponse)
 async def miles(request:Request,db:Session=Depends(get_db)): return await member_page(request,"miles.html",db)
