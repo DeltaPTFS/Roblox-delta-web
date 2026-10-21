@@ -32,7 +32,7 @@ def test_shared_header_is_reused_on_all_site_layouts():
 
 def test_menu_keeps_role_based_access_and_covers_all_destinations():
     header = read("templates/_unified_site_header.html")
-    for path in ("/home", "/flights", "/forms", "/core-partnerships",
+    for path in ("/home", "/flights", "/forms", "/partnerships",
                  "/skymiles", "/miles", "/trips", "/rewards",
                  "/profile", "/settings", "/activity"):
         assert 'href="' + path + '"' in header
@@ -75,6 +75,6 @@ def test_public_routes_render_shared_navigation():
     assert header.count('id="sky-nav-dropdown"') == 1
     assert header.count('id="delta-language-select"') == 1
     assert "Navigation Hub" in header
-    assert 'href="/core-partnerships"' in header
+    assert 'href="/partnerships"' in header
     assert 'href="/signup"' in header
 
