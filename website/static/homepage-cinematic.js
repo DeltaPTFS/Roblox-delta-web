@@ -13,6 +13,8 @@
     '.discover .feature-card',
     '.showcase .section-head > *',
     '.showcase .gallery-card',
+    '.cabin-experience .section-head > *',
+    '.cabin-experience .cabin-card',
     '.delta-ad-secondary .section-head > *',
     '.delta-ad-secondary .delta-ad-feature-card',
     '.core-home-spotlight .core-home-copy > *',
@@ -25,7 +27,7 @@
   const targets = [...document.querySelectorAll(selectors.join(', '))];
   const meter = document.querySelector('.home-scroll-meter-fill');
   const picture = hero.querySelector('.hero-photo img');
-  const sections = [...document.querySelectorAll('.discover, .showcase, .core-home-spotlight, .future, .small-cta')];
+  const sections = [...document.querySelectorAll('.discover, .showcase, .cabin-experience, .core-home-spotlight, .future, .small-cta')];
   let ticking = false;
 
   // Scenes illuminate only while visitors are actually scrolling through them.
@@ -49,7 +51,7 @@
 
   targets.forEach((node, index) => {
     node.classList.add('home-reveal');
-    if (node.matches('.gallery-card, .delta-ad-feature-card, .core-home-partner')) {
+    if (node.matches('.gallery-card, .cabin-card, .delta-ad-feature-card, .core-home-partner')) {
       node.classList.add(index % 2 === 0 ? 'home-from-left' : 'home-from-right');
     }
     node.style.setProperty('--home-stagger', (index % 3) * 90 + 'ms');

@@ -86,7 +86,7 @@ def test_homepage_animated_scenes_activate_during_scrolling():
     assert "home-cinematic-hero" in homepage
     assert "home-scene-active" in script
     assert "new IntersectionObserver" in script
-    assert ".discover, .showcase, .core-home-spotlight, .future, .small-cta" in script
+    assert ".discover, .showcase, .cabin-experience, .core-home-spotlight, .future, .small-cta" in script
     assert "homePartnerLevitate" in css
     assert "homeGallerySweep" in css
     assert "homeRunwayLight" in css

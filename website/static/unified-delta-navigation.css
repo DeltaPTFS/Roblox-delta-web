@@ -125,3 +125,37 @@
 @media(prefers-reduced-motion:reduce){
  .unified-delta-header .premium-nav-shell:before,.unified-delta-header .premium-nav-shell:after{animation:none!important}
 }
+
+
+/* Actual moving, blinking star points in the top bar. CSS-only; no canvas,
+   intervals or scroll-event work, and no impact on menu click targets. */
+.unified-delta-header .delta-nav-sparkles{position:absolute;z-index:0;inset:0;
+  pointer-events:none;overflow:hidden;border-radius:0}
+.unified-delta-header .delta-nav-sparkles i{
+  --star-x:0px;--star-y:0px;--star-speed:7s;--star-delay:0s;--star-blink:2.6s;
+  position:absolute;display:block;width:3px;height:3px;border-radius:50%;
+  background:#f5f8ff;opacity:.22;pointer-events:none;
+  box-shadow:0 0 5px #ffffffca,0 0 10px #91b7ff97;
+}
+.unified-delta-header .delta-nav-sparkles i:nth-child(1){top:18%;left:7%;--star-x:19px;--star-y:7px;--star-speed:7s;--star-blink:2.1s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(2){top:66%;left:18%;--star-x:-16px;--star-y:-14px;--star-speed:9s;--star-delay:-2s;--star-blink:3.4s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(3){top:28%;left:31%;--star-x:22px;--star-y:-11px;--star-speed:8s;--star-delay:-3s;--star-blink:1.9s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(4){top:77%;left:44%;--star-x:-18px;--star-y:10px;--star-speed:11s;--star-delay:-1s;--star-blink:3.1s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(5){top:12%;left:57%;--star-x:16px;--star-y:14px;--star-speed:7.5s;--star-delay:-4s;--star-blink:2.8s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(6){top:64%;left:72%;--star-x:-24px;--star-y:-9px;--star-speed:10s;--star-delay:-2.4s;--star-blink:2.3s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(7){top:24%;left:83%;--star-x:13px;--star-y:17px;--star-speed:8.5s;--star-delay:-5s;--star-blink:3.6s}
+.unified-delta-header .delta-nav-sparkles i:nth-child(8){top:69%;left:94%;--star-x:-18px;--star-y:-14px;--star-speed:7s;--star-delay:-.4s;--star-blink:1.7s}
+.unified-delta-header .premium-nav-shell>.community-brand,
+.unified-delta-header .premium-nav-shell>.community-primary-nav,
+.unified-delta-header .premium-nav-shell>.premium-header-actions{position:relative;z-index:2}
+@media(prefers-reduced-motion:no-preference){
+  @keyframes navStarDrift{0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(var(--star-x),var(--star-y),0) scale(1.35)}}
+  @keyframes navStarBlink{0%,100%{opacity:.13}22%{opacity:.78}50%{opacity:.26}71%{opacity:1}84%{opacity:.38}}
+  .unified-delta-header .delta-nav-sparkles i{
+    animation:navStarDrift var(--star-speed) ease-in-out var(--star-delay) infinite,
+    navStarBlink var(--star-blink) ease-in-out var(--star-delay) infinite
+  }
+}
+@media(max-width:740px){.unified-delta-header .delta-nav-sparkles i:nth-child(2n){display:none}}
+@media(prefers-reduced-motion:reduce){.unified-delta-header .delta-nav-sparkles i{animation:none!important;opacity:.25}}

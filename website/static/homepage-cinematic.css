@@ -180,3 +180,120 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
   .home-flight-ticker::before,.home-cinematic-hero .scroll-cue-icon{animation:none!important}
   .home-cinematic-hero .hero-actions .community-btn:hover{transform:none}
 }
+
+
+/* Readability repair: the gallery sheen must NOT replace the dark image
+   scrim. The dark layer sits under captions; the decorative sheen stays
+   behind the text. The screenshots can be bright without washing copy out. */
+.showcase .gallery-card{isolation:isolate}
+.showcase .gallery-card::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(0deg,rgba(2,7,22,.94) 0%,rgba(3,9,25,.75) 21%,
+    rgba(3,9,25,.27) 52%,rgba(3,9,25,0) 76%);
+}
+.showcase .gallery-card::after{z-index:2}
+.showcase .gallery-card>div{
+  position:absolute;left:clamp(13px,1.5vw,25px);bottom:clamp(13px,1.5vw,25px);
+  z-index:5;max-width:min(85%,540px);padding:13px 17px;
+  color:#fff;background:rgba(5,14,33,.82);
+  border:1px solid rgba(214,229,255,.26);border-radius:11px;
+  box-shadow:0 10px 27px rgba(0,0,0,.38);
+  -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
+}
+.showcase .gallery-card>div>span{display:block;color:#ffcedf;letter-spacing:.16em;font-size:11px;font-weight:850}
+.showcase .gallery-card>div>h3{color:#fff;text-shadow:0 2px 8px #000e;line-height:1.18;
+  font-size:clamp(20px,2vw,32px);margin:8px 0 0}
+.showcase .gallery-card.large>div>h3{font-size:clamp(25px,2.65vw,43px)}
+.showcase .gallery-card img{display:block}
+@media(max-width:700px){
+  .showcase .gallery-card>div{max-width:calc(100% - 26px);left:13px;right:13px;bottom:13px;padding:11px 12px}
+  .showcase .gallery-card>div>h3{font-size:19px}
+  .showcase .gallery-card.large>div>h3{font-size:26px}
+}
+
+/* Your four original in-game cabin photos, arranged like an airline
+   editorial spread — not a promotional advertisement or site background. */
+.cabin-experience{
+  position:relative;isolation:isolate;
+  background:linear-gradient(160deg,#071329 0%,#101c41 52%,#060e26 100%);
+}
+.cabin-experience::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 14% 12%,rgba(213,47,97,.16),transparent 48%),
+    radial-gradient(ellipse at 96% 77%,rgba(70,129,242,.14),transparent 42%);
+}
+.cabin-experience .section-head{max-width:920px;margin-bottom:34px}
+.cabin-experience .section-head p{max-width:690px;color:#c5d0e4;font-size:clamp(15px,1.38vw,19px);line-height:1.8}
+.cabin-mosaic{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:215px;gap:16px}
+.cabin-card{position:relative;isolation:isolate;overflow:hidden;min-width:0;
+  background:#09142c;border:1px solid rgba(188,210,245,.26);border-radius:18px;
+  box-shadow:0 20px 44px rgba(0,0,0,.24);
+  transition:box-shadow .35s ease,border-color .35s ease}
+.cabin-card-wide{grid-column:1/span 7;grid-row:1/span 2}
+.cabin-card-tall{grid-column:8/span 5;grid-row:1/span 3}
+.cabin-card-small:nth-child(3){grid-column:1/span 4;grid-row:3}
+.cabin-card-small:nth-child(4){grid-column:5/span 3;grid-row:3}
+.cabin-card img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+  transition:transform 1.25s cubic-bezier(.16,1,.3,1),filter .6s ease;filter:saturate(1.06)}
+.cabin-card-tall img{object-position:54% center}
+.cabin-card::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(0deg,rgba(2,8,23,.96) 0%,rgba(2,8,23,.77) 21%,
+    rgba(3,11,27,.24) 55%,transparent 78%)}
+.cabin-card::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(110deg,transparent 32%,rgba(255,255,255,.12) 51%,transparent 69%);
+  transform:translateX(-120%);opacity:0}
+.cabin-card-copy{position:absolute;z-index:4;bottom:20px;left:20px;right:20px;
+  padding:14px 18px;border-radius:12px;
+  color:#fff;background:rgba(5,12,28,.80);border:1px solid rgba(210,228,255,.20);
+  box-shadow:0 9px 25px rgba(0,0,0,.36)}
+.cabin-card-copy span{display:block;color:#f9a9c7;font-size:10px;font-weight:850;letter-spacing:.19em}
+.cabin-card-copy h3{font-size:clamp(19px,2.1vw,35px);letter-spacing:-.035em;line-height:1.22;
+  margin:8px 0 0;color:#fff;text-shadow:0 2px 8px #000b}
+.cabin-card-copy p{font-size:13px;color:#c5d8f0;line-height:1.55;margin:9px 0 0}
+.cabin-card-small .cabin-card-copy{left:12px;right:12px;bottom:12px;padding:10px 12px}
+.cabin-card-small .cabin-card-copy h3{font-size:clamp(16px,1.65vw,24px)}
+.cabin-experience-footnote{display:flex;align-items:center;flex-wrap:wrap;gap:12px;
+  color:#99b1d0;font-size:10px;letter-spacing:.14em;font-weight:800;margin-top:26px}
+.cabin-footnote-signal{width:7px;height:7px;border-radius:100%;background:#fd6998;
+  box-shadow:0 0 16px #fd6998}
+.cabin-experience-footnote a{margin-left:auto;font-size:12px;letter-spacing:0;color:#fff;
+  border-bottom:1px solid #fc7297;padding-bottom:4px}
+.cabin-experience-footnote a:hover{color:#fcb5ce}
+.cabin-card:hover{border-color:rgba(250,137,170,.67);box-shadow:0 27px 60px rgba(0,0,0,.44)}
+.cabin-card:hover img{transform:scale(1.075);filter:saturate(1.13)}
+@media(prefers-reduced-motion:no-preference){
+  @keyframes cabin-photo-sheen{0%,23%{transform:translateX(-120%);opacity:0}47%{opacity:.6}
+    73%,100%{transform:translateX(120%);opacity:0}}
+  .cabin-experience.home-scene-active .cabin-card::after{animation:cabin-photo-sheen 9s ease-in-out infinite}
+  .cabin-experience.home-scene-active .cabin-card:nth-child(2)::after{animation-delay:1.7s}
+  .cabin-experience.home-scene-active .cabin-card:nth-child(3)::after{animation-delay:3.1s}
+  .cabin-experience.home-scene-active .cabin-card:nth-child(4)::after{animation-delay:4.4s}
+}
+@media(max-width:1050px){
+  .cabin-mosaic{grid-auto-rows:195px;gap:13px}
+  .cabin-card-copy{bottom:14px;left:14px;right:14px;padding:11px 13px}
+  .cabin-card-copy p{display:none}
+}
+@media(max-width:740px){
+  .cabin-mosaic{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:235px;gap:12px}
+  .cabin-card-wide{grid-column:1/-1;grid-row:auto}
+  .cabin-card-tall{grid-column:1/-1;grid-row:auto}
+  .cabin-card-small:nth-child(3){grid-column:1;grid-row:auto}
+  .cabin-card-small:nth-child(4){grid-column:2;grid-row:auto}
+  .cabin-card-small .cabin-card-copy{padding:9px 10px;left:8px;right:8px;bottom:8px}
+  .cabin-card-small .cabin-card-copy h3{font-size:16px}
+  .cabin-card-small .cabin-card-copy span{font-size:9px;letter-spacing:.07em}
+  .cabin-card-tall img{object-position:50% 53%}
+  .cabin-experience-footnote{font-size:9px;letter-spacing:.04em}
+}
+@media(max-width:480px){
+  .cabin-mosaic{grid-template-columns:1fr;grid-auto-rows:235px}
+  .cabin-card-wide,.cabin-card-tall,.cabin-card-small:nth-child(3),.cabin-card-small:nth-child(4){grid-column:1;grid-row:auto}
+  .cabin-card-small .cabin-card-copy{left:12px;right:12px;bottom:12px}
+  .cabin-card-small .cabin-card-copy h3{font-size:19px}
+}
+@media(prefers-reduced-motion:reduce){
+  .cabin-card,.cabin-card img{animation:none!important;transition:none!important}
+  .cabin-card:hover img{transform:none!important}
+  .cabin-card::after{display:none}
+}
