@@ -11,13 +11,13 @@ from website.app.main import app
 
 def test_core_partnerships_is_a_public_page():
     with TestClient(app) as client:
-        response = client.get("/core-partnerships")
+        response = client.get("/partnerships")
     assert response.status_code == 200
     assert "Two airlines." in response.text
     assert "Virgin Atlantic" in response.text
     assert "September 29, 2026" in response.text
     assert 'href="https://discord.gg/RbuYrETXAJ"' in response.text
-    assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/core-partnerships"' in response.text
+    assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/partnerships"' in response.text
     assert 'content="index, follow, max-image-preview:large"' in response.text
     assert "Not an official announcement by" in response.text
 
@@ -42,8 +42,8 @@ def test_partner_link_in_site_navigation_and_homepage():
     shared = Path("website/templates/_unified_site_header.html").read_text()
     home = Path("website/templates/homepage.html").read_text()
     assert '{% include "_unified_site_header.html" %}' in base
-    assert 'href="/core-partnerships"' in shared
-    assert 'href="/core-partnerships"' in home
+    assert 'href="/partnerships"' in shared
+    assert 'href="/partnerships"' in home
     assert "/static/partnerships/virgin-flag.svg" in home
 
 def test_premium_navigation_has_live_signup_and_mobile_access():
@@ -60,7 +60,7 @@ def test_premium_navigation_has_live_signup_and_mobile_access():
     assert 'class="sky-nav-dropdown unified-menu-dropdown"' in shared
     assert 'class="sky-nav-panel"' in shared
     assert 'class="premium-nav-shell"' in shared
-    assert 'href="/core-partnerships"' in shared
+    assert 'href="/partnerships"' in shared
     assert '@media(max-width:540px)' in css
     assert '@media(prefers-reduced-motion:reduce)' in css
     assert "Escape" in js
