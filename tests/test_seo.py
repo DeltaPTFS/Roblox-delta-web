@@ -35,6 +35,6 @@ def test_homepage_has_search_metadata_and_private_pages_noindex():
     assert 'rel="canonical"' in public
     assert 'og:description' in public
     assert 'application/ld+json' in public
-    assert "request.url.path == '/'" in public
+    assert "request.url.path in ['/', '/home']" in public
     assert "Delta Air Lines Roblox" in home
     assert 'content="noindex, nofollow"' in private
