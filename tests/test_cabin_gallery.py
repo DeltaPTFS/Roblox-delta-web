@@ -58,15 +58,19 @@ def test_nav_stars_automatically_drift_and_blink_without_javascript():
 def test_gallery_reveals_in_scroll_and_has_responsive_layout():
     js=read("static/homepage-cinematic.js")
     css=read("static/homepage-cinematic.css")
-    assert "'.cabin-experience .cabin-card'" in js
-    assert "'.cabin-experience .section-head > *'" in js
+    assert "'.cabin-experience .cabin-card'" not in js
+    assert "'.cabin-experience .section-head > *'" not in js
+    assert "Cabin photographs remain static" in js
     assert "observer.unobserve(entry.target)" in js
     assert "window.addEventListener('scroll'" not in js
     assert ".cabin-experience .cabin-mosaic" in css
     assert ".cabin-experience .cabin-card img" in css
     assert "object-fit:contain" in css
     assert "height:auto" in css
-    assert "animation:none!important" in css
+    assert "animation:none !important" in css
+    assert "content-visibility:visible !important" in css
+    assert "backdrop-filter:none !important" in css
+    assert "grid-template-columns:minmax(0,1.8fr) minmax(240px,.8fr)" in css
     assert "@media(max-width:740px)" in css
     assert "@media(max-width:480px)" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
