@@ -58,8 +58,14 @@ def test_nav_stars_automatically_drift_and_blink_without_javascript():
 def test_gallery_reveals_in_scroll_and_has_responsive_layout():
     js=read("static/homepage-cinematic.js")
     css=read("static/homepage-cinematic.css")
-    assert "'.cabin-experience .cabin-card'" in js
-    assert "'.cabin-experience .section-head > *'" in js
+    # Photos must stay visible and static during scroll; only lightweight non-photo
+    # sections use IntersectionObserver to avoid Safari repaint spikes.
+    assert "'.cabin-experience .cabin-card'" not in js
+    assert "'.cabin-experience .section-head > *'" not in js
+    assert ".cabin-experience {\n  content-visibility:visible!important" in css
+    assert ".premium-header.community-header.unified-delta-header" in css
+    assert "-webkit-backdrop-filter:none!important" in css
+    assert "navStarBlink" in css
     assert "observer.unobserve(entry.target)" in js
     assert "window.addEventListener('scroll'" not in js
     assert ".cabin-experience .cabin-mosaic" in css
