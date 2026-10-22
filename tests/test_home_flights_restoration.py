@@ -84,7 +84,9 @@ def test_homepage_photos_reveal_lightly_and_fit_without_cropping():
     script = source("static/homepage-cinematic.js")
     assert "home-cinematic-hero" in homepage
     assert "new IntersectionObserver" in script
-    assert "'.cabin-experience .cabin-card'" in script
+    assert "'.cabin-experience .cabin-card'" not in script
+    assert ".cabin-experience .cabin-card img" in css
+    assert "will-change:auto!important" in css
     assert ".cabin-experience .cabin-mosaic" in css
     assert "grid-template-columns:repeat(2,minmax(0,1fr))" in css
     assert "object-fit:contain" in css
