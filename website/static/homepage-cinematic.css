@@ -428,7 +428,8 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
 }
 /* Skip painting below-fold content until needed. This is especially useful
    for older laptops and remains fully visible without JavaScript. */
-.cabin-experience,
+/* Remove deferred-size guesses: Safari recalculated the entire cabin grid
+   as it scrolled into view, causing jumps and main-thread layout stalls. */
 .core-home-spotlight,
 .future {content-visibility:auto;contain-intrinsic-size:auto 850px}
 @media(max-width:760px) {
@@ -440,4 +441,159 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
   .cabin-experience .cabin-card img,
   .showcase .gallery-card img {transform:none!important}
   body.home-cinematic-ready .home-reveal{filter:none!important;transform:none!important}
+}
+
+
+/* SAFARI PERFORMANCE PASS — OCT 2026
+ * Four cabin photos are now static, full-frame editorial features.
+ * This intentionally overrides historical cinematic styles above. */
+.cabin-experience {
+  content-visibility:visible !important;
+  contain-intrinsic-size:none !important;
+  isolation:auto;
+  background:#08172d;
+}
+.cabin-experience::before {display:none !important}
+.cabin-experience .cabin-mosaic {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:clamp(22px,2.6vw,35px);
+  max-width:1100px;
+  margin:0 auto;
+}
+.cabin-experience .cabin-card,
+.cabin-experience .cabin-card-wide,
+.cabin-experience .cabin-card-tall,
+.cabin-experience .cabin-card-small:nth-child(3),
+.cabin-experience .cabin-card-small:nth-child(4) {
+  display:grid;
+  grid-template-columns:minmax(0,1.8fr) minmax(240px,.8fr);
+  align-items:stretch;
+  grid-column:1;
+  grid-row:auto;
+  min-height:0;
+  border:1px solid #50678e;
+  border-radius:16px;
+  background:#0b1a32;
+  overflow:hidden;
+  isolation:auto;
+  box-shadow:0 4px 15px rgba(0,0,0,.15);
+  transition:none !important;
+  animation:none !important;
+  transform:none !important;
+  filter:none !important;
+}
+.cabin-experience .cabin-card:nth-child(even) {
+  grid-template-columns:minmax(240px,.8fr) minmax(0,1.8fr);
+}
+.cabin-experience .cabin-card img,
+.cabin-experience .cabin-card-tall img,
+.cabin-experience .cabin-card:hover img {
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:none;
+  aspect-ratio:auto;
+  object-fit:contain;
+  object-position:center;
+  background:#050f22;
+  transition:none !important;
+  transform:none !important;
+  filter:none !important;
+  animation:none !important;
+  will-change:auto !important;
+}
+.cabin-experience .cabin-card:nth-child(even) img {grid-column:2;grid-row:1}
+.cabin-experience .cabin-card::before,
+.cabin-experience .cabin-card::after {display:none !important}
+.cabin-experience .cabin-card-copy,
+.cabin-experience .cabin-card-small .cabin-card-copy {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  position:static;
+  z-index:auto;
+  grid-row:1;
+  min-width:0;
+  padding:clamp(22px,3vw,38px);
+  border:0;
+  border-left:1px solid #304463;
+  box-shadow:none;
+  background:#10213c;
+  border-radius:0;
+}
+.cabin-experience .cabin-card:nth-child(even) .cabin-card-copy {
+  grid-column:1;grid-row:1;
+  border-left:0;
+  border-right:1px solid #304463;
+}
+.cabin-experience .cabin-card-copy h3,
+.cabin-experience .cabin-card-small .cabin-card-copy h3 {
+  line-height:1.17;
+  font-size:clamp(21px,2.5vw,34px);
+  margin:12px 0 0;
+  letter-spacing:-.02em;
+}
+.cabin-experience .cabin-card-copy p {
+  display:block;
+  margin:15px 0 0;
+  color:#bed0e9;
+  font-size:14px;
+  line-height:1.7;
+}
+.cabin-experience .cabin-card:hover,
+.cabin-experience .cabin-card:hover img {transform:none !important;box-shadow:0 4px 15px rgba(0,0,0,.15)}
+/* Crucial: do not hide/blink or translate photos while scrolling into view. */
+body.home-cinematic-ready .cabin-experience .cabin-card,
+body.home-cinematic-ready .cabin-experience .section-head > *,
+body.home-cinematic-ready .cabin-experience .cabin-card.home-reveal:not(.home-visible),
+body.home-cinematic-ready .cabin-experience .cabin-card.home-reveal.home-visible {
+  opacity:1 !important;
+  transform:none !important;
+  filter:none !important;
+  transition:none !important;
+  animation:none !important;
+}
+@media(max-width:790px) {
+  .cabin-experience .cabin-mosaic {grid-template-columns:1fr;max-width:640px}
+  .cabin-experience .cabin-card,
+  .cabin-experience .cabin-card:nth-child(even),
+  .cabin-experience .cabin-card-wide,
+  .cabin-experience .cabin-card-tall,
+  .cabin-experience .cabin-card-small:nth-child(3),
+  .cabin-experience .cabin-card-small:nth-child(4) {
+    display:flex;
+    flex-direction:column;
+    grid-column:1;
+    grid-row:auto;
+  }
+  .cabin-experience .cabin-card:nth-child(even) img {grid-column:auto;grid-row:auto}
+  .cabin-experience .cabin-card img,
+  .cabin-experience .cabin-card-tall img {height:auto !important;aspect-ratio:auto}
+  .cabin-experience .cabin-card-copy,
+  .cabin-experience .cabin-card:nth-child(even) .cabin-card-copy,
+  .cabin-experience .cabin-card-small .cabin-card-copy {
+    padding:18px 20px;
+    border:0;
+    border-top:1px solid #304463;
+  }
+}
+@media(prefers-reduced-motion:no-preference) {
+  /* Prevent a giant, animated, frosted header from repainting over the photos
+     with every scroll tick. Keep the eight small navigation sparkles. */
+  .unified-delta-header .premium-nav-shell::before,
+  .unified-delta-header .premium-nav-shell::after {
+    animation:none !important;
+    opacity:.12 !important;
+  }
+}
+/* A solid header reads as premium without costly viewport-wide backdrop blur. */
+.unified-delta-header.premium-header,
+.unified-delta-header.community-header {
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+  background:#0a1933 !important;
+  box-shadow:0 2px 11px rgba(0,0,0,.22) !important;
 }
