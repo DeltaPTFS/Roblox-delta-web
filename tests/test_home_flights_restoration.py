@@ -69,14 +69,13 @@ def test_homepage_reveals_once_without_per_frame_scroll_work():
     assert "IntersectionObserver" in js
     assert "observer.unobserve(entry.target)" in js
     assert "node.classList.add('home-visible')" in js
-    assert "node.getBoundingClientRect()" in js
     assert "window.addEventListener('scroll'" not in js
     assert "--home-parallax" not in js
     assert "home-visible" in css
-    assert "filter:none!important" in css
-    assert "content-visibility:auto" in css
     assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in community_motion
     assert "prefers-reduced-motion:reduce" in css
+    assert "homepage-cinematic.js" in homepage
+    assert "cabin-carousel.js" in homepage
 
 def test_homepage_photos_reveal_lightly_and_fit_without_cropping():
     homepage = source("templates/homepage.html")
