@@ -12,8 +12,7 @@
     '.discover .feature-card',
     '.showcase .section-head > *',
     '.showcase .gallery-card',
-    '.cabin-experience .section-head > *',
-    '.cabin-experience .cabin-card',
+    // Cabin photographs remain static: animating them made Safari scroll choppy.
     '.delta-ad-secondary .section-head > *',
     '.delta-ad-secondary .delta-ad-feature-card',
     '.core-home-spotlight .core-home-copy > *',
