@@ -51,6 +51,8 @@ def test_rotation_every_five_seconds_with_manual_and_accessible_controls():
                     "keydown","aria-current","aria-hidden"):
         assert feature in js
     assert "document.hidden" in js
+    assert "isPaused = media.matches || narrowScreen.matches" in js
+    assert "narrowScreen.addEventListener" in js
     assert "delta-ads.css" in base
     assert 'src="/static/delta-ads.js?v={{ asset_version }}"' in base
     home = (ROOT / "templates" / "homepage.html").read_text()
