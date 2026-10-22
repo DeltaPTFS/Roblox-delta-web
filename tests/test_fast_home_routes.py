@@ -67,6 +67,9 @@ def test_optimized_homepage_does_not_block_on_discord_or_replay_heavy_animations
     assert "content-visibility:auto" in css
     assert "object-fit:contain" in css
     assert ".cabin-experience .cabin-card-copy" in css
+    assert "content-visibility:visible !important" in css
+    assert "backdrop-filter:none !important" in css
+    assert "'.cabin-experience .cabin-card'" not in animation
     assert ".cabin-experience .cabin-card::after" in css
 
 
