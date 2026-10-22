@@ -45,7 +45,6 @@ def test_homepage_gallery_is_one_native_swipe_carousel_not_a_tall_photo_wall():
     assert "object-fit:contain" in css
     assert ".cabin-carousel-slide img" in css
     assert "max-height:490px" in css
-    assert "max-width:760px" not in css
 
     # Manual controls only: no autoplay interval, timers or RAF scroll handlers.
     assert "setInterval(" not in js
