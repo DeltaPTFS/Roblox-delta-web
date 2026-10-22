@@ -1,0 +1,53 @@
+{% extends "community_base.html" %}
+{% block title %}Cabin Experience | Delta Roblox Aviation Roleplay{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="/static/cabin-experience.css?v={{ asset_version }}">
+{% endblock %}
+{% block content %}
+<section class="cabin-experience-page" aria-labelledby="experience-title">
+  <div class="cabin-experience-container">
+    <a class="experience-return" href="/home#cabin-experience"><span aria-hidden="true">←</span> Back to Delta Home</a>
+    <div class="eyebrow" style="margin-top:30px">THE DELTA ROBLOX EXPERIENCE · PHOTO GALLERY</div>
+    <h1 id="experience-title">Welcome <em>aboard.</em></h1>
+    <p class="experience-intro">Discover our cabin through real screenshots from Delta Roblox roleplay flights. Each photo is shown in full, with no cropping, looping animations, or distracting overlays.</p>
+    <div class="experience-gallery-grid">
+      <article class="experience-gallery-card">
+        <img src="/static/gallery/cabin-entertainment.webp" width="900" height="529" alt="Delta Roblox inflight entertainment screens in a warmly lit virtual cabin" loading="eager" decoding="async" fetchpriority="high">
+        <div class="experience-gallery-card-copy">
+          <small>01 · INFLIGHT ENTERTAINMENT</small>
+          <h2>Immersed in the experience</h2>
+          <p>Warm cabin lighting and immersive seatback screens bring the virtual flight to life.</p>
+        </div>
+      </article>
+      <article class="experience-gallery-card">
+        <img src="/static/gallery/cabin-service.webp" width="900" height="529" alt="Delta Roblox seat tray with Biscoff snack and cup of coffee" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="experience-gallery-card-copy">
+          <small>02 · INFLIGHT DETAILS</small>
+          <h2>The little touches</h2>
+          <p>From a classic snack to the details on your tray table, every moment tells a story.</p>
+        </div>
+      </article>
+      <article class="experience-gallery-card">
+        <img src="/static/gallery/cabin-blue.webp" width="900" height="531" alt="Delta Roblox cabin entertainment screens in calming blue ambient lighting" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="experience-gallery-card-copy">
+          <small>03 · CABIN ATMOSPHERE</small>
+          <h2>Blue hour in the cabin</h2>
+          <p>The cabin changes with the journey. Settle in and experience the atmosphere.</p>
+        </div>
+      </article>
+      <article class="experience-gallery-card">
+        <img src="/static/gallery/cabin-window.webp" width="900" height="526" alt="Delta Roblox cabin window with a beverage beside the seat" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="experience-gallery-card-copy">
+          <small>04 · WINDOW-SEAT MOMENTS</small>
+          <h2>Settle in. Take off.</h2>
+          <p>A quiet window-seat moment from our virtual aviation world.</p>
+        </div>
+      </article>
+    </div>
+    <div class="experience-footer">
+      <p>Independent Roblox aviation roleplay community. These are in-game screenshots, not photographs or services of the real Delta Air Lines.</p>
+      <a href="/flights">Explore community flights <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</section>
+{% endblock %}
