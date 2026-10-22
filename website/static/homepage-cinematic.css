@@ -531,3 +531,34 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
 @media(prefers-reduced-motion:reduce) {
   .unified-delta-header .delta-nav-sparkles i{animation:none!important}
 }
+
+
+/* Don't transform huge aircraft images or nearby cards while a pointer is
+   stationary over them during a trackpad scroll. Prevent forced GPU layers. */
+.showcase .gallery-card,
+.showcase .gallery-card:hover,
+.showcase .gallery-card img,
+.showcase .gallery-card:hover img,
+.feature-card,
+.feature-card:hover,
+.delta-ad-secondary .delta-ad-feature-card,
+.delta-ad-secondary .delta-ad-feature-card:hover {
+  transform:none!important;
+  filter:none!important;
+  transition:none!important;
+  will-change:auto!important;
+}
+.showcase .gallery-card,.showcase .gallery-card:hover {
+  box-shadow:0 3px 14px rgba(0,0,0,.2)!important;
+}
+.showcase .gallery-card::after {animation:none!important}
+.core-home-spotlight,.future {
+  content-visibility:visible!important;
+  contain-intrinsic-size:none!important;
+}
+/* Override overlarge nested blur surfaces in Safari's scroll path. */
+.home-cinematic-hero .hero-content,
+.showcase .gallery-card>div {
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
