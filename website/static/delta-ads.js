@@ -19,9 +19,11 @@
   ];
   const intervalMs = 5000;
   const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const narrowScreen = window.matchMedia('(max-width: 760px)');
   let index = 0;
   let timer = null;
-  let isPaused = media.matches;
+  // Mobile visitors swipe or use arrows; do not force a repaint every 5s.
+  let isPaused = media.matches || narrowScreen.matches;
   let isHovered = false;
   let isFocused = false;
   let isVisible = true;
@@ -103,6 +105,16 @@
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : schedule());
   media.addEventListener?.('change', () => {
     if (media.matches) { isPaused=true; toggle?.setAttribute('aria-pressed','true'); if(pauseIcon)pauseIcon.hidden=true; if(playIcon)playIcon.hidden=false; }
+    schedule();
+  });
+  narrowScreen.addEventListener?.('change', () => {
+    if (narrowScreen.matches) {
+      isPaused = true;
+      toggle?.setAttribute('aria-pressed', 'true');
+      toggle?.setAttribute('aria-label', 'Resume advertisement rotation');
+      if (pauseIcon) pauseIcon.hidden = true;
+      if (playIcon) playIcon.hidden = false;
+    }
     schedule();
   });
   if ('IntersectionObserver' in window) {
