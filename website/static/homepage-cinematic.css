@@ -428,9 +428,7 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
 }
 /* Skip painting below-fold content until needed. This is especially useful
    for older laptops and remains fully visible without JavaScript. */
-.cabin-experience,
-.core-home-spotlight,
-.future {content-visibility:auto;contain-intrinsic-size:auto 850px}
+.core-home-spotlight,.future {content-visibility:auto;contain-intrinsic-size:auto 850px}
 @media(max-width:760px) {
   .cabin-experience .cabin-mosaic{grid-template-columns:1fr;gap:18px}
   .cabin-experience .cabin-card-copy,
@@ -440,4 +438,96 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
   .cabin-experience .cabin-card img,
   .showcase .gallery-card img {transform:none!important}
   body.home-cinematic-ready .home-reveal{filter:none!important;transform:none!important}
+}
+
+
+/* PHOTO PERFORMANCE FIX | STATIC CABIN GALLERY
+   Important for older Safari/macOS GPUs: keep these four photographs in normal
+   layout instead of promoting/animating multiple large compositor layers.
+   No intersection-reveal, background shimmer, CSS containment or blur. */
+.cabin-experience {
+  content-visibility:visible!important;
+  contain-intrinsic-size:none!important;
+  contain:none!important;
+  isolation:auto;
+}
+.cabin-experience .cabin-mosaic {
+  grid-auto-rows:auto!important;
+  align-items:start;
+}
+.cabin-experience .section-head,
+.cabin-experience .section-head > *,
+.cabin-experience .cabin-card,
+.cabin-experience .cabin-card .cabin-card-copy,
+.cabin-experience .cabin-card img {
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  filter:none!important;
+  animation:none!important;
+  transition:none!important;
+  will-change:auto!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.cabin-experience .cabin-card,
+.cabin-experience .cabin-card:hover {
+  box-shadow:0 2px 10px rgba(0,0,0,.13)!important;
+  border:1px solid rgba(178,199,226,.32);
+  background:#101f39;
+  isolation:auto;
+}
+.cabin-experience .cabin-card:hover {
+  border-color:rgba(178,199,226,.45)!important;
+}
+.cabin-experience .cabin-card::before,
+.cabin-experience .cabin-card::after,
+.cabin-experience::before {content:none!important;display:none!important}
+.cabin-experience .cabin-card img {
+  max-height:none!important;
+  width:100%!important;
+  height:auto!important;
+  display:block;
+  object-fit:contain!important;
+  image-rendering:auto;
+}
+.cabin-experience .cabin-card-copy,
+.cabin-experience .cabin-card-small .cabin-card-copy {
+  background:#101e37!important;
+  border-radius:0;
+  border-top:1px solid rgba(178,199,226,.2);
+  box-shadow:none!important;
+}
+.cabin-experience .cabin-card-copy h3 {
+  text-shadow:none!important;
+}
+/* The sticky glass navbar and its full-width animated sheen continuously
+   repaint over the photos on Safari. Use a solid premium surface instead;
+   retain the small decorative stars as an inexpensive accent. */
+.premium-header.community-header.unified-delta-header {
+  background:#0b1830!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:0 5px 15px rgba(0,0,0,.22)!important;
+}
+.unified-delta-header .premium-nav-shell::before,
+.unified-delta-header .premium-nav-shell::after {
+  content:none!important;
+  animation:none!important;
+  display:none!important;
+}
+/* Opacity-only sparkle changes are much cheaper than eight independently
+   translated glow layers on a constantly sticky bar. */
+@media(prefers-reduced-motion:no-preference) {
+  .unified-delta-header .delta-nav-sparkles i {
+    animation:navStarBlink 4.5s ease-in-out infinite!important;
+    transform:none!important;
+    box-shadow:0 0 3px rgba(255,255,255,.45)!important;
+  }
+}
+@media(max-width:850px) {
+  .unified-delta-header .delta-nav-sparkles i:nth-child(n+5) {display:none}
+}
+@media(prefers-reduced-motion:reduce) {
+  .unified-delta-header .delta-nav-sparkles i{animation:none!important}
 }
