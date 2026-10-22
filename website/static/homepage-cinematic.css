@@ -504,6 +504,7 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
   animation:none !important;
   will-change:auto !important;
 }
+.cabin-experience .cabin-card img {grid-column:1;grid-row:1}
 .cabin-experience .cabin-card:nth-child(even) img {grid-column:2;grid-row:1}
 .cabin-experience .cabin-card::before,
 .cabin-experience .cabin-card::after {display:none !important}
@@ -524,6 +525,7 @@ background:linear-gradient(100deg,transparent 34%,#c8dfff18 50%,transparent 66%)
   background:#10213c;
   border-radius:0;
 }
+.cabin-experience .cabin-card .cabin-card-copy {grid-column:2;grid-row:1}
 .cabin-experience .cabin-card:nth-child(even) .cabin-card-copy {
   grid-column:1;grid-row:1;
   border-left:0;
