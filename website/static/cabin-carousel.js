@@ -28,7 +28,7 @@
     const nextIndex = Math.max(0, Math.min(slides.length - 1, value));
     update(nextIndex);
     // No smooth JS animation: CSS scroll snap handles the mobile swipe.
-    track.scrollTo({ left: slides[nextIndex].offsetLeft - slides[0].offsetLeft, behavior: 'instant' });
+    track.scrollTo({ left: slides[nextIndex].offsetLeft - slides[0].offsetLeft, behavior: 'auto' });
   }
 
   previous?.addEventListener('click', () => go(index - 1));
