@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1666,17 +1667,106 @@ def logout(request:Request,csrf:str=Form(...)):
 def error(request:Request,kind:str="authentication"): return templates.TemplateResponse("error.html",context(request,title=f"{kind.title()} Verification Failed",message="We couldn't complete secure verification. Please try again."),status_code=400)
 
 
+def _is_auth_error_page(request: Request) -> bool:
+    """Keep sign-in and OAuth failures on their existing dedicated screens."""
+    path = request.url.path
+    return (path in {"/login", "/signup", "/error"}
+            or path.startswith(("/auth/", "/signin/", "/oauth/")))
+
+
+def _expects_api_error(request: Request) -> bool:
+    path = request.url.path
+    if path.startswith(("/api/", "/internal/", "/auth/", "/crew/")):
+        return True
+    if request.headers.get("x-requested-with", "").lower() == "xmlhttprequest":
+        return True
+    if request.headers.get("sec-fetch-mode", "").lower() in {"cors", "no-cors"}:
+        return True
+    accept = request.headers.get("accept", "")
+    return "application/json" in accept and "text/html" not in accept
+
+
+def _same_site_error_return(request: Request) -> str | None:
+    """Only redirect to safe same-origin pages. Never trust offsite Referer."""
+    referrer = request.headers.get("referer", "")
+    if not referrer:
+        return None
+    parsed = urlparse(referrer)
+    if parsed.scheme not in {"http", "https"} or parsed.netloc.lower() != request.url.netloc.lower():
+        return None
+    target = parsed.path or "/"
+    if not target.startswith("/") or target.startswith("//") or _is_auth_error_page(
+        type("_Page", (), {"url": type("_URL", (), {"path": target})()})()
+    ):
+        return None
+    current = request.url.path + ("?" + request.url.query if request.url.query else "")
+    result = target + ("?" + parsed.query if parsed.query else "")
+    return result if result != current else None
+
+
+def _website_error_popup(request: Request, title: str, message: str, status_code: int):
+    """Preserve the last usable page, displaying the error there as a modal."""
+    if _expects_api_error(request):
+        return JSONResponse({"detail": message}, status_code=status_code)
+    if _is_auth_error_page(request):
+        return templates.TemplateResponse(
+            "error.html", context(request, title=title, message=message),
+            status_code=status_code,
+        )
+    session = request.scope.get("session")
+    destination = _same_site_error_return(request)
+    if destination and isinstance(session, dict):
+        session["_site_error_popup"] = {"title": title, "message": message}
+        return RedirectResponse(destination, status_code=303)
+    if request.method != "GET" and isinstance(session, dict):
+        session["_site_error_popup"] = {"title": title, "message": message}
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(
+        "error.html",
+        context(request, title=title, message=message, popup_only=True,
+                forced_site_error={"title": title, "message": message}),
+        status_code=status_code,
+    )
+
+
 @app.exception_handler(HTTPException)
-async def http_error(request, exc):
-    if (exc.status_code == 401 and request.method == "GET" and
-            not request.url.path.startswith(("/api/", "/internal/", "/auth/"))):
-        requested=request.url.path + ("?" + request.url.query if request.url.query else "")
-        target=safe_login_target(requested)
-        intent="&intent=forms" if target.startswith("/forms") else ""
+async def http_error(request: Request, exc: HTTPException):
+    if (exc.status_code == 401 and request.method == "GET"
+            and not _expects_api_error(request) and not _is_auth_error_page(request)):
+        requested = request.url.path + ("?" + request.url.query if request.url.query else "")
+        target = safe_login_target(requested)
+        intent = "&intent=forms" if target.startswith("/forms") else ""
         return RedirectResponse("/login?next=" + quote(target, safe="") + intent, 303)
-    titles={401:"Session Expired",403:"Access Denied",404:"Page Not Found"}
-    return templates.TemplateResponse("error.html",context(request,title=titles.get(exc.status_code,"Something Went Wrong"),message=str(exc.detail)),status_code=exc.status_code)
+    titles = {401: "Session Expired", 403: "Access Denied",
+              404: "Page Not Found", 429: "Too Many Requests"}
+    return _website_error_popup(
+        request, titles.get(exc.status_code, "Something Went Wrong"),
+        str(exc.detail), exc.status_code,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, exc: RequestValidationError):
+    if _expects_api_error(request):
+        return JSONResponse({"detail": exc.errors()}, status_code=422)
+    return _website_error_popup(
+        request, "Please Check Your Information",
+        "Some required information was missing or invalid. Review your entries and try again.",
+        422,
+    )
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_error(request: Request, exc: RateLimitExceeded):
+    return _website_error_popup(
+        request, "Too Many Requests",
+        "Please try again after a short break.", 429,
+    )
 
 
 @app.exception_handler(Exception)
-async def server_error(request, exc): return templates.TemplateResponse("error.html",context(request,title="Server Error",message="Our flight systems encountered turbulence. Please try again later."),status_code=500)
+async def server_error(request: Request, exc: Exception):
+    return _website_error_popup(
+        request, "Server Error",
+        "Our flight systems encountered turbulence. Please try again later.", 500,
+    )
