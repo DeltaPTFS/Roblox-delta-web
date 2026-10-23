@@ -82,10 +82,64 @@
 }
 
 
-/* Compact, stable advertising banner: no oversized viewport takeover. */
-.delta-ad-frame{width:min(100%,1180px);height:clamp(220px,34vw,430px);min-height:0;max-height:430px;aspect-ratio:auto;margin-inline:auto}
-.delta-ad-slide img{width:100%;height:100%;object-fit:contain;object-position:center}
-.delta-ad-controls{top:auto;bottom:12px;right:14px;padding:5px;gap:7px;border-radius:10px;background:#08192ce8}
+/* Preserve the full 2048x1209 campaign artwork with no empty sidebars.
+   Previous clamp-based height made contain letterbox the photo into a tiny center box. */
+.delta-ad-frame{
+  box-sizing:border-box;
+  width:min(calc(100% - clamp(20px,4vw,64px)),1020px);
+  aspect-ratio:2048 / 1209;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  margin:0 auto;
+  overflow:hidden;
+  border-radius:clamp(9px,1.4vw,16px);
+  box-shadow:0 15px 38px rgba(0,0,0,.28);
+}
+.delta-ad-slide img{
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  object-fit:cover;
+  object-position:center;
+}
+/* The New York campaign has pale lettering baked into the image; a subtle
+   left-side scrim increases contrast without changing or covering the artwork. */
+.delta-ad-slide[data-ad-slide="1"]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(3,15,36,.42),rgba(3,15,36,.16) 55%,transparent 88%);
+}
+.delta-ad-controls{
+  top:auto;
+  right:clamp(9px,1.8vw,20px);
+  bottom:clamp(9px,1.8vw,20px);
+  padding:6px;
+  gap:8px;
+  border-radius:10px;
+  background:rgba(6,19,42,.83);
+}
 .delta-ad-control{min-height:34px;min-width:34px}
 .community-hero .scroll-cue{display:none!important}
-@media(max-width:800px){.delta-ad-frame{height:clamp(160px,48vw,320px)}.delta-ad-controls{bottom:8px;right:8px}}
+@media(max-width:800px){
+  .delta-ad-frame{
+    width:calc(100% - 20px);
+    height:auto;
+    min-height:0;
+    max-height:none;
+    aspect-ratio:2048 / 1209;
+  }
+  .delta-ad-controls{bottom:8px;right:8px;padding:5px}
+}
+@media(max-width:440px){
+  .delta-ad-frame{width:calc(100% - 12px);border-radius:7px}
+  .delta-ad-controls{bottom:5px;right:5px;gap:4px;padding:3px}
+  .delta-ad-control{min-height:28px;min-width:28px}
+}
