@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="/static/cabin-experience.css?v={{ asset_version }}-grid2">
 <style>
 /* Four large, equal-size, edge-to-edge photo cards. */
-.community-section.cabin-experience .cabin-all-photos {
+.community-section:is(.cabin-experience,.showcase) .cabin-all-photos {
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   width:min(100%,1200px)!important;
@@ -13,7 +13,7 @@
   margin:24px auto 0!important;
   align-items:stretch!important;
 }
-.community-section.cabin-experience .cabin-all-photos .cabin-photo-card {
+.community-section:is(.cabin-experience,.showcase) .cabin-all-photos .cabin-photo-card {
   display:block!important;
   position:relative!important;
   isolation:isolate;
@@ -27,7 +27,7 @@
   border-radius:12px;
   background:#07152b;
 }
-.community-section.cabin-experience .cabin-photo-open {
+.community-section:is(.cabin-experience,.showcase) .cabin-photo-open {
   display:block;
   position:absolute;
   inset:0;
@@ -37,11 +37,11 @@
   overflow:hidden;
   border-radius:inherit;
 }
-.community-section.cabin-experience .cabin-photo-open:focus-visible {
+.community-section:is(.cabin-experience,.showcase) .cabin-photo-open:focus-visible {
   outline:3px solid #ff9bbb;
   outline-offset:-4px;
 }
-.community-section.cabin-experience .cabin-photo-open img {
+.community-section:is(.cabin-experience,.showcase) .cabin-photo-open img {
   display:block!important;
   position:absolute!important;
   inset:0!important;
@@ -59,7 +59,7 @@
   transform:none!important;
   transition:none!important;
 }
-.community-section.cabin-experience .cabin-photo-overlay {
+.community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay {
   position:absolute;
   z-index:2;
   left:11px;
@@ -76,7 +76,7 @@
   box-shadow:0 3px 12px rgba(0,0,0,.25);
   pointer-events:none;
 }
-.community-section.cabin-experience .cabin-photo-overlay span {
+.community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay span {
   display:block;
   font-size:9px;
   font-weight:800;
@@ -85,7 +85,7 @@
   letter-spacing:.09em;
   margin:0 0 2px;
 }
-.community-section.cabin-experience .cabin-photo-overlay h3 {
+.community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay h3 {
   display:block;
   margin:0!important;
   padding:0!important;
@@ -94,7 +94,7 @@
   font-weight:750;
   color:white!important;
 }
-.community-section.cabin-experience .cabin-zoom-icon {
+.community-section:is(.cabin-experience,.showcase) .cabin-zoom-icon {
   position:absolute;
   top:10px;
   right:10px;
@@ -167,24 +167,36 @@
   outline-offset:3px;
 }
 @media(max-width:700px) {
-  .community-section.cabin-experience .cabin-all-photos {gap:8px!important}
-  .community-section.cabin-experience .cabin-photo-overlay {
+  .community-section:is(.cabin-experience,.showcase) .cabin-all-photos {gap:8px!important}
+  .community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay {
     left:5px;bottom:5px;
     max-width:calc(100% - 10px);
     padding:4px 6px;
     border-radius:5px;
   }
-  .community-section.cabin-experience .cabin-photo-overlay span {
+  .community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay span {
     font-size:7px;
     letter-spacing:.02em;
     margin-bottom:1px;
   }
-  .community-section.cabin-experience .cabin-photo-overlay h3 {
+  .community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay h3 {
     font-size:clamp(9px,1.8vw,12px)!important;
     line-height:1.15!important;
   }
-  .community-section.cabin-experience .cabin-zoom-icon {
+  .community-section:is(.cabin-experience,.showcase) .cabin-zoom-icon {
     width:21px;height:21px;top:5px;right:5px;font-size:13px;
+  }
+}
+
+/* The fifth showcase photo is centered but remains identical in size to the other four. */
+.community-section.showcase .cabin-all-photos .cabin-photo-card:last-child {
+  grid-column:1 / -1;
+  width:calc((100% - clamp(12px,1.8vw,22px)) / 2)!important;
+  justify-self:center;
+}
+@media(max-width:700px) {
+  .community-section.showcase .cabin-all-photos .cabin-photo-card:last-child {
+    width:calc((100% - 8px) / 2)!important;
   }
 }
 </style>
@@ -250,14 +262,50 @@
 <div class="feature-grid"><a class="feature-card" href="/flights"><span class="feature-index">01 / OPERATIONS</span><h3>Upcoming Flights</h3><p>Book your next roleplay journey and stay up to date with the crew.</p><span>Explore flights</span></a>
 <a class="feature-card" href="/forms"><span class="feature-index">02 / OPPORTUNITIES</span><h3>Applications & Forms</h3><p>Apply for opportunities or complete your flight fillout using Discord sign-in.</p><span>See open forms</span></a>
 <a class="feature-card" href="/skymiles"><span class="feature-index">03 / RECOGNITION</span><h3>SkyMiles</h3><p>Keep your existing account, trips, Medallion progress and member rewards.</p><span>Visit SkyMiles</span></a></div></section>
-<section class="community-section showcase"><div class="section-head"><span class="eyebrow">BEHIND THE EXPERIENCE</span><h2>Built for the sky.<br><em>Made for you.</em></h2></div>
-<div class="gallery-grid">
-<div class="gallery-card large"><img src="/static/gallery/delta-centennial.webp" alt="Delta airplane flying past palm trees" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-centennial'"><div><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></div></div>
-<div class="gallery-card"><img src="/static/gallery/delta-terminal.webp" alt="Delta terminal check-in experience" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-terminal'"><div><span>GUEST EXPERIENCE</span><h3>From check-in to boarding</h3></div></div>
-<div class="gallery-card"><img src="/static/gallery/delta-lounge.webp" alt="Modern Delta roleplay lounge" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-lounge'"><div><span>HOSPITALITY</span><h3>Discover the lounge</h3></div></div>
-<div class="gallery-card"><img src="/static/gallery/delta-hq.webp" alt="Delta HQ reception" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-hq'"><div><span>OUR COMMUNITY</span><h3>Explore Delta HQ</h3></div></div>
-<div class="gallery-card"><img src="/static/gallery/delta-electric.webp" alt="Delta partnership electric ground service vehicle" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-electric'"><div><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></div></div>
-</div></section>
+<section class="community-section showcase" aria-labelledby="showcase-title">
+  <div class="cabin-spotlight-heading"><div>
+    <span class="eyebrow">BEHIND THE EXPERIENCE</span>
+    <h2 id="showcase-title">Built for the sky.<br><em>Made for you.</em></h2>
+    <p>Explore the flights, spaces, and experiences that bring Delta Roblox to life.</p>
+  </div></div>
+  <div class="cabin-all-photos">
+    <figure class="cabin-photo-card">
+      <a class="cabin-photo-open" href="/static/gallery/delta-centennial.webp" aria-label="View full-screen: Take to the skies">
+        <img src="/static/gallery/delta-centennial.webp" alt="Delta airplane flying past palm trees" loading="lazy" decoding="async">
+        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
+      </a>
+      <figcaption class="cabin-photo-overlay"><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></figcaption>
+    </figure>
+    <figure class="cabin-photo-card">
+      <a class="cabin-photo-open" href="/static/gallery/delta-terminal.webp" aria-label="View full-screen: From check-in to boarding">
+        <img src="/static/gallery/delta-terminal.webp" alt="Delta terminal check-in experience" loading="lazy" decoding="async">
+        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
+      </a>
+      <figcaption class="cabin-photo-overlay"><span>GUEST EXPERIENCE</span><h3>From check-in to boarding</h3></figcaption>
+    </figure>
+    <figure class="cabin-photo-card">
+      <a class="cabin-photo-open" href="/static/gallery/delta-lounge.webp" aria-label="View full-screen: Discover the lounge">
+        <img src="/static/gallery/delta-lounge.webp" alt="Modern Delta roleplay lounge" loading="lazy" decoding="async">
+        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
+      </a>
+      <figcaption class="cabin-photo-overlay"><span>HOSPITALITY</span><h3>Discover the lounge</h3></figcaption>
+    </figure>
+    <figure class="cabin-photo-card">
+      <a class="cabin-photo-open" href="/static/gallery/delta-hq.webp" aria-label="View full-screen: Explore Delta HQ">
+        <img src="/static/gallery/delta-hq.webp" alt="Delta HQ reception" loading="lazy" decoding="async">
+        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
+      </a>
+      <figcaption class="cabin-photo-overlay"><span>OUR COMMUNITY</span><h3>Explore Delta HQ</h3></figcaption>
+    </figure>
+    <figure class="cabin-photo-card">
+      <a class="cabin-photo-open" href="/static/gallery/delta-electric.webp" aria-label="View full-screen: Innovation on the ground">
+        <img src="/static/gallery/delta-electric.webp" alt="Delta electric ground service vehicle" loading="lazy" decoding="async">
+        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
+      </a>
+      <figcaption class="cabin-photo-overlay"><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></figcaption>
+    </figure>
+  </div>
+</section>
 <section class="community-section cabin-experience" id="cabin-experience" aria-labelledby="cabin-experience-title">
 <div class="cabin-spotlight-heading"><div><span class="eyebrow">A LOOK INSIDE OUR ROBLOX CABIN</span><h2 id="cabin-experience-title">The Delta <em>experience.</em></h2><p>Four moments from our Roblox cabin, all on display.</p></div></div>
 <div class="cabin-all-photos">
@@ -309,28 +357,30 @@
 </section>
 <section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/skymiles">Access SkyMiles</a></div></div></section>
 <section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
-<dialog class="cabin-fullscreen-viewer" id="cabin-fullscreen-viewer" aria-label="Full-screen cabin photograph">
+<dialog class="cabin-fullscreen-viewer" id="cabin-fullscreen-viewer" aria-label="Full-screen Delta Roblox photograph">
   <button type="button" class="cabin-viewer-close" aria-label="Close full-screen photo" data-cabin-viewer-close>×</button>
   <img alt="" decoding="async">
   <p class="cabin-viewer-caption" aria-live="polite"></p>
 </dialog>
 <script>
 (() => {
-  const grid=document.querySelector('.cabin-all-photos');
+  const grids=document.querySelectorAll('.showcase .cabin-all-photos, .cabin-experience .cabin-all-photos');
   const viewer=document.getElementById('cabin-fullscreen-viewer');
-  if(!grid||!viewer||typeof viewer.showModal!=='function') return;
+  if(!grids.length||!viewer||typeof viewer.showModal!=='function') return;
   const image=viewer.querySelector('img');
   const caption=viewer.querySelector('.cabin-viewer-caption');
-  grid.addEventListener('click',event=>{
-    const link=event.target.closest('a.cabin-photo-open');
-    if(!link||!grid.contains(link))return;
-    event.preventDefault();
-    const preview=link.querySelector('img');
-    image.src=link.href;
-    image.alt=preview.alt;
-    caption.textContent=preview.alt;
-    viewer.showModal();
-  });
+  for (const grid of grids) {
+    grid.addEventListener('click',event=>{
+      const link=event.target.closest('a.cabin-photo-open');
+      if(!link||!grid.contains(link))return;
+      event.preventDefault();
+      const preview=link.querySelector('img');
+      image.src=link.href;
+      image.alt=preview.alt;
+      caption.textContent=preview.alt;
+      viewer.showModal();
+    });
+  }
   viewer.querySelector('[data-cabin-viewer-close]').addEventListener('click',()=>viewer.close());
   viewer.addEventListener('click',event=>{if(event.target===viewer)viewer.close()});
   viewer.addEventListener('close',()=>{image.removeAttribute('src');caption.textContent=''});
