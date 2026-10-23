@@ -37,7 +37,7 @@
    <a href="#member-directory"><span aria-hidden="true">02</span><strong>View Members</strong><small>Browse the member directory one page at a time</small><i aria-hidden="true">→</i></a>
    {% if panel_level in ('OWNER','ADMIN') %}<a href="#flight-operations"><span aria-hidden="true">03</span><strong>Manage Flights</strong><small>Publish departures, delays, and updates</small><i aria-hidden="true">→</i></a>{% endif %}
    <a href="/forms"><span aria-hidden="true">04</span><strong>Applications</strong><small>See available forms and member submissions</small><i aria-hidden="true">→</i></a>
-   {% if panel_level == 'OWNER' %}<a href="#site-announcement-editor"><span aria-hidden="true">05</span><strong>Post Website News</strong><small>Publish or hide a top-of-site announcement</small><i aria-hidden="true">→</i></a>{% endif %}
+   <a href="#site-announcement-editor"><span aria-hidden="true">05</span><strong>Website Announcements</strong><small>Publish an update or manage your own banner</small><i aria-hidden="true">→</i></a>
  </div>
 </section>
 <nav class="delta-admin-sections" aria-label="Administration sections">
@@ -45,18 +45,18 @@
   <a href="#member-actions">Member Actions</a>
   {% if panel_level in ('OWNER','ADMIN') %}<a href="#create-flight">Create Flight</a><a href="#flight-operations">Flight Operations</a>{% endif %}
   <a href="/forms">Forms</a>
-  {% if panel_level == 'OWNER' %}<a href="#site-announcement-editor">Website Announcement</a><a href="#system-integrations">Integrations</a><a href="#audit-trail">Audit Logs</a>{% endif %}
+  <a href="#site-announcement-editor">Website Announcement</a>{% if panel_level == 'OWNER' %}<a href="#system-integrations">Integrations</a><a href="#audit-trail">Audit Logs</a>{% endif %}
 </nav>
 {% if request.query_params.get('skymiles_applied') %}<div class="toast admin-success" role="status">✓ SkyMiles Applied!</div>{% endif %}
 {% if request.query_params.get('qualifications_applied') %}<div class="toast admin-success" role="status">✓ MQP and segments applied! New totals: {{ request.query_params.get('mqp_total') }} MQP · {{ request.query_params.get('segments_total') }} segments.</div>{% endif %}
 {% if request.query_params.get('moderation_applied') %}<div class="toast admin-success" role="status">✓ Moderation action recorded and member notified.</div>{% endif %}{% if request.query_params.get('access_updated') %}<div class="toast admin-success" role="status">✓ Member access updated!</div>{% endif %}
 
-{% if panel_level == 'OWNER' %}
+{% if panel_level in ('OWNER','ADMIN','STAFF') %}
 <section class="card page-card owner-announcement-editor" id="site-announcement-editor" aria-labelledby="announcement-editor-title">
   <div class="owner-announcement-top">
-    <div><span class="eyebrow">OWNERSHIP ONLY · WEBSITE BROADCASTS</span>
+    <div><span class="eyebrow">{{ 'OWNERSHIP CONTROL · ALL WEBSITE BROADCASTS' if panel_level == 'OWNER' else 'STAFF OPERATIONS · YOUR WEBSITE BROADCAST' }}</span>
       <h2 id="announcement-editor-title">Website Announcements</h2>
-      <p>Post a short animated update above the website navigation for everyone. It will appear on the homepage, Flights, SkyMiles, Partnerships and other site pages — <strong>never on Forms pages.</strong> You can change or hide it anytime.</p>
+      <p>Post an update above the navigation on the homepage, Flights, SkyMiles, Partnerships and other pages — <strong>never on Forms pages.</strong> {{ 'Ownership can replace or remove any announcement.' if panel_level == 'OWNER' else 'You can edit or remove only the announcement you published. Another staff member’s active announcement cannot be replaced here.' }}</p>
     </div>
     <span class="owner-announcement-state {{ 'is-live' if announcement_settings and announcement_settings.enabled else '' }}">
       <i aria-hidden="true"></i>{{ 'LIVE ON WEBSITE' if announcement_settings and announcement_settings.enabled else 'NOT PUBLISHED' }}
@@ -65,8 +65,10 @@
   {% if request.query_params.get('announcement_saved') %}
   <div class="notice success" role="status">Announcement settings saved. {{ 'Your message is live across the website.' if announcement_settings and announcement_settings.enabled else 'The announcement is hidden.' }}</div>
   {% endif %}
+  {% if request.query_params.get('announcement_removed') %}<div class="notice success" role="status">Website announcement removed.</div>{% endif %}
+  {% if not announcement_can_save %}<p class="owner-announcement-locked" role="status">An announcement posted by another staff member is live. Only its author or Ownership can change it. You can publish after it is removed.</p>{% endif %}
   <div class="owner-announcement-layout">
-    <form class="owner-announcement-form" action="/owner/announcement" method="post" id="owner-announcement-form">
+    <form class="owner-announcement-form" action="/{{ panel_level|lower }}/announcement" method="post" id="owner-announcement-form">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <label for="owner-news-message">Announcement message <small>Up to 220 characters</small></label>
       <textarea name="message" id="owner-news-message" maxlength="220" rows="3" placeholder="Example: Our next community flight is boarding this Saturday!" aria-describedby="owner-news-count">{{ announcement_settings.message if announcement_settings else '' }}</textarea>
@@ -90,9 +92,19 @@
         <input type="checkbox" name="enabled" value="on" id="owner-news-enabled" {% if announcement_settings and announcement_settings.enabled %}checked{% endif %}>
         <span><strong>Publish announcement</strong><small>Uncheck and save to hide it everywhere immediately.</small></span>
       </label>
-      <button type="submit" class="button primary owner-announcement-submit">Save Website Announcement <span aria-hidden="true">↗</span></button>
+      <div class="owner-announcement-actions">
+        <button type="submit" class="button primary owner-announcement-submit" {% if not announcement_can_save %}disabled title="Another staff member owns the active announcement"{% endif %}>Save Website Announcement <span aria-hidden="true">↗</span></button>
+        {% if announcement_can_remove %}
+        <button type="submit" form="site-announcement-remove-form" class="button owner-announcement-remove" data-confirm-announcement-remove>{{ 'Remove Website Announcement' if panel_level == 'OWNER' else 'Remove your Announcement' }}</button>
+        {% endif %}
+      </div>
       <p class="owner-announcement-safety">Links must stay on this website (for example <code>/flights</code> or <code>/partnerships</code>). External links and HTML formatting are disabled for visitor safety.</p>
     </form>
+    {% if announcement_can_remove %}
+    <form id="site-announcement-remove-form" method="post" action="/{{ panel_level|lower }}/announcement/remove">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+    </form>
+    {% endif %}
     <div class="owner-announcement-preview">
       <span class="eyebrow">LIVE PREVIEW</span>
       <p>This is how the announcement will look above the website header.</p>
@@ -127,6 +139,10 @@
     counter.textContent = message.value.length + ' / 220 characters';
     preview.dataset.tone = tone.value;
   };
+  const removeButton = document.querySelector('[data-confirm-announcement-remove]');
+  if (removeButton) removeButton.addEventListener('click', event => {
+    if (!window.confirm('Remove this website announcement for everyone?')) event.preventDefault();
+  });
   form.addEventListener('input', sync);
   form.addEventListener('change', sync);
   sync();
