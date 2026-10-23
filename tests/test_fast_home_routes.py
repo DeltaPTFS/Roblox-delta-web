@@ -60,18 +60,19 @@ def test_optimized_homepage_does_not_block_on_discord_or_replay_heavy_animations
     assert 'await main_roles_for_display(' not in homepage_handler
     assert 'crew_profile_roles' in homepage_handler
     animation=read("static/homepage-cinematic.js")
-    css=read("static/homepage-cinematic.css")
+    home_css=read("static/homepage-cinematic.css")
+    cabin_css=read("static/cabin-experience.css")
+    cabin_js=read("static/cabin-carousel.js")
     assert animation.count("new IntersectionObserver") == 1
     assert "window.addEventListener('scroll'" not in animation
     assert "observer.unobserve(entry.target)" in animation
-    assert "content-visibility:auto" in css
-    assert "object-fit:contain" in css
-    assert ".cabin-experience .cabin-card-copy" in css
-    assert "content-visibility:visible !important" in css
-    assert "backdrop-filter:none !important" in css
     assert "'.cabin-experience .cabin-card'" not in animation
-    assert ".cabin-experience .cabin-card::after" in css
-
+    assert ".cabin-mosaic" not in cabin_css
+    assert "scroll-snap-type:x mandatory" in cabin_css
+    assert "object-fit:contain" in cabin_css
+    assert "backdrop-filter:none !important" in cabin_css
+    assert "window.addEventListener('scroll'" not in cabin_js
+    assert "cabin-experience" not in home_css.split("/* Readability repair",1)[0]
 
 def test_partnerships_has_clean_url_and_legacy_compatibility():
     with TestClient(app) as client:

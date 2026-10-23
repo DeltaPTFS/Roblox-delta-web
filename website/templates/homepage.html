@@ -1,6 +1,7 @@
 {% extends "community_base.html" %}{% block title %}Delta Air Lines Roblox | Flights, Crew & SkyMiles Roleplay{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="/static/homepage-cinematic.css?v={{ asset_version }}">
+<link rel="stylesheet" href="/static/cabin-experience.css?v={{ asset_version }}">
 {% endblock %}
 {% block content %}
 <div class="home-scroll-meter" aria-hidden="true"><span class="home-scroll-meter-fill"></span></div>
@@ -72,30 +73,54 @@
 <div class="gallery-card"><img src="/static/gallery/delta-electric.webp" alt="Delta partnership electric ground service vehicle" loading="lazy" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.hidden=true};this.src='/gallery/media/delta-electric'"><div><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></div></div>
 </div></section>
 <section class="community-section cabin-experience" id="cabin-experience" aria-labelledby="cabin-experience-title">
-  <div class="section-head cabin-section-intro">
-    <span class="eyebrow">A CLOSER LOOK · OUR ROBLOX CABIN</span>
-    <h2 id="cabin-experience-title">Every detail.<br><em>Part of the journey.</em></h2>
-    <p>From the glow of the seatback screens to a quiet moment above the clouds, step inside the Delta Roblox cabin experience.</p>
+  <div class="cabin-spotlight-heading">
+    <div>
+      <span class="eyebrow">A LOOK INSIDE OUR ROBLOX CABIN</span>
+      <h2 id="cabin-experience-title">The Delta <em>experience.</em></h2>
+      <p>Explore the details of our virtual cabin. Swipe through four community screenshots, or open the full gallery.</p>
+    </div>
+    <a class="cabin-gallery-link" href="/experience">View full experience <span aria-hidden="true">↗</span></a>
   </div>
-  <div class="cabin-mosaic">
-    <article class="cabin-card cabin-card-wide">
-      <img src="/static/gallery/cabin-entertainment.webp" alt="Delta Roblox cabin entertainment screens under warm red lighting" loading="lazy" decoding="async" fetchpriority="low" width="900" height="529">
-      <div class="cabin-card-copy"><span>THE CABIN</span><h3>Immersed in the experience</h3><p>Bringing the atmosphere of aviation to every flight.</p></div>
-    </article>
-    <article class="cabin-card cabin-card-tall">
-      <img src="/static/gallery/cabin-service.webp" alt="Delta Roblox inflight tray with Biscoff cookie, drink and stationery" loading="lazy" decoding="async" fetchpriority="low" width="900" height="529">
-      <div class="cabin-card-copy"><span>ONBOARD DETAILS</span><h3>The little touches</h3><p>Make yourself comfortable.</p></div>
-    </article>
-    <article class="cabin-card cabin-card-small">
-      <img src="/static/gallery/cabin-blue.webp" alt="Delta Roblox seatback screens illuminated by blue cabin lighting" loading="lazy" decoding="async" fetchpriority="low" width="900" height="531">
-      <div class="cabin-card-copy"><span>THE ATMOSPHERE</span><h3>Blue hour in the cabin</h3></div>
-    </article>
-    <article class="cabin-card cabin-card-small">
-      <img src="/static/gallery/cabin-window.webp" alt="Bright Delta Roblox cabin window with a beverage on a tray" loading="lazy" decoding="async" fetchpriority="low" width="900" height="526">
-      <div class="cabin-card-copy"><span>INFLIGHT MOMENTS</span><h3>Settle in. Take off.</h3></div>
-    </article>
+  <div class="cabin-carousel" data-cabin-carousel aria-label="Delta Roblox cabin highlights">
+    <div class="cabin-carousel-topline">
+      <span class="cabin-carousel-label"><span class="cabin-status-dot" aria-hidden="true"></span> CABIN HIGHLIGHTS</span>
+      <span class="cabin-carousel-count" aria-live="polite" aria-atomic="true" data-cabin-count>01 / 04</span>
+    </div>
+    <div class="cabin-carousel-track" data-cabin-track role="region" aria-roledescription="carousel" aria-label="Swipe through four Delta Roblox cabin screenshots" tabindex="0">
+      <article class="cabin-carousel-slide" aria-label="1 of 4: Cabin entertainment">
+        <img src="/static/gallery/cabin-entertainment.webp" alt="Delta Roblox cabin entertainment screens with warm red lighting" width="900" height="529" loading="lazy" decoding="async">
+        <div class="cabin-carousel-copy"><span>THE CABIN · 01</span><h3>Immersed in the experience</h3><p>Warm cabin lighting and interactive seatback screens.</p></div>
+      </article>
+      <article class="cabin-carousel-slide" aria-label="2 of 4: Inflight service">
+        <img src="/static/gallery/cabin-service.webp" alt="Delta Roblox inflight tray with Biscoff cookie, drink and stationery" width="900" height="529" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="cabin-carousel-copy"><span>INFLIGHT DETAILS · 02</span><h3>The little touches</h3><p>Classic inflight refreshments make each journey memorable.</p></div>
+      </article>
+      <article class="cabin-carousel-slide" aria-label="3 of 4: Blue hour">
+        <img src="/static/gallery/cabin-blue.webp" alt="Delta Roblox cabin seatback screens beneath atmospheric blue lighting" width="900" height="531" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="cabin-carousel-copy"><span>THE ATMOSPHERE · 03</span><h3>Blue hour in the cabin</h3><p>Settle in with a calming cabin atmosphere.</p></div>
+      </article>
+      <article class="cabin-carousel-slide" aria-label="4 of 4: Window seat">
+        <img src="/static/gallery/cabin-window.webp" alt="Delta Roblox cabin window with a drink on the tray table" width="900" height="526" loading="lazy" decoding="async" fetchpriority="low">
+        <div class="cabin-carousel-copy"><span>INFLIGHT MOMENTS · 04</span><h3>Settle in. Take off.</h3><p>A window-seat view of the virtual flying experience.</p></div>
+      </article>
+    </div>
+    <div class="cabin-carousel-controls" data-cabin-nav>
+      <div class="cabin-carousel-dots" aria-label="Select cabin photograph">
+        <button type="button" class="is-active" aria-label="Show cabin photo 1" aria-pressed="true" data-cabin-dot="0"></button>
+        <button type="button" aria-label="Show cabin photo 2" aria-pressed="false" data-cabin-dot="1"></button>
+        <button type="button" aria-label="Show cabin photo 3" aria-pressed="false" data-cabin-dot="2"></button>
+        <button type="button" aria-label="Show cabin photo 4" aria-pressed="false" data-cabin-dot="3"></button>
+      </div>
+      <div class="cabin-carousel-arrows">
+        <button type="button" data-cabin-prev aria-label="Previous cabin photo"><span aria-hidden="true">←</span></button>
+        <button type="button" data-cabin-next aria-label="Next cabin photo"><span aria-hidden="true">→</span></button>
+      </div>
+    </div>
   </div>
-  <div class="cabin-experience-footnote"><span class="cabin-footnote-signal" aria-hidden="true"></span> SCREENSHOTS FROM OUR DELTA ROBLOX AVIATION ROLEPLAY COMMUNITY <a href="/flights">Explore flights <span aria-hidden="true">↗</span></a></div>
+  <div class="cabin-spotlight-footer">
+    <span>SCREENSHOTS FROM OUR DELTA ROBLOX ROLEPLAY COMMUNITY</span>
+    <a href="/experience">Explore the entire cabin gallery <span aria-hidden="true">↗</span></a>
+  </div>
 </section>
 <section class="community-section delta-ad-secondary" aria-labelledby="delta-spotlights-title">
   <div class="section-head"><span class="eyebrow">MORE TO EXPLORE</span><h2 id="delta-spotlights-title">Beyond the flight.<br><em>Discover Delta.</em></h2><p>Explore the destinations and operations that make our Roblox aviation community unique.</p></div>
@@ -117,4 +142,5 @@
 <section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/skymiles">Access SkyMiles</a></div></div></section>
 <section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
 <script src="/static/homepage-cinematic.js?v={{ asset_version }}" defer></script>
+<script src="/static/cabin-carousel.js?v={{ asset_version }}" defer></script>
 {% endblock %}

@@ -321,6 +321,7 @@ def sitemap_xml():
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
             f"  <url><loc>{PUBLIC_SITE_URL}/</loc></url>\n"
             f"  <url><loc>{PUBLIC_SITE_URL}/partnerships</loc></url>\n"
+            f"  <url><loc>{PUBLIC_SITE_URL}/experience</loc></url>\n"
             "</urlset>\n"
         ),
         media_type="application/xml",
@@ -369,6 +370,27 @@ async def core_partnerships(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("core_partnerships.html", context(
         request, viewer=viewer, profile_user=user, main_discord_member=member_main,
         discord_href="https://discord.com/channels/" + settings.discord_guild_id if member_main and settings.discord_guild_id else settings.discord_invite_url,
+        access=permission(user, settings) if user else "MEMBER",
+    ))
+
+
+@app.get("/experience", response_class=HTMLResponse)
+async def cabin_experience(request: Request, db: Session = Depends(get_db)):
+    """Public, full-photo gallery for our independent Roblox flight community."""
+    user = linked_user_from_session(request, db)
+    guest = request.session.get("forms_identity")
+    viewer = {"id": user.discord_user_id, "name": user.discord_display_name} if user else guest
+    member_main = bool(
+        (user and user.discord_verified_at and user.discord_role_ids)
+        or (isinstance(guest, dict) and guest.get("main_member"))
+        or request.session.get("discord_join_status") in ("joined", "already_member")
+    )
+    return templates.TemplateResponse("cabin_experience.html", context(
+        request, viewer=viewer, profile_user=user,
+        main_discord_member=member_main,
+        discord_href=("https://discord.com/channels/" + settings.discord_guild_id
+                      if member_main and settings.discord_guild_id
+                      else settings.discord_invite_url),
         access=permission(user, settings) if user else "MEMBER",
     ))
 

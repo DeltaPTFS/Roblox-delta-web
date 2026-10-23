@@ -69,30 +69,32 @@ def test_homepage_reveals_once_without_per_frame_scroll_work():
     assert "IntersectionObserver" in js
     assert "observer.unobserve(entry.target)" in js
     assert "node.classList.add('home-visible')" in js
-    assert "node.getBoundingClientRect()" in js
     assert "window.addEventListener('scroll'" not in js
     assert "--home-parallax" not in js
     assert "home-visible" in css
-    assert "filter:none!important" in css
-    assert "content-visibility:auto" in css
     assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in community_motion
     assert "prefers-reduced-motion:reduce" in css
+    assert "homepage-cinematic.js" in homepage
+    assert "cabin-carousel.js" in homepage
 
-def test_homepage_photos_reveal_lightly_and_fit_without_cropping():
+def test_homepage_carousel_is_swipeable_and_does_not_animate_photos():
     homepage = source("templates/homepage.html")
-    css = source("static/homepage-cinematic.css")
-    script = source("static/homepage-cinematic.js")
+    css = source("static/cabin-experience.css")
+    script = source("static/cabin-carousel.js")
     assert "home-cinematic-hero" in homepage
-    assert "new IntersectionObserver" in script
-    assert "'.cabin-experience .cabin-card'" not in script
-    assert "Cabin photographs remain static" in script
-    assert ".cabin-experience .cabin-mosaic" in css
-    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in css
+    assert 'data-cabin-carousel' in homepage
+    assert 'class="cabin-carousel-slide"' in homepage
+    assert "scroll-snap-type:x mandatory" in css
+    assert "scroll-snap-align:start" in css
     assert "object-fit:contain" in css
-    assert "height:auto" in css
-    assert "home-scroll-meter {display:none}" in css
+    assert "backdrop-filter:none !important" in css
+    assert ".cabin-carousel.is-ready" in css
+    assert "requestAnimationFrame" not in script
+    assert "setInterval" not in script
+    assert "window.addEventListener('scroll'" not in script
     assert "prefers-reduced-motion:reduce" in css
     assert "url('/static/ads/" not in css
+
 
 def test_discord_login_preserves_flights_destination():
     source_main = source("app/main.py")

@@ -1,89 +1,100 @@
-"""Photo, animation and legibility regression checks for the Delta homepage."""
+"""Tests for accessible, fast cabin slides and the separate /experience page."""
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+
 from website.app.main import app
 
-ROOT=Path("website")
-CABIN_PHOTOS=("cabin-entertainment","cabin-service","cabin-blue","cabin-window")
+ROOT = Path("website")
+CABIN_PHOTOS = ("cabin-entertainment", "cabin-service", "cabin-blue", "cabin-window")
 
 
 def read(name):
-    return (ROOT/name).read_text()
+    return (ROOT / name).read_text()
 
 
-def test_original_cabin_gallery_assets_are_local_and_compressed():
-    html=read("templates/homepage.html")
+def test_original_cabin_photos_are_small_local_webps():
     for name in CABIN_PHOTOS:
-        path=ROOT/"static"/"gallery"/(name+".webp")
-        assert path.exists(), f"Missing image: {path}"
-        contents=path.read_bytes()
-        assert len(contents)>3000, f"Missing or placeholder content for {name}"
-        assert len(contents)<450000, f"Too large for responsive gallery: {name}"
-        assert contents[:4]==b"RIFF" and contents[8:12]==b"WEBP"
-        assert html.count('src="/static/gallery/'+name+'.webp"')==1
-    assert '<section class="community-section cabin-experience"' in html
+        path = ROOT / "static" / "gallery" / (name + ".webp")
+        assert path.is_file()
+        data = path.read_bytes()
+        assert 3000 < len(data) < 450000, name
+        assert data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+
+
+def test_homepage_gallery_is_one_native_swipe_carousel_not_a_tall_photo_wall():
+    html = read("templates/homepage.html")
+    css = read("static/cabin-experience.css")
+    js = read("static/cabin-carousel.js")
+
     assert 'id="cabin-experience"' in html
-    assert "SCREENSHOTS FROM OUR DELTA ROBLOX AVIATION ROLEPLAY COMMUNITY" in html
-    # Photos are part of the community experience, not misleading advertising.
-    cabin=html.split('id="cabin-experience"',1)[1].split('</section>',1)[0]
-    assert '/static/ads/' not in cabin
-    assert cabin.count('loading="lazy"')==4
-    assert cabin.count('decoding="async"')==4
+    assert html.count('class="cabin-carousel-slide"') == 4
+    assert 'class="cabin-mosaic"' not in html
+    assert 'class="cabin-card ' not in html
+    assert 'aria-roledescription="carousel"' in html
+    assert 'href="/experience"' in html
+    assert 'data-cabin-prev' in html and 'data-cabin-next' in html
+    assert html.count("data-cabin-dot=") == 4
+    assert html.count('loading="lazy"') >= 4
+    for photo in CABIN_PHOTOS:
+        assert html.count('src="/static/gallery/' + photo + '.webp"') == 1
 
-
-def test_gallery_bright_caption_text_has_opaque_dark_surface_and_sheen_does_not_cover_it():
-    css=read("static/homepage-cinematic.css")
-    assert ".showcase .gallery-card::before" in css
-    assert ".showcase .gallery-card::after{z-index:2}" in css
-    assert ".showcase .gallery-card>div" in css
-    assert "background:rgba(5,14,33,.82)" in css
-    assert ".showcase .gallery-card>div>h3{color:#fff" in css
-    assert ".cabin-card-copy" in css
-    assert "background:rgba(5,12,28,.80)" in css
-
-
-def test_nav_stars_automatically_drift_and_blink_without_javascript():
-    header=read("templates/_unified_site_header.html")
-    nav=read("static/unified-delta-navigation.css")
-    assert 'class="delta-nav-sparkles" aria-hidden="true"' in header
-    assert header.split('class="delta-nav-sparkles" aria-hidden="true"',1)[1].split("</div>",1)[0].count("<i>")==8
-    assert "navStarDrift" in nav and "navStarBlink" in nav
-    assert "animation:navStarDrift" in nav
-    assert "navStarBlink var(--star-blink)" in nav
-    assert "pointer-events:none" in nav
-    assert "@media(prefers-reduced-motion:reduce)" in nav
-
-
-def test_gallery_reveals_in_scroll_and_has_responsive_layout():
-    js=read("static/homepage-cinematic.js")
-    css=read("static/homepage-cinematic.css")
-    assert "'.cabin-experience .cabin-card'" not in js
-    assert "'.cabin-experience .section-head > *'" not in js
-    assert "Cabin photographs remain static" in js
-    assert "observer.unobserve(entry.target)" in js
-    assert "window.addEventListener('scroll'" not in js
-    assert ".cabin-experience .cabin-mosaic" in css
-    assert ".cabin-experience .cabin-card img" in css
+    assert "scroll-snap-type:x mandatory" in css
+    assert "scroll-snap-align:start" in css
+    assert "flex:0 0 100%" in css
     assert "object-fit:contain" in css
-    assert "height:auto" in css
-    assert "animation:none !important" in css
-    assert "content-visibility:visible !important" in css
-    assert "backdrop-filter:none !important" in css
-    assert "grid-template-columns:minmax(0,1.8fr) minmax(240px,.8fr)" in css
-    assert "@media(max-width:740px)" in css
-    assert "@media(max-width:480px)" in css
-    assert "@media(prefers-reduced-motion:reduce)" in css
+    assert ".cabin-carousel-slide img" in css
+    assert "max-height:490px" in css
+
+    # Manual controls only: no autoplay interval, timers or RAF scroll handlers.
+    assert "setInterval(" not in js
+    assert "setTimeout(" not in js
+    assert "requestAnimationFrame(" not in js
+    assert "IntersectionObserver" in js
+    assert "window.addEventListener('scroll'" not in js
+    assert "track.scrollTo" in js
 
 
-def test_homepage_still_renders_with_original_gallery_and_navigation():
+def test_standalone_experience_gallery_has_full_images_and_public_route():
+    html = read("templates/cabin_experience.html")
+    css = read("static/cabin-experience.css")
+    main = read("app/main.py")
+    assert '@app.get("/experience", response_class=HTMLResponse)' in main
+    assert 'class="experience-gallery-grid"' in html
+    assert html.count('class="experience-gallery-card"') == 4
+    assert 'href="/home#cabin-experience"' in html
+    assert 'href="/flights"' in html
+    assert "Independent Roblox aviation roleplay community" in html
+    assert "max-height" not in css.split(".experience-gallery-card img",1)[1].split("}",1)[0]
+    for photo in CABIN_PHOTOS:
+        assert html.count('src="/static/gallery/' + photo + '.webp"') == 1
+    assert 'object-fit:contain' in css
+    assert 'grid-template-columns:1fr' in css
+
+
+def test_gallery_text_contrast_and_navigation_sparkles_remain():
+    home_css = read("static/homepage-cinematic.css")
+    cabin_css = read("static/cabin-experience.css")
+    header = read("templates/_unified_site_header.html")
+    nav = read("static/unified-delta-navigation.css")
+    assert ".showcase .gallery-card::before" in home_css
+    assert "background:rgba(5,14,33,.82)" in home_css
+    assert "background:#112544" in cabin_css
+    assert "color:#fff" in cabin_css
+    assert 'class="delta-nav-sparkles" aria-hidden="true"' in header
+    assert "navStarDrift" in nav and "navStarBlink" in nav
+    assert "backdrop-filter:none !important" in cabin_css
+    assert "prefers-reduced-motion:reduce" in cabin_css
+
+
+def test_home_and_experience_render_without_broken_navigation():
     with TestClient(app) as client:
-        response=client.get("/")
-        assert response.status_code==200
-        page=response.text
-        assert page.count('id="site-header"')==1
-        assert page.count('id="sky-nav-dropdown"')==1
-        assert page.count('id="cabin-experience"')==1
-        assert "Take to the skies" in page
-        for name in CABIN_PHOTOS:
-            assert "/static/gallery/"+name+".webp" in page
+        home = client.get("/home")
+        experience = client.get("/experience")
+    assert home.status_code == experience.status_code == 200
+    assert home.text.count('id="site-header"') == 1
+    assert 'id="cabin-experience"' in home.text
+    assert 'data-cabin-carousel' in home.text
+    assert 'href="/experience"' in home.text
+    assert "Welcome aboard." in experience.text.replace("<em>", "").replace("</em>", "")
+    assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/experience"' in experience.text
