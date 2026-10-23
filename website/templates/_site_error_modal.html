@@ -1,0 +1,27 @@
+{# Shared browser-only error dialog. The login and OAuth pages keep their existing full-page errors. #}
+{% set site_popup = forced_site_error if forced_site_error is defined and forced_site_error else request.scope.get('session', {}).pop('_site_error_popup', none) %}
+{% if site_popup and request.url.path != '/login' and request.url.path != '/signup' and not request.url.path.startswith('/auth/') and not request.url.path.startswith('/signin/') %}
+<dialog class="delta-error-dialog" id="delta-error-dialog" aria-labelledby="delta-error-title" aria-describedby="delta-error-message">
+  <div class="delta-error-card">
+    <button class="delta-error-close" type="button" aria-label="Close error message">×</button>
+    <div class="delta-error-icon" aria-hidden="true">!</div>
+    <span class="delta-error-kicker">DELTA ROBLOX · WEBSITE NOTICE</span>
+    <h2 id="delta-error-title">{{ site_popup.title }}</h2>
+    <p id="delta-error-message">{{ site_popup.message }}</p>
+    <button class="delta-error-confirm" type="button">OK, got it</button>
+  </div>
+</dialog>
+<script>
+(() => {
+  const popup = document.getElementById('delta-error-dialog');
+  if (!popup) return;
+  const close = () => popup.close ? popup.close() : popup.removeAttribute('open');
+  popup.querySelectorAll('.delta-error-close,.delta-error-confirm').forEach(button => {
+    button.addEventListener('click', close);
+  });
+  popup.addEventListener('click', event => { if (event.target === popup) close(); });
+  if (typeof popup.showModal === 'function') popup.showModal();
+  else popup.setAttribute('open', '');
+})();
+</script>
+{% endif %}
