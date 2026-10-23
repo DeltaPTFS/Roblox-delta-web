@@ -351,7 +351,16 @@ window.DeltaLanguagePacks = {
     "Only authorized staff may update website photos": "Solo el personal autorizado puede actualizar las fotos del sitio web",
     "Announcement settings saved.": "Configuración del anuncio guardada.",
     "Your message is live across the website.": "Tu mensaje está publicado en todo el sitio web.",
-    "The announcement is hidden.": "El anuncio está oculto."
+    "The announcement is hidden.": "El anuncio está oculto.",
+    "View full-screen:": "Ver a pantalla completa:",
+    "View Delta aircraft lineup full-screen": "Ver la fila de aviones Delta en pantalla completa",
+    "Close full-screen photo": "Cerrar foto a pantalla completa",
+    "Featured Delta campaigns, use arrows to change": "Campañas destacadas de Delta; usa las flechas para cambiar",
+    "Previous advertisement": "Anuncio anterior",
+    "Next advertisement": "Anuncio siguiente",
+    "Pause advertisement rotation": "Pausar rotación de anuncios",
+    "Resume advertisement rotation": "Reanudar rotación de anuncios",
+    "Featured Delta campaigns": "Campañas destacadas de Delta"
   },
   "nl": {
     "Home": "Startpagina",
@@ -495,7 +504,14 @@ window.DeltaLanguagePacks = {
     "Only authorized staff may update website photos": "Alleen bevoegd personeel mag websitefoto's aanpassen",
     "Announcement settings saved.": "Aankondigingsinstellingen opgeslagen.",
     "Your message is live across the website.": "Je bericht staat nu op de website.",
-    "The announcement is hidden.": "De aankondiging is verborgen."
+    "The announcement is hidden.": "De aankondiging is verborgen.",
+    "View full-screen:": "Volledig scherm:",
+    "View Delta aircraft lineup full-screen": "Delta-vliegtuigen in volledig scherm",
+    "Close full-screen photo": "Foto sluiten",
+    "Previous advertisement": "Vorige advertentie",
+    "Next advertisement": "Volgende advertentie",
+    "Pause advertisement rotation": "Advertenties pauzeren",
+    "Resume advertisement rotation": "Advertenties hervatten"
   },
   "tr": {
     "Home": "Ana Sayfa",
@@ -639,7 +655,14 @@ window.DeltaLanguagePacks = {
     "Only authorized staff may update website photos": "Web sitesi fotoğraflarını yalnızca yetkili personel güncelleyebilir",
     "Announcement settings saved.": "Duyuru ayarları kaydedildi.",
     "Your message is live across the website.": "Mesajınız web sitesinde yayınlandı.",
-    "The announcement is hidden.": "Duyuru gizlendi."
+    "The announcement is hidden.": "Duyuru gizlendi.",
+    "View full-screen:": "Tam ekran görüntüle:",
+    "View Delta aircraft lineup full-screen": "Delta uçaklarını tam ekranda gör",
+    "Close full-screen photo": "Fotoğrafı kapat",
+    "Previous advertisement": "Önceki reklam",
+    "Next advertisement": "Sonraki reklam",
+    "Pause advertisement rotation": "Reklamları duraklat",
+    "Resume advertisement rotation": "Reklamları sürdür"
   },
   "ko": {
     "Home": "홈",
@@ -783,7 +806,14 @@ window.DeltaLanguagePacks = {
     "Only authorized staff may update website photos": "승인된 직원만 웹사이트 사진을 수정할 수 있습니다",
     "Announcement settings saved.": "공지 설정이 저장되었습니다.",
     "Your message is live across the website.": "메시지가 웹사이트에 게시되었습니다.",
-    "The announcement is hidden.": "공지가 숨겨졌습니다."
+    "The announcement is hidden.": "공지가 숨겨졌습니다.",
+    "View full-screen:": "전체 화면 보기:",
+    "View Delta aircraft lineup full-screen": "델타 항공기 사진 전체 화면으로 보기",
+    "Close full-screen photo": "사진 닫기",
+    "Previous advertisement": "이전 광고",
+    "Next advertisement": "다음 광고",
+    "Pause advertisement rotation": "광고 일시정지",
+    "Resume advertisement rotation": "광고 다시 시작"
   },
   "fr": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "Découvrez notre communauté, participez à un vol virtuel organisé ou écrivez votre histoire avec notre équipage. Votre voyage commence ici.",
@@ -818,7 +848,14 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "VOLS ORGANISÉS",
     "SKYMILES REWARDS": "RÉCOMPENSES SKYMILES",
     "VIRGIN ATLANTIC PARTNERSHIP": "PARTENARIAT VIRGIN ATLANTIC",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · JEU DE RÔLE ROBLOX"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · JEU DE RÔLE ROBLOX",
+    "View full-screen:": "Voir en plein écran :",
+    "View Delta aircraft lineup full-screen": "Voir les avions Delta en plein écran",
+    "Close full-screen photo": "Fermer la photo",
+    "Previous advertisement": "Publicité précédente",
+    "Next advertisement": "Publicité suivante",
+    "Pause advertisement rotation": "Mettre les publicités en pause",
+    "Resume advertisement rotation": "Reprendre les publicités"
   },
   "ru": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "Познакомьтесь с нашим сообществом, присоединитесь к виртуальному рейсу или создайте свою историю вместе с экипажем. Ваше путешествие начинается здесь.",
@@ -853,7 +890,14 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "ОРГАНИЗОВАННЫЕ РЕЙСЫ",
     "SKYMILES REWARDS": "НАГРАДЫ SKYMILES",
     "VIRGIN ATLANTIC PARTNERSHIP": "ПАРТНЁРСТВО С VIRGIN ATLANTIC",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · РОЛЕВАЯ ИГРА ROBLOX"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · РОЛЕВАЯ ИГРА ROBLOX",
+    "View full-screen:": "На весь экран:",
+    "View Delta aircraft lineup full-screen": "Посмотреть самолёты Delta на весь экран",
+    "Close full-screen photo": "Закрыть фото",
+    "Previous advertisement": "Предыдущая реклама",
+    "Next advertisement": "Следующая реклама",
+    "Pause advertisement rotation": "Остановить рекламу",
+    "Resume advertisement rotation": "Возобновить рекламу"
   },
   "pt": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "Conheça nossa comunidade, participe de um voo virtual organizado ou crie sua história com nossa equipe. Sua jornada começa aqui.",
@@ -888,7 +932,14 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "VOOS ORGANIZADOS",
     "SKYMILES REWARDS": "RECOMPENSAS SKYMILES",
     "VIRGIN ATLANTIC PARTNERSHIP": "PARCERIA COM VIRGIN ATLANTIC",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · ROLEPLAY ROBLOX"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · ROLEPLAY ROBLOX",
+    "View full-screen:": "Ver em tela cheia:",
+    "View Delta aircraft lineup full-screen": "Ver aeronaves Delta em tela cheia",
+    "Close full-screen photo": "Fechar foto",
+    "Previous advertisement": "Anúncio anterior",
+    "Next advertisement": "Próximo anúncio",
+    "Pause advertisement rotation": "Pausar anúncios",
+    "Resume advertisement rotation": "Retomar anúncios"
   },
   "de": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "Entdecke unsere Community, nimm an einem virtuellen Flug teil oder schreibe deine eigene Geschichte mit unserer Crew. Deine Reise beginnt hier.",
@@ -923,7 +974,14 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "ORGANISIERTE FLÜGE",
     "SKYMILES REWARDS": "SKYMILES-PRÄMIEN",
     "VIRGIN ATLANTIC PARTNERSHIP": "PARTNERSCHAFT MIT VIRGIN ATLANTIC",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · ROBLOX-ROLLENSPIEL"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · ROBLOX-ROLLENSPIEL",
+    "View full-screen:": "Vollbild anzeigen:",
+    "View Delta aircraft lineup full-screen": "Delta-Flugzeuge im Vollbild anzeigen",
+    "Close full-screen photo": "Vollbild schließen",
+    "Previous advertisement": "Vorherige Anzeige",
+    "Next advertisement": "Nächste Anzeige",
+    "Pause advertisement rotation": "Anzeigen pausieren",
+    "Resume advertisement rotation": "Anzeigen fortsetzen"
   },
   "it": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "Scopri la nostra community, partecipa a un volo virtuale o crea la tua storia con il nostro equipaggio. Il tuo viaggio inizia qui.",
@@ -958,7 +1016,14 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "VOLI ORGANIZZATI",
     "SKYMILES REWARDS": "PREMI SKYMILES",
     "VIRGIN ATLANTIC PARTNERSHIP": "PARTNERSHIP VIRGIN ATLANTIC",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · GIOCO DI RUOLO ROBLOX"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "DELTA AIR LINES · GIOCO DI RUOLO ROBLOX",
+    "View full-screen:": "Visualizza a schermo intero:",
+    "View Delta aircraft lineup full-screen": "Visualizza gli aerei Delta a schermo intero",
+    "Close full-screen photo": "Chiudi la foto",
+    "Previous advertisement": "Annuncio precedente",
+    "Next advertisement": "Annuncio successivo",
+    "Pause advertisement rotation": "Metti in pausa gli annunci",
+    "Resume advertisement rotation": "Riprendi gli annunci"
   },
   "ja": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "コミュニティを知り、開催されるフライトに参加したり、クルーと自分だけの物語を作ったりしましょう。旅はここから始まります。",
@@ -993,7 +1058,14 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "開催フライト",
     "SKYMILES REWARDS": "スカイマイル特典",
     "VIRGIN ATLANTIC PARTNERSHIP": "ヴァージン・アトランティックとの提携",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "デルタ航空 · Robloxロールプレイ"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "デルタ航空 · Robloxロールプレイ",
+    "View full-screen:": "全画面表示:",
+    "View Delta aircraft lineup full-screen": "デルタの航空機を全画面表示",
+    "Close full-screen photo": "写真を閉じる",
+    "Previous advertisement": "前の広告",
+    "Next advertisement": "次の広告",
+    "Pause advertisement rotation": "広告を一時停止",
+    "Resume advertisement rotation": "広告を再開"
   },
   "zh": {
     "Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.": "探索我们的社区，参加虚拟航班，与机组共同开启属于你的故事。旅程从这里开始。",
@@ -1028,6 +1100,13 @@ window.DeltaLanguagePacks = {
     "HOSTED FLIGHTS": "组织航班",
     "SKYMILES REWARDS": "SkyMiles 奖励",
     "VIRGIN ATLANTIC PARTNERSHIP": "维珍航空合作伙伴关系",
-    "DELTA AIR LINES · ROBLOX ROLEPLAY": "达美航空 · Roblox 角色扮演"
+    "DELTA AIR LINES · ROBLOX ROLEPLAY": "达美航空 · Roblox 角色扮演",
+    "View full-screen:": "全屏查看：",
+    "View Delta aircraft lineup full-screen": "全屏查看达美航空飞机",
+    "Close full-screen photo": "关闭全屏照片",
+    "Previous advertisement": "上一则广告",
+    "Next advertisement": "下一则广告",
+    "Pause advertisement rotation": "暂停广告轮播",
+    "Resume advertisement rotation": "继续广告轮播"
   }
 };
