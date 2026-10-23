@@ -199,6 +199,57 @@
     width:calc((100% - 8px) / 2)!important;
   }
 }
+
+/* Your next chapter: photo next to text, responsive without stretching. */
+.community-section.future {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);
+  gap:clamp(26px,4.2vw,72px);
+  align-items:center;
+  min-height:500px;
+}
+.community-section.future .future-content {
+  max-width:690px;
+  min-width:0;
+}
+.community-section.future .future-photo {
+  position:relative;
+  display:block;
+  margin:0;
+  min-width:0;
+  width:100%;
+}
+.community-section.future .future-photo-open {
+  display:block;
+  width:100%;
+  overflow:hidden;
+  border-radius:18px;
+  border:1px solid rgba(191,215,250,.38);
+  background:#07152b;
+  box-shadow:0 18px 48px rgba(0,0,0,.35);
+  cursor:zoom-in;
+}
+.community-section.future .future-photo-open:focus-visible {outline:3px solid #ffc0d3;outline-offset:4px}
+.community-section.future .future-photo img {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:1536 / 906;
+  object-fit:contain;
+  object-position:center;
+  filter:none!important;
+  animation:none!important;
+  transition:none!important;
+  transform:none!important;
+}
+@media(max-width:940px) {
+  .community-section.future {
+    grid-template-columns:1fr;
+    min-height:0;
+    gap:32px;
+  }
+  .community-section.future .future-photo {max-width:780px;justify-self:center}
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -355,7 +406,19 @@
     <div class="core-home-partner" aria-label="Virgin Atlantic Roblox roleplay partner"><img src="/static/partnerships/virgin-flag.svg" width="260" height="260" alt="Virgin Atlantic inspired flag emblem"><strong>virgin atlantic</strong><small>DELTA ROBLOX × VIRGIN ATLANTIC ROBLOX</small></div>
   </div>
 </section>
-<section class="community-section future"><div class="future-content"><span class="eyebrow">A WORLD OF POSSIBILITY</span><h2>Your next chapter<br>starts with <em>Delta.</em></h2><p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p><div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/skymiles">Access SkyMiles</a></div></div></section>
+<section class="community-section future" aria-labelledby="future-heading">
+  <div class="future-content">
+    <span class="eyebrow">A WORLD OF POSSIBILITY</span>
+    <h2 id="future-heading">Your next chapter<br>starts with <em>Delta.</em></h2>
+    <p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p>
+    <div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/skymiles">Access SkyMiles</a></div>
+  </div>
+  <figure class="future-photo">
+    <a class="future-photo-open cabin-photo-open" href="/static/gallery/delta-aircraft-lineup.avif" aria-label="View Delta aircraft lineup full-screen">
+      <img src="/static/gallery/delta-aircraft-lineup.avif" width="900" height="531" alt="Delta Roblox aircraft lined up on the airport apron beneath a blue sky" loading="lazy" decoding="async">
+    </a>
+  </figure>
+</section>
 <section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
 <dialog class="cabin-fullscreen-viewer" id="cabin-fullscreen-viewer" aria-label="Full-screen Delta Roblox photograph">
   <button type="button" class="cabin-viewer-close" aria-label="Close full-screen photo" data-cabin-viewer-close>×</button>
@@ -364,7 +427,7 @@
 </dialog>
 <script>
 (() => {
-  const grids=document.querySelectorAll('.showcase .cabin-all-photos, .cabin-experience .cabin-all-photos');
+  const grids=document.querySelectorAll('.showcase .cabin-all-photos, .cabin-experience .cabin-all-photos, .future .future-photo');
   const viewer=document.getElementById('cabin-fullscreen-viewer');
   if(!grids.length||!viewer||typeof viewer.showModal!=='function') return;
   const image=viewer.querySelector('img');
