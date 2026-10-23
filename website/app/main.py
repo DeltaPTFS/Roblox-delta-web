@@ -1284,8 +1284,13 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str,direc
             if len(moderation[item.user_id])<20: moderation[item.user_id].append(item)
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
-    announcement_settings=db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id==1)) if required=="OWNER" else None
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings,directory_total=directory_total,directory_page=directory_page,directory_pages=max(1,(directory_total+23)//24),guild_roles_loaded=request.query_params.get("show_roles") == "1"))
+    announcement_settings=db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id==1))
+    announcement_can_save=(required=="OWNER" or not announcement_settings
+        or not announcement_settings.enabled or announcement_settings.updated_by==actor.id)
+    announcement_can_remove=bool(announcement_settings and announcement_settings.message.strip()
+        and (required=="OWNER" or (
+            announcement_settings.enabled and announcement_settings.updated_by==actor.id)))
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings,announcement_can_save=announcement_can_save,announcement_can_remove=announcement_can_remove,directory_total=directory_total,directory_page=directory_page,directory_pages=max(1,(directory_total+23)//24),guild_roles_loaded=request.query_params.get("show_roles") == "1"))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -1301,6 +1306,8 @@ async def owner_panel(request:Request,q:str="",directory_page:int=1,db:Session=D
 
 
 @app.post("/owner/announcement")
+@app.post("/admin/announcement")
+@app.post("/staff/announcement")
 @limiter.limit("10/minute")
 async def owner_save_site_announcement(
     request: Request,
@@ -1312,9 +1319,15 @@ async def owner_save_site_announcement(
     csrf: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """Publish or hide one compact top-site announcement. Ownership only."""
+    """Publish a single banner; other staff cannot overwrite another person's active post."""
     check_csrf(request, csrf)
-    actor = await require_owner(request, db)
+    panel = request.url.path.split("/")[1]
+    if panel == "owner":
+        actor = await require_owner(request, db)
+    elif panel == "admin":
+        actor = await require_admin(request, db)
+    else:
+        actor = await require_staff(request, db)
     message = " ".join(message.split())
     tone = tone.upper().strip()
     link_label = " ".join(link_label.split())
@@ -1339,6 +1352,9 @@ async def owner_save_site_announcement(
         raise HTTPException(422, "Provide both the link label and destination, or leave both empty.")
 
     announcement = db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id == 1).with_for_update())
+    if (panel != "owner" and announcement and announcement.enabled
+            and announcement.updated_by != actor.id):
+        raise HTTPException(403, "Only the member who posted this announcement can change it.")
     before = ({
         "enabled": announcement.enabled,
         "message": announcement.message,
@@ -1364,11 +1380,64 @@ async def owner_save_site_announcement(
             "enabled":active,"message":message,"tone":tone,
             "link_label":link_label,"link_path":link_path,
         },
-        reason="Owner published site announcement" if active else "Owner hid site announcement",
+        reason=f"{panel.title()} published site announcement" if active else f"{panel.title()} hid site announcement",
         security_metadata={"ip":request.client.host if request.client else None},
     ))
     db.commit()
-    return RedirectResponse("/owner?announcement_saved=1#site-announcement-editor",303)
+    return RedirectResponse(f"/{panel}?announcement_saved=1#site-announcement-editor",303)
+
+
+
+def _remove_site_announcement_record(db: Session, actor: User, *, owner_override: bool, ip: str | None = None):
+    """Remove the single banner atomically, retaining an audit record."""
+    announcement = db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id == 1).with_for_update())
+    if not announcement or not announcement.message.strip():
+        raise HTTPException(404, "No website announcement is available to remove.")
+    if not owner_override and (not announcement.enabled or announcement.updated_by != actor.id):
+        raise HTTPException(403, "You can only remove an announcement you personally posted.")
+    before = {
+        "enabled": announcement.enabled,
+        "message": announcement.message,
+        "tone": announcement.tone,
+        "link_label": announcement.link_label,
+        "link_path": announcement.link_path,
+        "updated_by": announcement.updated_by,
+    }
+    db.delete(announcement)
+    db.add(AuditLog(
+        staff_user_id=actor.id, target_user_id=None,
+        action="SITE_ANNOUNCEMENT_REMOVED",
+        old_value=before,
+        new_value={"enabled": False, "removed_by": actor.id},
+        reason="Ownership removed website announcement" if owner_override
+               else "Publisher removed their own website announcement",
+        security_metadata={"ip": ip},
+    ))
+    db.commit()
+
+
+@app.post("/owner/announcement/remove")
+@app.post("/admin/announcement/remove")
+@app.post("/staff/announcement/remove")
+@limiter.limit("10/minute")
+async def remove_site_announcement(
+    request: Request,
+    csrf: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    check_csrf(request, csrf)
+    panel = request.url.path.split("/")[1]
+    if panel == "owner":
+        actor = await require_owner(request, db)
+    elif panel == "admin":
+        actor = await require_admin(request, db)
+    else:
+        actor = await require_staff(request, db)
+    _remove_site_announcement_record(
+        db, actor, owner_override=(panel == "owner"),
+        ip=request.client.host if request.client else None,
+    )
+    return RedirectResponse(f"/{panel}?announcement_removed=1#site-announcement-editor", 303)
 
 
 @app.post("/owner/sheet-sync/reconcile")
