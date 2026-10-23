@@ -82,15 +82,10 @@
 }
 
 
-/* Show the full original 2048x1209 campaign, especially on wide desktop screens. */
-.delta-ad-frame{width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:2048/1209}
+/* Compact, stable advertising banner: no oversized viewport takeover. */
+.delta-ad-frame{width:min(100%,1180px);height:clamp(220px,34vw,430px);min-height:0;max-height:430px;aspect-ratio:auto;margin-inline:auto}
 .delta-ad-slide img{width:100%;height:100%;object-fit:contain;object-position:center}
-.delta-ad-controls{top:auto;bottom:clamp(10px,2vw,24px);right:clamp(12px,2vw,36px);
-  padding:6px;gap:9px;border-radius:12px;background:#08192cc2}
-.delta-ad-control{min-height:42px;min-width:42px}
+.delta-ad-controls{top:auto;bottom:12px;right:14px;padding:5px;gap:7px;border-radius:10px;background:#08192ce8}
+.delta-ad-control{min-height:34px;min-width:34px}
 .community-hero .scroll-cue{display:none!important}
-@media(max-width:800px){
- .delta-ad-frame{width:100%;height:auto;min-height:0;aspect-ratio:2048/1209}
- .delta-ad-controls{bottom:9px;right:9px;padding:4px;gap:6px}
- .delta-ad-control{min-width:34px;min-height:34px}
-}
+@media(max-width:800px){.delta-ad-frame{height:clamp(160px,48vw,320px)}.delta-ad-controls{bottom:8px;right:8px}}
