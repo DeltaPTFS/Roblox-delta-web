@@ -84,17 +84,23 @@
 
 /* Preserve the full 2048x1209 campaign artwork with no empty sidebars.
    Previous clamp-based height made contain letterbox the photo into a tiny center box. */
-.delta-ad-frame{
+.delta-advertising > .delta-ad-frame{
+  /* Full-bleed campaign: no width cap, letterboxing or black side gutters. */
   box-sizing:border-box;
-  width:min(calc(100% - clamp(20px,4vw,64px)),1020px);
+  display:block;
+  position:relative;
+  width:100%;
+  max-width:none;
   aspect-ratio:2048 / 1209;
   height:auto;
   min-height:0;
   max-height:none;
-  margin:0 auto;
+  margin:0;
+  padding:0;
   overflow:hidden;
-  border-radius:clamp(9px,1.4vw,16px);
-  box-shadow:0 15px 38px rgba(0,0,0,.28);
+  border:0;
+  border-radius:0;
+  background:#081832;
 }
 .delta-ad-slide img{
   position:absolute;
@@ -115,31 +121,32 @@
   inset:0;
   z-index:1;
   pointer-events:none;
-  background:linear-gradient(90deg,rgba(3,15,36,.42),rgba(3,15,36,.16) 55%,transparent 88%);
+  background:linear-gradient(90deg,rgba(3,15,36,.22),rgba(3,15,36,.07) 55%,transparent 85%);
 }
 .delta-ad-controls{
-  top:auto;
-  right:clamp(9px,1.8vw,20px);
-  bottom:clamp(9px,1.8vw,20px);
+  top:clamp(10px,1.5vw,22px);
+  right:clamp(10px,1.5vw,22px);
+  bottom:auto;
   padding:6px;
   gap:8px;
   border-radius:10px;
-  background:rgba(6,19,42,.83);
+  background:rgba(6,19,42,.88);
+  box-shadow:0 4px 18px rgba(0,0,0,.25);
 }
 .delta-ad-control{min-height:34px;min-width:34px}
 .community-hero .scroll-cue{display:none!important}
 @media(max-width:800px){
-  .delta-ad-frame{
-    width:calc(100% - 20px);
+  .delta-advertising > .delta-ad-frame{
+    width:100%;
+    max-width:none;
     height:auto;
     min-height:0;
-    max-height:none;
     aspect-ratio:2048 / 1209;
   }
-  .delta-ad-controls{bottom:8px;right:8px;padding:5px}
+  .delta-ad-controls{top:8px;right:8px;bottom:auto;padding:5px}
 }
 @media(max-width:440px){
-  .delta-ad-frame{width:calc(100% - 12px);border-radius:7px}
-  .delta-ad-controls{bottom:5px;right:5px;gap:4px;padding:3px}
+  .delta-advertising > .delta-ad-frame{width:100%;border-radius:0}
+  .delta-ad-controls{top:5px;right:5px;bottom:auto;gap:4px;padding:3px}
   .delta-ad-control{min-height:28px;min-width:28px}
 }
