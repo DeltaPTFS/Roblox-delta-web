@@ -100,7 +100,7 @@ def test_discord_verification_replaces_unverified_role():
 
 def test_mobile_title_channel_and_equal_tutorial_hosts():
     base=Path("website/templates/base.html").read_text()
-    assert 'apple-mobile-web-app-title" content="DAL-roblox.com' in base
+    assert 'apple-mobile-web-app-title" content="Delta Roblox SkyMiles' in base
     assert "1541156846579089519" in Settings().discord_skymiles_channel_url
     tour=Path("website/templates/_skymiles_tutorial.html").read_text()
     guide=Path("website/static/skymiles-tour.js").read_text()
