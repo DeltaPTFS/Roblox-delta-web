@@ -60,3 +60,19 @@ def test_rotation_every_five_seconds_with_manual_and_accessible_controls():
     assert "object-fit:contain" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
     assert "delta-ad-duration" in css
+
+
+def test_featured_campaign_uses_full_width_not_centered_thumbnail():
+    """Regression for the large dark gutters on 13-inch laptop screens."""
+    css = (ROOT / "static" / "delta-ads.css").read_text()
+    assert ".delta-advertising > .delta-ad-frame{" in css
+    frame = css.split(".delta-advertising > .delta-ad-frame{", 1)[1].split("}", 1)[0]
+    assert "width:100%" in frame
+    assert "max-width:none" in frame
+    assert "aspect-ratio:2048 / 1209" in frame
+    assert "height:auto" in frame
+    assert "min-height:0" in frame
+    assert "1020px" not in css
+    assert "object-fit:cover" in css
+    assert "data-ad-slide=\"1\"" in css  # Preserve contrast for light lettering.
+    assert ".delta-ad-controls{" in css
