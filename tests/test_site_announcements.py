@@ -1,15 +1,20 @@
 """Ownership banner regression coverage."""
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+from fastapi import HTTPException
+from sqlalchemy import select
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.requests import Request
 
-from website.app.main import app
+from website.app.main import app, _remove_site_announcement_record, _same_site_error_return, _expects_api_error
 from website.app.database import Base
 from website.app import site_announcements
-from website.app.models import SiteAnnouncement
+from website.app.models import AuditLog, SiteAnnouncement
 
 
 def src(path):
@@ -60,22 +65,88 @@ def test_hidden_announcement_not_shown(monkeypatch, tmp_path):
     engine.dispose()
 
 
-def test_only_owner_can_modify_announcement():
+def test_ownership_and_staff_announcement_controls_are_permission_aware():
     main = src("app/main.py")
     editor = src("templates/admin.html")
-    for expected in (
-        '@app.post("/owner/announcement")',
-        'check_csrf(request, csrf)',
-        'actor = await require_owner(request, db)',
-        'action="SITE_ANNOUNCEMENT_UPDATED"',
-        'db.commit()',
-    ):
-        assert expected in main
-    assert '{% if panel_level == \'OWNER\' %}' in editor
-    assert 'action="/owner/announcement"' in editor
+    assert '@app.post("/owner/announcement")' in main
+    assert '@app.post("/admin/announcement")' in main
+    assert '@app.post("/staff/announcement")' in main
+    for role in ("owner", "admin", "staff"):
+        assert f'@app.post("/{role}/announcement/remove")' in main
+    assert 'check_csrf(request, csrf)' in main
+    assert 'actor = await require_owner(request, db)' in main
+    assert 'actor = await require_admin(request, db)' in main
+    assert 'actor = await require_staff(request, db)' in main
+    assert 'announcement.updated_by != actor.id' in main
+    assert 'action="SITE_ANNOUNCEMENT_REMOVED"' in main
+    assert 'action="SITE_ANNOUNCEMENT_UPDATED"' in main
     assert 'id="owner-news-message"' in editor
     assert 'id="owner-news-enabled"' in editor
     assert '220 characters maximum' in editor
+    assert 'action="/{{ panel_level|lower }}/announcement"' in editor
+    assert 'action="/{{ panel_level|lower }}/announcement/remove"' in editor
+    assert 'if announcement_can_remove' in editor
+    assert 'Remove Website Announcement' in editor
+    assert 'Remove your Announcement' in editor
+
+
+def test_staff_cannot_remove_another_members_announcement(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'own-only.db'}")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(engine)
+    with Session() as db:
+        db.add(SiteAnnouncement(id=1, enabled=True, message="Crew notice", updated_by=1001))
+        db.commit()
+        with pytest.raises(HTTPException) as error:
+            _remove_site_announcement_record(
+                db, SimpleNamespace(id=2002), owner_override=False
+            )
+        assert error.value.status_code == 403
+        assert db.get(SiteAnnouncement, 1).message == "Crew notice"
+        assert db.scalar(select(AuditLog).where(AuditLog.action == "SITE_ANNOUNCEMENT_REMOVED")) is None
+    engine.dispose()
+
+
+def test_publisher_or_owner_removal_clears_banner_and_creates_audit(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'remove-owned.db'}")
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(engine)
+    with Session() as db:
+        db.add(SiteAnnouncement(id=1, enabled=True, message="Staff announcement", updated_by=1001))
+        db.commit()
+        _remove_site_announcement_record(
+            db, SimpleNamespace(id=1001), owner_override=False
+        )
+        assert db.get(SiteAnnouncement, 1) is None
+        logged = db.scalar(select(AuditLog).where(AuditLog.action == "SITE_ANNOUNCEMENT_REMOVED"))
+        assert logged.old_value["message"] == "Staff announcement"
+        assert logged.new_value["removed_by"] == 1001
+        db.add(SiteAnnouncement(id=1, enabled=True, message="Another author's news", updated_by=3003))
+        db.commit()
+        _remove_site_announcement_record(
+            db, SimpleNamespace(id=9009), owner_override=True
+        )
+        assert db.get(SiteAnnouncement, 1) is None
+        audits = db.scalars(select(AuditLog).where(AuditLog.action == "SITE_ANNOUNCEMENT_REMOVED")).all()
+        assert len(audits) == 2
+    engine.dispose()
+
+
+def test_errors_are_modal_on_site_but_json_for_api_and_auth_stays_full_page():
+    main = src("app/main.py")
+    base = src("templates/base.html")
+    community_base = src("templates/community_base.html")
+    modal = src("templates/_site_error_modal.html")
+    for layout in (base, community_base):
+        assert '{% include "_site_error_modal.html" %}' in layout
+        assert "/static/site-error-modal.css" in layout
+    assert "popup.showModal()" in modal
+    assert 'request.scope.get(\'session\', {}).pop(\'_site_error_popup\', none)' in modal
+    assert '@app.exception_handler(HTTPException)' in main
+    assert '@app.exception_handler(RequestValidationError)' in main
+    assert '@app.exception_handler(Exception)' in main
+    assert '"error.html"' in main
+    assert '"application/json"' in main
 
 
 def test_announcement_is_shared_across_layouts_and_accessible():
