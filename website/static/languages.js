@@ -16,7 +16,7 @@
   }
   const cache=new WeakMap();
   const attributeCache=new WeakMap();
-  const skip="script,style,code,pre,textarea,select,option,noscript,[contenteditable],[data-no-translate],.form-answer,.form-response,.delta-role-tags,.delta-activity-row,.form-question-text,.form-description";
+  const skip="script,style,code,pre,textarea,select,option,noscript,[contenteditable],[data-no-translate],.form-answer,.form-response,.delta-role-tags,.delta-activity-row,.form-question-text,.form-description,.delta-site-news-message,.delta-site-news-author,#owner-news-preview-text,.owner-preview-author";
   const prefKey="delta.web.language";
   const fallback="en";
   let language=fallback;
