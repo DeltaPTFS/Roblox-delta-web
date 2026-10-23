@@ -1,6 +1,6 @@
 {# Shared browser-only error dialog. The login and OAuth pages keep their existing full-page errors. #}
 {% set site_popup = forced_site_error if forced_site_error is defined and forced_site_error else request.scope.get('session', {}).pop('_site_error_popup', none) %}
-{% if site_popup and request.url.path != '/login' and request.url.path != '/signup' and not request.url.path.startswith('/auth/') and not request.url.path.startswith('/signin/') %}
+{% if site_popup and request.url.path not in ('/login', '/signup', '/error') and not request.url.path.startswith(('/auth/', '/signin/', '/oauth/')) %}
 <dialog class="delta-error-dialog" id="delta-error-dialog" aria-labelledby="delta-error-title" aria-describedby="delta-error-message">
   <div class="delta-error-card">
     <button class="delta-error-close" type="button" aria-label="Close error message">×</button>
