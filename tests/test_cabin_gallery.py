@@ -1,25 +1,34 @@
 """Tests for accessible, fast cabin slides and the separate /experience page."""
 from pathlib import Path
+from hashlib import sha256
 
 from fastapi.testclient import TestClient
 
 from website.app.main import app
 
 ROOT = Path("website")
-CABIN_PHOTOS = ("cabin-entertainment", "cabin-service", "cabin-blue", "cabin-window")
+CABIN_PHOTOS = {
+    "cabin-entertainment-original.png": "f36da8ee0753c3c0511caca566f14129ec7d96fac06e8d5b20132c14537686cf",
+    "cabin-service-original.jpg": "aae8630dce444b9677fef580c53f9d3dbcee713999f756539c3b35a7ae8f55e1",
+    "cabin-blue-original.png": "2c1e928d8d2b92f6fbef18865b614d512aa12eaa0addcda5784fc8d3597effa5",
+    "cabin-window-original.jpg": "a95b8ba4b177d98ea67e37fe34d3a9d7fb6f07b40cb694afe98367feea9f2f68",
+}
 
 
 def read(name):
     return (ROOT / name).read_text()
 
 
-def test_original_cabin_photos_are_small_local_webps():
-    for name in CABIN_PHOTOS:
-        path = ROOT / "static" / "gallery" / (name + ".webp")
-        assert path.is_file()
-        data = path.read_bytes()
-        assert 3000 < len(data) < 450000, name
-        assert data[:4] == b"RIFF" and data[8:12] == b"WEBP"
+def test_served_cabin_photos_are_identical_to_the_original_uploads():
+    # Guard against the 900px recompression that blurred the previous copies.
+    with TestClient(app) as client:
+        for name, digest in CABIN_PHOTOS.items():
+            response = client.get("/static/gallery/" + name)
+            assert response.status_code == 200
+            assert sha256(response.content).hexdigest() == digest, name
+            assert response.headers["content-type"] == (
+                "image/png" if name.endswith(".png") else "image/jpeg"
+            )
 
 
 def test_homepage_gallery_is_one_native_swipe_carousel_not_a_tall_photo_wall():
@@ -37,7 +46,7 @@ def test_homepage_gallery_is_one_native_swipe_carousel_not_a_tall_photo_wall():
     assert html.count("data-cabin-dot=") == 4
     assert html.count('loading="lazy"') >= 4
     for photo in CABIN_PHOTOS:
-        assert html.count('src="/static/gallery/' + photo + '.webp"') == 1
+        assert html.count('src="/static/gallery/' + photo + '"') == 1
 
     assert "scroll-snap-type:x mandatory" in css
     assert "scroll-snap-align:start" in css
@@ -67,7 +76,9 @@ def test_standalone_experience_gallery_has_full_images_and_public_route():
     assert "Independent Roblox aviation roleplay community" in html
     assert "max-height" not in css.split(".experience-gallery-card img",1)[1].split("}",1)[0]
     for photo in CABIN_PHOTOS:
-        assert html.count('src="/static/gallery/' + photo + '.webp"') == 1
+        assert html.count('src="/static/gallery/' + photo + '"') == 1
+        assert html.count('href="/static/gallery/' + photo + '"') == 1
+    assert html.count('class="experience-original-link"') == 4
     assert 'object-fit:contain' in css
     assert 'grid-template-columns:1fr' in css
 
