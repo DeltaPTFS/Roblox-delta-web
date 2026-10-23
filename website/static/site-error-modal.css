@@ -1,0 +1,23 @@
+/* Lightweight, accessible modal for non-authentication website errors. */
+.delta-error-dialog {
+  box-sizing:border-box;position:fixed;inset:0;width:min(92vw,475px);max-width:475px;
+  max-height:min(85dvh,650px);margin:auto;padding:0;overflow:auto;
+  border:1px solid #9caecb80;border-radius:19px;color:#f7faff;
+  background:linear-gradient(155deg,#173255,#0a1a32 82%);
+  box-shadow:0 24px 90px #010716dc;
+}
+.delta-error-dialog::backdrop{background:#020918bc;backdrop-filter:blur(4px)}
+.delta-error-dialog:not([open]){display:none}
+.delta-error-card{position:relative;padding:clamp(25px,5vw,38px);text-align:left}
+.delta-error-close{position:absolute;right:13px;top:13px;width:36px;height:36px;
+  border:1px solid #91a9c579;border-radius:50%;background:#294364;color:#fff;
+  font-size:24px;line-height:1;cursor:pointer}
+.delta-error-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;
+  background:#e14d6840;border:1px solid #ff8998b0;color:#ffd8e0;font-size:29px;font-weight:900}
+.delta-error-kicker{display:block;margin:16px 0 5px;font-size:10px;letter-spacing:.12em;color:#ffb6c5;font-weight:900}
+.delta-error-dialog h2{margin:8px 0 13px;font-size:clamp(24px,4vw,32px);line-height:1.15;letter-spacing:-.03em;color:#fff}
+.delta-error-dialog p{font-size:14px;line-height:1.65;color:#d4e1f1;overflow-wrap:anywhere}
+.delta-error-confirm{margin-top:12px;padding:12px 20px;border:none;border-radius:9px;
+  background:#cf1640;color:#fff;font-size:13px;font-weight:850;cursor:pointer}
+.delta-error-close:focus-visible,.delta-error-confirm:focus-visible{outline:3px solid #ffd4e0;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.delta-error-dialog::backdrop{backdrop-filter:none}}
