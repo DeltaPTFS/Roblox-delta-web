@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}{% block content %}<section class="narrow"><div class="error-icon">!</div><h1>{{ title }}</h1><p>{{ message }}</p><a class="button primary" href="/">Return to Homepage</a></section>{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+{% if popup_only is defined and popup_only %}
+<section class="narrow" aria-label="Return to Delta Roblox">
+  <h1>Delta Roblox</h1>
+  <p>The website could not complete that request. Check the message in the pop-up and continue browsing.</p>
+  <a class="button primary" href="/">Go to Homepage</a>
+</section>
+{% else %}
+<section class="narrow">
+  <div class="error-icon" aria-hidden="true">!</div>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <a class="button primary" href="/">Return to Homepage</a>
+</section>
+{% endif %}
+{% endblock %}
