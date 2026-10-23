@@ -29,6 +29,10 @@
     if(dict.has(original))return dict.get(original);
     const compact=original.replace(/\s+/g," ").trim();
     if(dict.has(compact))return dict.get(compact);
+    // Translate accessible image actions even when a caption is appended.
+    const fullScreen=compact.match(/^View full-screen:\s*(.+)$/);
+    if(fullScreen && dict.has("View full-screen:"))
+      return dict.get("View full-screen:")+" "+(dict.get(fullScreen[1]) || fullScreen[1]);
     const suffix=original.match(/^(.*?)(\s*[↗→›])$/u);
     if(suffix&&dict.has(suffix[1]))return dict.get(suffix[1])+suffix[2];
     return original;
