@@ -1289,8 +1289,7 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str,direc
     announcement_can_save=(required=="OWNER" or not announcement_settings
         or not announcement_settings.enabled or announcement_settings.updated_by==actor.id)
     announcement_can_remove=bool(announcement_settings and announcement_settings.message.strip()
-        and (required=="OWNER" or (
-            announcement_settings.enabled and announcement_settings.updated_by==actor.id)))
+        and (required=="OWNER" or announcement_settings.updated_by==actor.id))
     return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings,announcement_can_save=announcement_can_save,announcement_can_remove=announcement_can_remove,directory_total=directory_total,directory_page=directory_page,directory_pages=max(1,(directory_total+23)//24),guild_roles_loaded=request.query_params.get("show_roles") == "1"))
 
 
@@ -1394,7 +1393,7 @@ def _remove_site_announcement_record(db: Session, actor: User, *, owner_override
     announcement = db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id == 1).with_for_update())
     if not announcement or not announcement.message.strip():
         raise HTTPException(404, "No website announcement is available to remove.")
-    if not owner_override and (not announcement.enabled or announcement.updated_by != actor.id):
+    if not owner_override and announcement.updated_by != actor.id:
         raise HTTPException(403, "You can only remove an announcement you personally posted.")
     before = {
         "enabled": announcement.enabled,
@@ -1695,9 +1694,9 @@ def _same_site_error_return(request: Request) -> str | None:
     if parsed.scheme not in {"http", "https"} or parsed.netloc.lower() != request.url.netloc.lower():
         return None
     target = parsed.path or "/"
-    if not target.startswith("/") or target.startswith("//") or _is_auth_error_page(
-        type("_Page", (), {"url": type("_URL", (), {"path": target})()})()
-    ):
+    if (not target.startswith("/") or target.startswith("//")
+            or target in {"/login", "/signup", "/error"}
+            or target.startswith(("/auth/", "/signin/", "/oauth/"))):
         return None
     current = request.url.path + ("?" + request.url.query if request.url.query else "")
     result = target + ("?" + parsed.query if parsed.query else "")
