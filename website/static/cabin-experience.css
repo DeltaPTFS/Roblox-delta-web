@@ -91,13 +91,15 @@
   width:100%;
   height:auto;
   max-height:490px;
-  aspect-ratio:900/529;
+  aspect-ratio:auto;
   object-fit:contain;
   object-position:center;
   background:#060e20;
   filter:none;
+  animation:none;
   transform:none;
   transition:none;
+  will-change:auto;
 }
 .cabin-carousel-copy {
   min-height:100px;
@@ -212,6 +214,7 @@
   display:block;width:100%;height:auto;
   aspect-ratio:auto;object-fit:contain;
   background:#050f22;
+  animation:none;filter:none;transform:none;transition:none;will-change:auto;
 }
 .experience-gallery-card-copy {
   padding:clamp(16px,2vw,25px);
@@ -230,6 +233,14 @@
   margin:0;color:#c1d1e9;
   line-height:1.6;font-size:14px;
 }
+.experience-original-link{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:16px;padding:8px 0;
+  color:#fff;font-size:13px;font-weight:800;text-decoration:none;
+  border-bottom:1px solid #ff7097;
+}
+.experience-original-link:hover{color:#ffb5ca}
+.experience-original-link:focus-visible{outline:3px solid #ffc0d3;outline-offset:4px}
 .experience-footer {
   margin:34px 0 0;
   display:flex;justify-content:space-between;
