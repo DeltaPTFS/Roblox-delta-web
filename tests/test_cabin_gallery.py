@@ -31,37 +31,22 @@ def test_served_cabin_photos_are_identical_to_the_original_uploads():
             )
 
 
-def test_homepage_gallery_is_one_native_swipe_carousel_not_a_tall_photo_wall():
+def test_homepage_shows_four_original_photos_with_fullscreen_links():
     html = read("templates/homepage.html")
-    css = read("static/cabin-experience.css")
-    js = read("static/cabin-carousel.js")
-
-    assert 'id="cabin-experience"' in html
-    assert html.count('class="cabin-carousel-slide"') == 4
-    assert 'class="cabin-mosaic"' not in html
-    assert 'class="cabin-card ' not in html
-    assert 'aria-roledescription="carousel"' in html
-    assert 'href="/experience"' in html
-    assert 'data-cabin-prev' in html and 'data-cabin-next' in html
-    assert html.count("data-cabin-dot=") == 4
-    assert html.count('loading="lazy"') >= 4
+    cabin = html.split('id="cabin-experience"', 1)[1].split('</section>', 1)[0]
+    assert cabin.count('class="cabin-photo-card"') == 4
+    assert cabin.count('class="cabin-photo-open"') == 4
+    assert cabin.count('loading="lazy"') == 4
     for photo in CABIN_PHOTOS:
-        assert html.count('src="/static/gallery/' + photo + '"') == 1
-
-    assert "scroll-snap-type:x mandatory" in css
-    assert "scroll-snap-align:start" in css
-    assert "flex:0 0 100%" in css
-    assert "object-fit:contain" in css
-    assert ".cabin-carousel-slide img" in css
-    assert "max-height:490px" in css
-
-    # Manual controls only: no autoplay interval, timers or RAF scroll handlers.
-    assert "setInterval(" not in js
-    assert "setTimeout(" not in js
-    assert "requestAnimationFrame(" not in js
-    assert "IntersectionObserver" in js
-    assert "window.addEventListener('scroll'" not in js
-    assert "track.scrollTo" in js
+        assert cabin.count('src="/static/gallery/' + photo + '"') == 1
+        assert cabin.count('href="/static/gallery/' + photo + '"') == 1
+    assert '<dialog class="cabin-fullscreen-viewer"' in html
+    assert 'aria-label="Close full-screen photo"' in html
+    assert 'aria-live="polite"' in html
+    assert 'viewer.showModal()' in html
+    assert 'viewer.close()' in html
+    assert 'image.src=link.href' in html
+    assert 'image.alt=preview.alt' in html
 
 
 def test_standalone_experience_gallery_has_full_images_and_public_route():
@@ -105,7 +90,7 @@ def test_home_and_experience_render_without_broken_navigation():
     assert home.status_code == experience.status_code == 200
     assert home.text.count('id="site-header"') == 1
     assert 'id="cabin-experience"' in home.text
-    assert 'data-cabin-carousel' in home.text
+    assert 'class="cabin-all-photos"' in home.text
     assert 'href="/experience"' in home.text
     assert "Welcome aboard." in experience.text.replace("<em>", "").replace("</em>", "")
     assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/experience"' in experience.text

@@ -36,6 +36,7 @@ def test_form_editor_has_real_google_forms_style_controls():
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node is needed for JavaScript syntax validation")
 def test_editor_script_passes_node_syntax_check():
     class FakeRequest:
+        scope = {"session": {}}
         base_url = "https://roblox-delta-web.vercel.app/"
         query_params = {}
         url = type("FakeURL", (), {"path": "/forms/new"})()

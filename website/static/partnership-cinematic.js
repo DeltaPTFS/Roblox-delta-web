@@ -10,7 +10,7 @@
   const progress = page.querySelector('.core-scroll-meter-fill');
   const hero = page.querySelector('.core-hero');
   const visual = page.querySelector('.core-sky-visual');
-  const showcase = page.querySelector('.core-connect-panel-art');
+  const showcase = page.querySelector('.core-connect-panel-art:not(.core-partnership-photo-frame)');
 
   // Fine-grained entrances reveal the story line by line instead of animating
   // one giant section. Group by parent to keep each scene's stagger short.
@@ -26,7 +26,7 @@
     '.core-sky-visual-overlay > *',
     '.core-connect-heading > *',
     '.core-connect-panel-copy > *',
-    '.core-connect-panel-art',
+    '.core-connect-panel-art:not(.core-partnership-photo-frame)',
     '.core-final > *'
   ].join(', ');
   const targets = [...page.querySelectorAll(selector)];

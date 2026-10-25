@@ -101,3 +101,9 @@ radial-gradient(circle at 30% 83%,#ffffff35 0 2px,transparent 3px)}
   .core-sky-visual::after,.core-connect-panel-art img{transition:none!important;transform:none!important}
   .core-page .core-benefit:hover,.core-page .core-button:hover{transform:none!important}
 }
+
+/* Preserve the uploaded photo in full, without zoom or filter effects. */
+.core-page .core-partnership-photo-frame{display:grid;align-items:center;min-height:0;background:#091b36}
+.core-page .core-partnership-photo-frame a{display:block}
+.core-page .core-partnership-photo-frame a:focus-visible{outline:3px solid #ff769b;outline-offset:-3px}
+.core-page .core-connect-panel-art.core-partnership-photo-frame img{display:block;width:100%;height:auto;object-fit:contain;transform:none;filter:none;transition:none;animation:none}
