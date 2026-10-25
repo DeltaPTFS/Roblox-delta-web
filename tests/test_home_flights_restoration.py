@@ -75,20 +75,21 @@ def test_homepage_reveals_once_without_per_frame_scroll_work():
     assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in community_motion
     assert "prefers-reduced-motion:reduce" in css
     assert "homepage-cinematic.js" in homepage
-    assert "cabin-carousel.js" in homepage
+    assert "cabin-fullscreen-viewer" in homepage
 
-def test_homepage_carousel_is_swipeable_and_does_not_animate_photos():
+def test_homepage_photo_grid_keeps_static_images_and_fullscreen_viewing():
     homepage = source("templates/homepage.html")
     css = source("static/cabin-experience.css")
-    script = source("static/cabin-carousel.js")
     assert "home-cinematic-hero" in homepage
-    assert 'data-cabin-carousel' in homepage
-    assert 'class="cabin-carousel-slide"' in homepage
-    assert "scroll-snap-type:x mandatory" in css
-    assert "scroll-snap-align:start" in css
-    assert "object-fit:contain" in css
-    assert "backdrop-filter:none !important" in css
-    assert ".cabin-carousel.is-ready" in css
+    assert 'class="cabin-all-photos"' in homepage
+    assert "grid-template-columns:repeat(2,minmax(0,1fr))" in homepage
+    image_style = homepage.split('.cabin-photo-open img {', 1)[1].split('}', 1)[0]
+    for property in ("animation:none", "filter:none", "transform:none", "transition:none"):
+        assert property in image_style
+    viewer_style = homepage.split('.cabin-fullscreen-viewer img {', 1)[1].split('}', 1)[0]
+    assert "object-fit:contain" in viewer_style
+    script = homepage.split('<script>', 1)[1].split('</script>', 1)[0]
+    assert "viewer.showModal()" in script
     assert "requestAnimationFrame" not in script
     assert "setInterval" not in script
     assert "window.addEventListener('scroll'" not in script
