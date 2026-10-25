@@ -96,3 +96,19 @@
  .delta-account-panel.account-dropdown{animation:none!important}
  .delta-account-menu *{transition:none!important}
 }
+
+/* Clamp the dropdown to the visible screen, including mobile browser chrome. */
+.delta-account-panel.account-dropdown{
+  box-sizing:border-box!important;min-width:0!important;max-width:calc(100vw - 20px)!important;
+  right:var(--account-right,0px)!important;
+  max-height:var(--account-height,min(78dvh,790px))!important;
+  overflow-x:hidden!important;animation:none!important;
+}
+.delta-account-panel .delta-account-close{position:absolute;top:8px;right:8px;z-index:2;
+  width:44px;height:44px;border:1px solid #718fb6;border-radius:10px;
+  background:#10213e;color:white;font-size:26px;cursor:pointer}
+.delta-account-cover img{margin-right:42px}
+.delta-account-sync:empty{display:none}
+.delta-account-sync{margin:0;padding:12px 60px 12px 20px;background:#132748;color:#d3ddf0;font-size:12px}
+.delta-account-panel .delta-account-links a{min-height:44px;gap:12px;white-space:normal!important}
+.delta-account-identity p,.delta-role-chip{overflow-wrap:anywhere}
