@@ -396,6 +396,56 @@ async def cabin_experience(request: Request, db: Session = Depends(get_db)):
     ))
 
 
+@app.get("/account/panel", response_class=HTMLResponse)
+async def account_panel(request: Request, db: Session = Depends(get_db)):
+    """Refresh account display on demand without blocking public page loads.
+
+    Resolve assets only through the authenticated Discord ID; display lookups
+    do not grant permissions or create a new SkyMiles/Roblox account.
+    """
+    user = linked_user_from_session(request, db)
+    if user:
+        user = current_user(request, db)
+    guest = request.session.get("forms_identity")
+    viewer = {"id": user.discord_user_id, "name": user.discord_display_name} if user else guest
+    if (not isinstance(viewer, dict) or not str(viewer.get("id", "")).isdecimal()
+            or not 15 <= len(str(viewer.get("id", ""))) <= 22):
+        raise HTTPException(401, "Please sign in with Discord")
+    discord_id = str(viewer["id"])
+    roles = []
+    main_status = "unavailable"
+    member = None
+    try:
+        member = await asyncio.wait_for(discord_guild_member(settings, discord_id), timeout=4)
+        if member is not None:
+            main_status = "verified" if member else "not_member"
+            ids = [str(role) for role in member.get("roles", [])]
+            roles = main_role_labels(ids)
+            try:
+                catalog = await asyncio.wait_for(discord_guild_roles(settings), timeout=3)
+                roles = display_discord_roles(ids, catalog) or roles
+            except (httpx.HTTPError, TimeoutError, ValueError):
+                pass
+    except (httpx.HTTPError, TimeoutError, ValueError):
+        pass
+    crew = await crew_roles_for_display(request, discord_id)
+    avatar = user.discord_avatar_url if user else viewer.get("avatar")
+    if member and member.get("user"):
+        viewer = {**viewer, "name": discord_server_name(member["user"], member)}
+        raw_user = member["user"]
+        if member.get("avatar"):
+            avatar = f"https://cdn.discordapp.com/guilds/{settings.discord_guild_id}/users/{discord_id}/avatars/{member['avatar']}.png"
+        elif raw_user.get("avatar"):
+            avatar = f"https://cdn.discordapp.com/avatars/{discord_id}/{raw_user['avatar']}.png"
+    return templates.TemplateResponse("_account_panel.html", context(
+        request, viewer=viewer, profile_user=user, profile_main_roles=roles,
+        account_name=viewer.get("name", "Delta Member"), account_avatar=avatar,
+        main_roles_status=main_status, crew_role_details=crew["roles"],
+        crew_member=crew["member"], crew_roles_status=crew["status"],
+        access=permission(user, settings) if user else "MEMBER",
+    ), headers={"Cache-Control": "private, no-store", "Vary": "Cookie"})
+
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/home", response_class=HTMLResponse)
 async def homepage(request: Request, db: Session = Depends(get_db)):
