@@ -28,6 +28,7 @@
       <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
       <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
       <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
+      <a href="https://news.delta.com/" target="_blank" rel="noopener noreferrer">News</a>
       <a href="/partnerships" {% if request.url.path in ['/core-partnerships', '/partnerships'] %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
       <a href="/skymiles" {% if request.url.path in ['/dashboard', '/skymiles', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
       {% if nav_level in ("OWNER","ADMIN","STAFF") %}
@@ -59,6 +60,7 @@
             <div class="sky-menu-grid">
               <a href="/home" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">⌂</span><span><b>Delta Home</b><small>Explore the community</small></span></a>
               <a href="/flights" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">✈</span><span><b>Flights</b><small>Upcoming departures</small></span></a>
+              <a href="https://news.delta.com/" target="_blank" rel="noopener noreferrer" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▣</span><span><b>Delta News</b><small>Official airline headlines</small></span></a>
               <a href="/forms" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▤</span><span><b>Forms</b><small>Applications &amp; fillouts</small></span></a>
               <a href="/partnerships" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◇</span><span><b>Partnerships</b><small>Virgin Atlantic</small></span></a>
               <a href="/experience" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◉</span><span><b>Cabin Experience</b><small>Browse our gallery</small></span></a>
