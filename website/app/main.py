@@ -96,6 +96,8 @@ app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 app.include_router(community_router)
 app.include_router(crew_bridge_router)
 app.include_router(gallery_router)
+from .news import router as news_router
+app.include_router(news_router)
 
 
 @app.middleware("http")
