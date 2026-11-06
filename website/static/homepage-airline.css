@@ -217,3 +217,46 @@ body.delta-airline-home .unified-delta-header .premium-brand-words{font-size:20p
 .air-feature-photo{height:250px;min-height:250px}
 }
 @media(prefers-reduced-motion:reduce){.air-home *, .air-home *::before,.air-home *::after{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+
+
+/* Single-row homepage header: move the small welcome message into the brand
+   instead of stacking a promotional strip above primary navigation. */
+body.delta-airline-home .unified-delta-header .premium-announcement{display:none!important}
+body.delta-airline-home .premium-header.community-header{
+  box-shadow:0 3px 0 #bd1232,0 7px 23px rgba(209,20,54,.20)!important;
+}
+body.delta-airline-home .premium-nav-shell{min-height:86px!important}
+body.delta-airline-home .premium-brand-words{gap:2px!important}
+body.delta-airline-home .premium-brand-words .home-nav-message{
+  display:block;color:#ef7189;font:800 9px/1.25 Arial,Helvetica,sans-serif;
+  letter-spacing:.10em;white-space:nowrap;margin-top:5px;text-transform:uppercase;
+  text-shadow:0 0 11px rgba(221,28,68,.38);
+}
+body.delta-airline-home .premium-header .community-primary-nav>a.is-current:after,
+body.delta-airline-home .premium-header .community-primary-nav>a:hover:after{
+  box-shadow:0 0 10px rgba(227,27,67,.85),0 -2px 14px rgba(227,27,67,.4)!important;
+}
+body.delta-airline-home .air-book{
+  border-top:2px solid rgba(203,18,53,.8);
+}
+body.delta-airline-home .air-book-top{border-bottom-color:#4c5573}
+body.delta-airline-home .air-tab[aria-selected="true"]{
+  color:#fff;
+  border-bottom-color:#eb244c;
+  text-shadow:0 0 13px rgba(245,78,116,.42);
+  box-shadow:inset 0 -3px 8px -5px #f0446d;
+}
+body.delta-airline-home .air-tab[aria-selected="true"]::after{
+  content:"";display:block;position:relative;height:0;box-shadow:0 0 14px 3px rgba(239,31,76,.42);
+}
+@media(max-width:1320px){
+  body.delta-airline-home .premium-nav-shell{min-height:80px!important}
+  body.delta-airline-home .premium-brand-words .home-nav-message{font-size:8px;letter-spacing:.045em}
+}
+@media(max-width:760px){
+  body.delta-airline-home .premium-nav-shell{min-height:76px!important}
+  body.delta-airline-home .premium-brand-words .home-nav-message{font-size:7px;letter-spacing:.01em}
+}
+@media(prefers-reduced-motion:reduce){
+  body.delta-airline-home .air-tab[aria-selected="true"]{transition:none}
+}
