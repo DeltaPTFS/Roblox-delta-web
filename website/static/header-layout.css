@@ -1,0 +1,209 @@
+/* Unified Delta Roblox header layout. Clear two-row navigation removes
+   crowding between Owner Panel and Light/Dark, language and account controls. */
+
+.unified-delta-header.premium-header{
+  isolation:isolate;
+}
+.unified-delta-header .premium-nav-shell{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+  width:min(1300px,calc(100% - 52px))!important;
+  min-height:80px!important;
+  margin-inline:auto!important;
+  padding-block:10px!important;
+}
+.unified-delta-header .premium-nav-shell>.community-brand{
+  flex:none!important;
+  min-width:0!important;
+}
+.unified-delta-header .premium-nav-shell>.premium-header-actions{
+  margin-left:auto!important;
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  flex:none!important;
+  gap:12px!important;
+}
+.unified-delta-header .premium-header-actions .site-theme-toggle{
+  flex:none;
+  min-width:86px!important;
+  min-height:44px!important;
+  background:transparent;
+}
+.unified-delta-header .premium-header-actions .delta-language-switch{
+  flex:none;
+  min-height:44px!important;
+}
+.unified-delta-header .premium-header-actions .community-account-slot{
+  flex:none;
+  min-width:0;
+}
+.unified-delta-header .premium-header-actions .delta-account-menu>summary.delta-account-trigger{
+  flex:none;
+  min-width:170px!important;
+  max-width:235px!important;
+}
+.unified-delta-header .premium-header-actions .sky-nav{
+  flex:none!important;
+  width:auto!important;
+}
+.unified-delta-header .premium-header-actions .unified-menu-dropdown>summary{
+  min-height:44px!important;
+  padding:9px 14px!important;
+  border-radius:5px!important;
+}
+/* No promotional header strip on the operational workspaces. A real
+   site-wide announcement remains visible separately if published. */
+body.ops-panel-page .unified-delta-header .premium-announcement{
+  display:none!important;
+}
+body.ops-panel-page .unified-delta-header .delta-nav-sparkles,
+body.ops-panel-page .unified-delta-header .premium-nav-shell:before,
+body.ops-panel-page .unified-delta-header .premium-nav-shell:after{
+  display:none!important;
+}
+.unified-delta-header .standard-nav-row{
+  position:relative;
+  z-index:1;
+  width:100%;
+  box-sizing:border-box;
+  background:#fff;
+  border-top:1px solid #e2e7ef;
+  border-bottom:1px solid #d7e0e9;
+}
+.unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner{
+  display:flex!important;
+  position:relative!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:3px!important;
+  flex:none!important;
+  width:min(1300px,calc(100% - 52px))!important;
+  min-height:57px!important;
+  margin:0 auto!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#b1bfd0 transparent;
+  -webkit-overflow-scrolling:touch;
+  white-space:nowrap;
+}
+.unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a{
+  position:relative!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:none!important;
+  min-height:57px!important;
+  margin:0!important;
+  padding:16px 19px 13px!important;
+  background:transparent!important;
+  border:0!important;
+  border-bottom:4px solid transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  color:#243d58!important;
+  font:800 14px/1.25 Arial,Helvetica,sans-serif!important;
+  letter-spacing:.02em!important;
+  text-shadow:none!important;
+  text-transform:uppercase!important;
+  white-space:nowrap!important;
+  transform:none!important;
+  text-decoration:none!important;
+}
+.unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a::after{
+  content:none!important;
+}
+.unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a:hover{
+  color:#aa0c2d!important;
+  background:#f6f8fa!important;
+}
+.unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a.is-current{
+  color:#a30e30!important;
+  background:#f7f9fb!important;
+  border-bottom-color:#c8102e!important;
+}
+.unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a:focus-visible{
+  outline:2px solid #bd1233;
+  outline-offset:-5px;
+}
+/* Light mode is white in both header rows; navy mode is uniform blue. */
+html[data-site-theme="light"] .unified-delta-header.premium-header.community-header{
+  background:#fff!important;
+  color:#192e47!important;
+  border-color:#dbe2eb!important;
+}
+html[data-site-theme="light"] .unified-delta-header .premium-nav-shell{
+  background:#fff!important;
+}
+html[data-site-theme="light"] .unified-delta-header .standard-nav-row{
+  background:#fff!important;
+}
+html[data-site-theme="dark"] .unified-delta-header .standard-nav-row{
+  background:#142840!important;
+  border-top-color:#324b67!important;
+  border-bottom-color:#304763!important;
+}
+html[data-site-theme="dark"] .unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a{
+  color:#e0e9f5!important;
+}
+html[data-site-theme="dark"] .unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a:hover,
+html[data-site-theme="dark"] .unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a.is-current{
+  color:#ffb5c5!important;
+  background:#1e3959!important;
+}
+html[data-site-theme="dark"] .unified-delta-header .premium-header-actions .site-theme-toggle{
+  background:#1b3452!important;
+  color:#f5f9ff!important;
+  border-color:#506982!important;
+}
+@media(max-width:1190px){
+  .unified-delta-header .premium-nav-shell{width:calc(100% - 36px)!important}
+  .unified-delta-header .premium-header-actions .delta-account-menu>summary.delta-account-trigger{
+    min-width:150px!important;max-width:183px!important;
+  }
+  .unified-delta-header .premium-header-actions .site-theme-toggle{
+    min-width:44px!important;max-width:44px!important;padding:9px!important;
+  }
+  .unified-delta-header .premium-header-actions .site-theme-toggle>span{display:none!important}
+  .unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner{
+    width:calc(100% - 36px)!important;
+  }
+  .unified-delta-header .premium-nav-shell>.premium-header-actions{gap:8px!important}
+}
+@media(max-width:850px){
+  .unified-delta-header .premium-header-actions .delta-language-switch{display:none!important}
+  .unified-delta-header .premium-header-actions .delta-account-menu>summary.delta-account-trigger{
+    min-width:48px!important;max-width:52px!important;padding:6px!important;
+  }
+  .unified-delta-header .premium-header-actions .delta-account-trigger-label{
+    display:none!important;
+  }
+  .unified-delta-header .premium-header-actions .delta-account-caret{
+    display:none!important;
+  }
+  .unified-delta-header .premium-nav-shell{
+    min-height:70px!important;gap:12px!important;
+  }
+  .unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner>a{
+    font-size:13px!important;padding:14px 15px 12px!important;min-height:52px!important;
+  }
+}
+@media(max-width:500px){
+  .unified-delta-header .premium-nav-shell{
+    width:calc(100% - 24px)!important;
+    min-height:68px!important;gap:7px!important;
+  }
+  .unified-delta-header .premium-nav-shell>.premium-header-actions{gap:6px!important}
+  .unified-delta-header .premium-brand-words{font-size:18px!important}
+  .unified-delta-header .premium-header-actions .unified-menu-dropdown>summary{
+    min-height:42px!important;padding:8px 9px!important;
+  }
+  .unified-delta-header .premium-header-actions .sky-menu-label{display:none!important}
+  .unified-delta-header .premium-header-actions .site-theme-toggle{min-height:42px!important}
+  .unified-delta-header .standard-nav-row .community-primary-nav.standard-nav-inner{
+    width:calc(100% - 22px)!important;
+  }
+}
