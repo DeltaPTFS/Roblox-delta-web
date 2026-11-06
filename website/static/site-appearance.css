@@ -583,3 +583,37 @@ html[data-site-theme="light"] .delta-admin-v2 .button.outline{
 html[data-site-theme="light"] .delta-admin-v2 .button{font-size:14px!important}
 html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi>div>span,
 html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi>small{font-size:13px!important}
+
+
+/* Shared readability finishing pass for menus, language, small notices, footer. */
+.unified-delta-header .unified-menu-dropdown>summary{
+  font-size:15px!important;
+}
+.unified-delta-header .delta-language-switch select{
+  font-size:14px!important;
+}
+.unified-delta-header .premium-brand-words small{font-size:10px!important}
+.unified-delta-header .sky-menu-item b{font-size:14px!important}
+.unified-delta-header .sky-menu-item small{font-size:12px!important}
+.unified-delta-header .sky-menu-bottom>a{font-size:14px!important}
+html[data-site-theme] body .community-footer{
+  font-size:15px!important;
+  line-height:1.7!important;
+}
+html[data-site-theme] body .community-footer p{
+  font-size:15px!important;
+}
+html[data-site-theme] body .community-footer a{font-size:15px!important}
+html[data-site-theme] body.delta-partner-page .partner-disclaimer{
+  font-size:14px!important;
+  line-height:1.75!important;
+}
+html[data-site-theme] body .air-hero-inner>p{
+  font-size:clamp(17px,1.5vw,21px)!important;
+}
+html[data-site-theme] body .air-action{font-size:14px!important}
+@media(max-width:700px){
+  .unified-delta-header .unified-menu-dropdown>summary{font-size:13px!important}
+  .unified-delta-header .delta-language-switch select{font-size:13px!important}
+  html[data-site-theme] body .community-footer p{font-size:14px!important}
+}
