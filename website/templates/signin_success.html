@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="theme-{{ request.session.get('theme', 'light') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#06132d">
+  <meta name="theme-color" content="#ffffff">
   <meta name="robots" content="noindex,nofollow">
   <title>Welcome Aboard · Delta Air Lines</title>
+  <script src="/static/site-theme-init.js?v={{ asset_version }}"></script>
   <link rel="icon" type="image/svg+xml" href="/static/delta-emblem.svg">
   <link rel="stylesheet" href="/static/signin-success.css?v={{ asset_version }}">
   <link rel="stylesheet" href="/static/site-announcement.css?v={{ asset_version }}">
@@ -14,9 +15,10 @@
   <link rel="stylesheet" href="/static/languages.css?v={{ asset_version }}">
   <link rel="stylesheet" href="/static/premium-header.css?v={{ asset_version }}">
   <link rel="stylesheet" href="/static/unified-delta-navigation.css?v={{ asset_version }}">
+  <link rel="stylesheet" href="/static/site-appearance.css?v={{ asset_version }}">
   <script src="/static/signin-success.js?v={{ asset_version }}" defer></script>
 </head>
-<body>
+<body class="theme-{{ request.session.get('theme', 'light') }}">
   <div class="success-scene" aria-hidden="true">
     <div class="success-grid"></div>
     <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -78,6 +80,7 @@
   <footer class="success-page-footer"><span>KEEP CLIMBING, DELTA AIR LINES.</span><span>INDEPENDENT ROBLOX AVIATION ROLEPLAY COMMUNITY</span></footer>
   <audio id="signin-sound" src="/static/audio/delta-signin.mp3" preload="auto" playsinline></audio>
   
+<script src="/static/site-theme.js?v={{ asset_version }}" defer></script>
 <script src="/static/unified-delta-navigation.js?v={{ asset_version }}" defer></script>
 <script src="/static/account-hub.js?v={{ asset_version }}-mobile-sync-20261025" defer></script>
 <script src="/static/language-packs.js?v={{ asset_version }}" defer></script><script src="/static/languages.js?v={{ asset_version }}" defer></script>
