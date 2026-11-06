@@ -1,0 +1,464 @@
+/* Focused operations workspaces for OWNER / ADMIN / STAFF.
+   Visual and progressive-disclosure changes only. Existing forms, POST endpoints,
+   user roles, search, and audit data stay intact. */
+.delta-admin-v2.ops-workspace{
+  width:min(1170px,calc(100% - 42px));
+  margin:35px auto 95px;
+  --ops-bg:#fff;
+  --ops-paper:#fff;
+  --ops-soft:#f5f7f9;
+  --ops-ink:#172e49;
+  --ops-secondary:#566b81;
+  --ops-line:#dce3ea;
+  --ops-red:#c8102e;
+  color:var(--ops-ink);
+  font-family:Arial,Helvetica,sans-serif;
+}
+.ops-workspace [data-ops-group][hidden]{display:none!important}
+.ops-workspace [data-ops-group]{scroll-margin-top:115px}
+.ops-workspace .ops-home-hero.delta-admin-hero.panel-welcome{
+  position:relative;
+  border-radius:7px!important;
+  border:1px solid var(--ops-line)!important;
+  border-top:5px solid var(--ops-red)!important;
+  background:var(--ops-paper)!important;
+  background-image:none!important;
+  color:var(--ops-ink)!important;
+  min-height:0!important;
+  padding:34px 36px!important;
+  box-shadow:0 5px 22px #1934510c!important;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:28px;
+}
+.ops-workspace .ops-home-hero::before{display:none!important}
+.ops-workspace .ops-home-hero .eyebrow{
+  display:block!important;
+  color:#aa1230!important;
+  font-size:12px!important;
+  letter-spacing:.10em;
+}
+.ops-workspace .ops-home-hero h1{
+  color:var(--ops-ink)!important;
+  margin:12px 0 11px;
+  font-size:clamp(32px,3.8vw,48px)!important;
+  line-height:1.12;
+  font-weight:850;
+  letter-spacing:-.04em;
+}
+.ops-workspace .ops-home-hero p{
+  margin:0;
+  color:var(--ops-secondary)!important;
+  max-width:650px;
+  font-size:16px!important;
+  line-height:1.65!important;
+}
+.ops-workspace .ops-home-hero-side{
+  align-self:stretch;
+  min-width:175px;
+  display:flex;flex-direction:column;gap:9px;justify-content:center;
+  padding:15px 0 15px 30px;
+  border-left:1px solid var(--ops-line);
+  text-align:left;
+}
+.ops-workspace .ops-home-hero-side>span{
+  color:var(--ops-secondary);
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.10em;
+}
+.ops-workspace .ops-home-hero-side strong{
+  color:var(--ops-ink);
+  font-size:22px;font-weight:850;
+}
+.ops-workspace .ops-home-hero-side a{
+  color:#b10f30!important;
+  font-size:13px;font-weight:850;
+  text-decoration:none;
+}
+.ops-workspace .ops-home-hero-side a:hover{text-decoration:underline;text-underline-offset:4px}
+.ops-workspace .delta-admin-overview.ops-overview-stats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:15px;
+  margin:19px 0 25px;
+}
+.ops-workspace .ops-overview-stats .delta-admin-kpi{
+  border:1px solid var(--ops-line)!important;
+  background:var(--ops-paper)!important;
+  background-image:none!important;
+  box-shadow:0 4px 17px #1a344b0c!important;
+  color:var(--ops-ink)!important;
+  border-radius:5px!important;
+  min-height:145px;
+  padding:24px 26px!important;
+}
+.ops-workspace .ops-overview-stats .delta-admin-kpi>div{
+  display:flex;flex-direction:column;gap:4px;
+}
+.ops-workspace .ops-overview-stats .delta-admin-kpi>div>span{
+  color:#6c7888!important;
+  font-size:12px!important;letter-spacing:.07em;
+  font-weight:850;
+}
+.ops-workspace .ops-overview-stats .delta-admin-kpi strong{
+  color:var(--ops-ink)!important;
+  font-size:clamp(35px,3.8vw,49px)!important;
+  margin:5px 0 1px;
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:-.05em;
+}
+.ops-workspace .ops-overview-stats .delta-admin-kpi>small{
+  color:var(--ops-secondary)!important;
+  font-size:13px!important;
+  line-height:1.5;
+}
+/* Simple, readable workspaces replace duplicated shortcut menus. */
+.ops-workspace .ops-workspace-nav.delta-admin-sections{
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:stretch;
+  position:sticky;
+  top:0;
+  z-index:30;
+  gap:0;
+  margin:22px 0 30px;
+  padding:0 10px;
+  min-height:62px;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+  border:1px solid var(--ops-line)!important;
+  border-radius:6px!important;
+  box-shadow:0 7px 25px #132d4715!important;
+  background:var(--ops-paper)!important;
+}
+.ops-workspace .ops-workspace-nav>a{
+  display:inline-flex!important;
+  flex:none;
+  align-items:center;
+  justify-content:center;
+  min-height:61px;
+  border:0!important;
+  border-bottom:4px solid transparent!important;
+  border-radius:0!important;
+  padding:17px clamp(13px,1.7vw,23px)!important;
+  background:transparent!important;
+  color:var(--ops-secondary)!important;
+  font:800 14px/1.3 Arial,Helvetica,sans-serif!important;
+  white-space:nowrap;
+  letter-spacing:0;
+  text-decoration:none!important;
+}
+.ops-workspace .ops-workspace-nav>a:hover{
+  background:var(--ops-soft)!important;color:var(--ops-ink)!important;
+}
+.ops-workspace .ops-workspace-nav>a[aria-current]{
+  border-bottom-color:#c8102e!important;
+  background:var(--ops-soft)!important;
+  color:#a80c29!important;
+}
+.ops-workspace .ops-workspace-nav>a:focus-visible{
+  outline:2px solid #c8102e;outline-offset:-4px;
+}
+.ops-workspace .ops-overview-actions.delta-admin-quickstart{
+  margin:0!important;
+  display:block;
+  padding:8px 0 0!important;
+  background:transparent!important;
+  border:none!important;
+  box-shadow:none!important;
+}
+.ops-workspace .ops-section-intro{margin-bottom:20px}
+.ops-workspace .ops-section-intro .eyebrow{color:#ab1334!important;font-size:12px!important}
+.ops-workspace .ops-section-intro h2{
+  color:var(--ops-ink)!important;
+  margin:12px 0 10px;
+  font-size:clamp(27px,2.7vw,36px)!important;
+  line-height:1.17;
+}
+.ops-workspace .ops-section-intro p{
+  color:var(--ops-secondary)!important;
+  font-size:15px!important;
+  margin:0;
+}
+.ops-workspace .ops-quick-grid.delta-admin-quick-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px!important;
+}
+.ops-workspace .ops-quick-grid>a{
+  border:1px solid var(--ops-line)!important;
+  border-top:3px solid #c8102e!important;
+  border-radius:5px!important;
+  background:var(--ops-paper)!important;
+  color:var(--ops-ink)!important;
+  box-shadow:0 5px 18px #102d4a0d!important;
+  min-height:145px!important;
+  padding:24px 27px!important;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:start;
+  gap:6px 15px!important;
+  text-decoration:none!important;
+  transition:border-color .18s ease,transform .18s ease;
+}
+.ops-workspace .ops-quick-grid>a:hover{
+  border-color:#bac8d5!important;
+  border-top-color:#c8102e!important;
+  transform:translateY(-2px);
+}
+.ops-workspace .ops-quick-grid>a>span{
+  grid-column:1/-1;color:#ae1536!important;font-size:11px!important;font-weight:900;
+}
+.ops-workspace .ops-quick-grid>a>strong{
+  color:var(--ops-ink)!important;font-size:21px!important;font-weight:820;
+}
+.ops-workspace .ops-quick-grid>a>small{
+  grid-column:1;grid-row:3;
+  color:var(--ops-secondary)!important;font-size:14px!important;line-height:1.5;
+}
+.ops-workspace .ops-quick-grid>a>i{
+  color:#be1136!important;font-size:20px!important;
+  grid-column:2;grid-row:2 / span 2;font-style:normal;
+}
+/* Retained tools are easy to scan when a workspace is selected. */
+.ops-workspace>.card.page-card,
+.ops-workspace>.card.page-card.owner-announcement-editor{
+  max-width:none!important;
+  border-radius:7px!important;
+  background:var(--ops-paper)!important;
+  background-image:none!important;
+  color:var(--ops-ink)!important;
+  border:1px solid var(--ops-line)!important;
+  box-shadow:0 5px 20px #142f4a0d!important;
+  padding:clamp(23px,2.8vw,36px)!important;
+  margin:0 0 17px!important;
+  content-visibility:visible!important;
+}
+.ops-workspace>.card.page-card>h2,
+.ops-workspace>.card.page-card .owner-announcement-top h2,
+.ops-workspace>.card.page-card .section-head h2{
+  color:var(--ops-ink)!important;
+  font-size:clamp(25px,2.4vw,34px)!important;
+  line-height:1.2;margin:9px 0 16px;
+}
+.ops-workspace>.card.page-card :is(h3,h4,b,strong,summary){
+  color:var(--ops-ink);
+}
+.ops-workspace>.card.page-card p,
+.ops-workspace>.card.page-card :is(small,time,label){
+  color:var(--ops-secondary);
+  font-size:14px;
+  line-height:1.65;
+}
+.ops-workspace>.card.page-card .eyebrow{
+  color:#af1334!important;
+  font-size:12px!important;letter-spacing:.07em!important;
+}
+/* Member controls collapse to one per-person action drawer, not a wall of forms. */
+.ops-workspace .admin-member{
+  background:var(--ops-soft)!important;
+  color:var(--ops-ink)!important;
+  border:1px solid var(--ops-line)!important;
+  border-left:3px solid #c8102e!important;
+  border-radius:6px!important;
+  box-shadow:none!important;
+  padding:18px 20px!important;
+}
+.ops-workspace .admin-member>.identity{
+  margin:0!important;padding:0 0 12px!important;
+  border-color:var(--ops-line)!important;
+}
+.ops-workspace .admin-member .identity b{
+  color:var(--ops-ink)!important;
+  font-size:18px!important;
+}
+.ops-workspace .admin-member .identity small{
+  color:var(--ops-secondary)!important;
+  font-size:13px!important;
+}
+.ops-workspace .ops-member-detail{
+  border:0;background:transparent;
+}
+.ops-workspace .ops-member-detail>summary{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;cursor:pointer;list-style:none;
+  color:#a90d30!important;font-size:14px;font-weight:850;
+  padding:14px 1px 5px;
+}
+.ops-workspace .ops-member-detail>summary::-webkit-details-marker{display:none}
+.ops-workspace .ops-member-detail>summary>span:last-child{
+  font-size:21px;color:#b01232;
+}
+.ops-workspace .ops-member-detail[open]>summary>span:last-child{transform:rotate(45deg)}
+.ops-workspace .ops-member-detail>form,
+.ops-workspace .ops-member-detail>section{margin-top:16px!important}
+.ops-workspace .ops-hidden-tools{background:var(--ops-soft)!important;border:1px solid var(--ops-line);border-radius:5px;padding:4px 18px}
+.ops-workspace .ops-hidden-tools>summary{cursor:pointer;padding:17px 0;color:#ad1132!important;font-size:14px;font-weight:850}
+.ops-workspace .ops-hidden-tools[open]>summary{border-bottom:1px solid var(--ops-line)}
+.ops-workspace .ops-archive-content{margin-top:13px}
+.ops-workspace .member-directory>details>summary b,
+.ops-workspace .discord-role-map>details>summary b{color:var(--ops-ink)!important;font-size:20px!important}
+.ops-workspace .member-directory>details>summary small,
+.ops-workspace .discord-role-map>details>summary small{color:var(--ops-secondary)!important}
+.ops-workspace .member-directory>details>summary strong,
+.ops-workspace .discord-role-map>details>summary strong{color:#aa1230!important}
+.ops-workspace .directory-list a,
+.ops-workspace .ops-flight,
+.ops-workspace .feedback-entry,
+.ops-workspace .admin-trip-row{
+  background:var(--ops-soft)!important;
+  border:1px solid var(--ops-line)!important;
+  color:var(--ops-ink)!important;
+  box-shadow:none!important;
+  border-radius:4px!important;
+}
+.ops-workspace .directory-list a b,
+.ops-workspace .ops-flight b,
+.ops-workspace .feedback-entry b{color:var(--ops-ink)!important;font-size:15px!important}
+.ops-workspace .directory-list small,
+.ops-workspace .directory-list em,
+.ops-workspace .ops-flight small,
+.ops-workspace .feedback-entry small{color:var(--ops-secondary)!important;font-size:13px!important}
+.ops-workspace input:not([type=hidden]):not([type=checkbox]),
+.ops-workspace select,
+.ops-workspace textarea,
+.ops-workspace .owner-announcement-form textarea,
+.ops-workspace .owner-announcement-form input[type=text],
+.ops-workspace .owner-announcement-form select{
+  background:var(--ops-paper)!important;
+  color:var(--ops-ink)!important;
+  border:1px solid #b9c8d7!important;
+  border-radius:5px!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:15px!important;
+  min-height:46px;
+}
+.ops-workspace input::placeholder,
+.ops-workspace textarea::placeholder{color:#718198!important;opacity:1}
+.ops-workspace .owner-announcement-form label:not(.owner-announcement-publish),
+.ops-workspace .delta-admin-member-actions>.search label,
+.ops-workspace .adjust label,
+.ops-workspace .create-flight form label{
+  color:var(--ops-ink)!important;font-size:14px!important;font-weight:800;
+}
+.ops-workspace .button{font-size:14px!important;border-radius:4px!important}
+.ops-workspace .button.outline{
+  background:var(--ops-paper)!important;color:var(--ops-ink)!important;
+  border-color:#98a9ba!important;
+}
+.ops-workspace .button.primary{background:#c8102e!important;color:#fff!important;border-color:#c8102e!important}
+.ops-workspace .owner-announcement-editor .owner-announcement-top p{color:var(--ops-secondary)!important}
+.ops-workspace .owner-announcement-publish{
+  background:var(--ops-soft)!important;
+  border-color:var(--ops-line)!important;color:var(--ops-ink)!important;
+}
+.ops-workspace .owner-announcement-publish strong{color:var(--ops-ink)!important}
+.ops-workspace .owner-announcement-publish small{color:var(--ops-secondary)!important}
+.ops-workspace .owner-announcement-count{color:var(--ops-secondary)!important}
+.ops-workspace .owner-announcement-preview{
+  border-color:var(--ops-line)!important;
+  background:var(--ops-soft)!important;
+}
+.ops-workspace .owner-announcement-preview-caption,
+.ops-workspace .owner-preview-author small{color:var(--ops-secondary)!important}
+.ops-workspace .owner-announcement-state{
+  border-color:var(--ops-line)!important;
+  background:var(--ops-soft)!important;
+  color:var(--ops-secondary)!important;
+}
+.ops-workspace .owner-announcement-state.is-live{
+  background:#e5f4eb!important;border-color:#acd8c0!important;color:#196243!important;
+}
+.ops-workspace .stats-row span{
+  background:var(--ops-soft)!important;border-color:var(--ops-line)!important;
+  color:var(--ops-secondary)!important;
+}
+.ops-workspace .stats-row b{color:var(--ops-ink)!important}
+.ops-workspace .audit-table article{border-color:var(--ops-line)!important}
+.ops-workspace .audit-table time,
+.ops-workspace .audit-table small{color:var(--ops-secondary)!important;font-size:13px!important}
+.ops-workspace .audit-table b{color:var(--ops-ink)!important}
+/* Dark navy is an opt-in option; light remains the default. */
+html[data-site-theme="dark"] .ops-workspace{
+  --ops-bg:#0b1930;
+  --ops-paper:#142942;
+  --ops-soft:#1a3350;
+  --ops-ink:#f0f5fd;
+  --ops-secondary:#bdcee0;
+  --ops-line:#385370;
+}
+html[data-site-theme="dark"] .ops-workspace .ops-home-hero,
+html[data-site-theme="dark"] .ops-workspace>.card.page-card{
+  box-shadow:0 5px 22px #060d1e45!important;
+}
+html[data-site-theme="dark"] .ops-workspace .ops-workspace-nav>a[aria-current]{
+  color:#ffb4c4!important;background:#203b5b!important;
+}
+html[data-site-theme="dark"] .ops-workspace .ops-workspace-nav>a:hover{color:#f6f9fe!important}
+html[data-site-theme="dark"] .ops-workspace .ops-quick-grid>a>span,
+html[data-site-theme="dark"] .ops-workspace .ops-quick-grid>a>i,
+html[data-site-theme="dark"] .ops-workspace .ops-member-detail>summary,
+html[data-site-theme="dark"] .ops-workspace .ops-hidden-tools>summary{
+  color:#ff9cb2!important;
+}
+html[data-site-theme="dark"] .ops-workspace .delta-admin-hero .eyebrow,
+html[data-site-theme="dark"] .ops-workspace .eyebrow{
+  color:#ff9cb2!important;
+}
+html[data-site-theme="dark"] .ops-workspace .ops-home-hero-side a{color:#ffb4c4!important}
+html[data-site-theme="dark"] .ops-workspace .ops-workspace-nav>a{color:#d9e5f3!important}
+html[data-site-theme="dark"] .ops-workspace .owner-announcement-state.is-live{
+  color:#b5f6d2!important;background:#204d3d!important;border-color:#548f71!important;
+}
+html[data-site-theme="dark"] .ops-workspace input::placeholder,
+html[data-site-theme="dark"] .ops-workspace textarea::placeholder{color:#a6bcd1!important}
+/* Keep the broadcast-preview strip itself navy in both modes. */
+.ops-workspace .owner-preview-strip,
+html[data-site-theme="light"] .ops-workspace .owner-preview-strip{
+  color:#fff!important;background:#172841!important;
+}
+.ops-workspace .owner-preview-strip :is(strong,small,span){color:#f4f8fe!important}
+@media(max-width:1000px){
+  .ops-workspace .ops-home-hero-side{min-width:135px}
+  .ops-workspace .ops-home-hero h1{font-size:36px!important}
+}
+@media(max-width:720px){
+  .delta-admin-v2.ops-workspace{width:calc(100% - 28px);margin:20px auto 65px}
+  .ops-workspace .ops-home-hero.delta-admin-hero.panel-welcome{
+    padding:25px 22px!important;flex-direction:column;align-items:flex-start;
+  }
+  .ops-workspace .ops-home-hero h1{font-size:30px!important}
+  .ops-workspace .ops-home-hero-side{
+    min-width:0;width:100%;border:0;border-top:1px solid var(--ops-line);
+    padding:17px 0 0;flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  }
+  .ops-workspace .ops-home-hero-side strong{font-size:16px}
+  .ops-workspace .ops-overview-stats.delta-admin-overview{
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0 18px;
+  }
+  .ops-workspace .ops-overview-stats .delta-admin-kpi{padding:17px!important;min-height:125px}
+  .ops-workspace .ops-overview-stats .delta-admin-kpi strong{font-size:33px!important}
+  .ops-workspace .ops-overview-stats .delta-admin-kpi>div>span{font-size:10px!important}
+  .ops-workspace .ops-workspace-nav{margin:18px 0 25px;min-height:54px;padding:0 5px}
+  .ops-workspace .ops-workspace-nav>a{min-height:54px;font-size:13px!important;padding:14px 15px!important}
+  .ops-workspace .ops-quick-grid.delta-admin-quick-grid{grid-template-columns:1fr;gap:10px!important}
+  .ops-workspace .ops-quick-grid>a{padding:20px!important;min-height:115px!important}
+  .ops-workspace>.card.page-card{padding:21px 17px!important}
+  .ops-workspace .owner-announcement-layout{grid-template-columns:1fr!important}
+  .ops-workspace .owner-announcement-top{flex-direction:column}
+  .ops-workspace .owner-announcement-fields{grid-template-columns:1fr}
+  .ops-workspace .owner-announcement-fields label:last-child{grid-column:auto}
+}
+@media(max-width:420px){
+  .ops-workspace .ops-overview-stats.delta-admin-overview{grid-template-columns:1fr 1fr}
+  .ops-workspace .ops-overview-stats .delta-admin-kpi{padding:15px!important}
+  .ops-workspace .ops-overview-stats .delta-admin-kpi>small{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .ops-workspace .ops-quick-grid>a{transition:none!important;transform:none!important}
+}
