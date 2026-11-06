@@ -7,35 +7,24 @@
 <div class="air-home">
   <section class="air-book" aria-label="Quick access to community travel" id="plan">
     <div class="air-container">
-      <div class="air-book-top">
-        <div class="air-book-tabs" role="tablist" aria-label="Travel options">
-          <button class="air-tab" type="button" role="tab" aria-selected="true" aria-controls="air-panel-flights" id="air-tab-flights" data-air-tab="flights"><span aria-hidden="true">✈</span> BOOK A FLIGHT</button>
-          <button class="air-tab" type="button" role="tab" aria-selected="false" aria-controls="air-panel-trips" id="air-tab-trips" tabindex="-1" data-air-tab="trips">MY TRIPS</button>
-          <button class="air-tab" type="button" role="tab" aria-selected="false" aria-controls="air-panel-status" id="air-tab-status" tabindex="-1" data-air-tab="status">FLIGHT STATUS</button>
-          <button class="air-tab" type="button" role="tab" aria-selected="false" aria-controls="air-panel-miles" id="air-tab-miles" tabindex="-1" data-air-tab="miles">SKYMILES</button>
-        </div>
-        <span class="air-book-context">VIRTUAL FLIGHTS · ROBLOX ROLEPLAY</span>
+      <div class="air-book-top air-nav-top">
+        <nav class="air-book-tabs air-site-links" aria-label="Main site navigation">
+          <a class="air-tab is-current" href="/home" aria-current="page">HOME</a>
+          <a class="air-tab" href="/flights">FLIGHTS</a>
+          <a class="air-tab" href="/forms">FORMS</a>
+          <a class="air-tab" href="/news">NEWS</a>
+          <a class="air-tab" href="/partnerships">PARTNERSHIPS</a>
+          <a class="air-tab" href="/skymiles">SKYMILES</a>
+          {% if auth in ("OWNER","ADMIN","STAFF") %}
+          <a class="air-tab" href="{{ '/owner' if auth == 'OWNER' else '/admin' if auth == 'ADMIN' else '/staff' }}">{{ 'OWNER PANEL' if auth == 'OWNER' else 'ADMIN PANEL' if auth == 'ADMIN' else 'STAFF PANEL' }}</a>
+          {% endif %}
+        </nav>
       </div>
-      <div class="air-book-panel" role="tabpanel" id="air-panel-flights" aria-labelledby="air-tab-flights" data-air-panel="flights">
+      <div class="air-book-panel air-book-panel-default" id="air-panel-flights">
         <div class="air-book-field"><small>FROM</small><strong>Our virtual network</strong><span>Depart with Delta Roblox</span></div>
         <div class="air-book-field"><small>TO</small><strong>Your next adventure</strong><span>See destinations in the schedule</span></div>
         <div class="air-book-field"><small>WHEN</small><strong>Upcoming departures</strong><span>View posted community flights</span></div>
         <a href="/flights" class="air-search-button">EXPLORE FLIGHTS <span aria-hidden="true">→</span></a>
-      </div>
-      <div class="air-book-panel" role="tabpanel" id="air-panel-trips" aria-labelledby="air-tab-trips" data-air-panel="trips" hidden>
-        <div class="air-book-field"><small>YOUR BOOKINGS</small><strong>My upcoming trips</strong><span>Review your confirmed community reservations</span></div>
-        <div class="air-book-field"><small>ACCOUNT</small><strong>Secure member access</strong><span>Sign in to manage flight plans</span></div>
-        <a href="/trips" class="air-search-button">VIEW MY TRIPS <span aria-hidden="true">→</span></a>
-      </div>
-      <div class="air-book-panel" role="tabpanel" id="air-panel-status" aria-labelledby="air-tab-status" data-air-panel="status" hidden>
-        <div class="air-book-field"><small>FLIGHT INFORMATION</small><strong>Stay ready for takeoff</strong><span>Review scheduled roleplay departures and their status</span></div>
-        <div class="air-book-field"><small>UPDATES</small><strong>Follow each flight</strong><span>Open the flight board for details</span></div>
-        <a href="/flights" class="air-search-button">VIEW FLIGHT BOARD <span aria-hidden="true">→</span></a>
-      </div>
-      <div class="air-book-panel" role="tabpanel" id="air-panel-miles" aria-labelledby="air-tab-miles" data-air-panel="miles" hidden>
-        <div class="air-book-field"><small>MEMBERSHIP</small><strong>Delta Roblox SkyMiles</strong><span>Track miles, rewards and your Medallion journey</span></div>
-        <div class="air-book-field"><small>REWARDS</small><strong>Make every flight count</strong><span>Community points, not airline frequent-flyer miles</span></div>
-        <a href="/skymiles" class="air-search-button">MY SKYMILES <span aria-hidden="true">→</span></a>
       </div>
       <p class="air-book-note">Flights, reservations and SkyMiles on this site are part of a fan-made Roblox experience—not real-world airline services.</p>
     </div>
@@ -113,12 +102,30 @@
 
   <section class="air-section air-news" aria-labelledby="air-news-heading">
     <div class="air-container">
-      <div class="air-section-heading air-news-head"><div><span class="air-kicker">NEWS & UPDATES</span><h2 id="air-news-heading">Stay in the know.</h2></div><a href="/news" class="air-inline-link">VISIT NEWS CENTER <span aria-hidden="true">→</span></a></div>
-      <div class="air-news-grid">
-        <article class="air-news-item"><span class="air-kicker">AVIATION NEWS</span><h3>What's happening in the world of Delta?</h3><p>Find selected official airline stories, updates and announcements from the real Delta News Hub.</p><a href="/news">READ THE LATEST <span aria-hidden="true">→</span></a></article>
-        <article class="air-news-item"><span class="air-kicker">COMMUNITY UPDATES</span><h3>Your next departure begins with the schedule.</h3><p>Stay connected to the virtual flight program and check for upcoming community activities.</p><a href="/flights">VIEW THE FLIGHT BOARD <span aria-hidden="true">→</span></a></article>
-        <article class="air-news-item"><span class="air-kicker">MEMBER INFORMATION</span><h3>Explore what's possible with SkyMiles.</h3><p>See rewards, membership features and more ways to enjoy your time with Delta Roblox.</p><a href="/skymiles">EXPLORE MEMBERSHIP <span aria-hidden="true">→</span></a></article>
+      <div class="air-section-heading air-news-head">
+        <div><span class="air-kicker">DELTA ROBLOX NEWSROOM</span><h2 id="air-news-heading">Announcements from our team.</h2></div>
+        <a href="/news" class="air-inline-link">ALL ANNOUNCEMENTS <span aria-hidden="true">→</span></a>
       </div>
+      {% if site_announcement %}
+      <article class="air-news-feature">
+        <div class="air-news-feature-main">
+          <span class="air-kicker">{{ 'IMPORTANT NOTICE' if site_announcement.tone == 'IMPORTANT' else 'EVENT & FLIGHTS' if site_announcement.tone == 'EVENT' else 'COMMUNITY UPDATE' }}</span>
+          <h3>Latest announcement</h3>
+          <p>{{ site_announcement.message }}</p>
+          <div class="air-news-author">Published by {{ site_announcement.author_name }}</div>
+          {% if site_announcement.link_label and site_announcement.link_path %}
+          <a class="air-inline-link" href="{{ site_announcement.link_path }}">{{ site_announcement.link_label }} <span aria-hidden="true">→</span></a>
+          {% endif %}
+        </div>
+        <div class="air-news-feature-side"><strong>News from Delta Roblox</strong><p>Official announcements about our flights, events, opportunities, and community.</p><a href="/news" class="air-inline-link">VISIT THE NEWSROOM →</a></div>
+      </article>
+      {% else %}
+      <div class="air-news-feature is-empty">
+        <div class="air-news-feature-main"><span class="air-kicker">COMMUNITY NEWS</span><h3>Watch this space.</h3><p>Our team will post flight announcements, important notices, and upcoming events here.</p><a class="air-inline-link" href="/news">GO TO NEWSROOM <span aria-hidden="true">→</span></a></div>
+        <div class="air-news-feature-side"><strong>Stay connected.</strong><p>Check back for updates directly from Delta Roblox leadership.</p></div>
+      </div>
+      {% endif %}
+      {% if auth in ("OWNER","ADMIN","STAFF") %}<p class="air-news-editor-link"><a href="{{ '/owner' if auth == 'OWNER' else '/admin' if auth == 'ADMIN' else '/staff' }}#site-announcement-editor">Manage community announcements →</a></p>{% endif %}
     </div>
   </section>
 
@@ -126,5 +133,5 @@
     <div class="air-container air-join-inner"><div><span class="air-kicker light">KEEP CLIMBING</span><h2 id="air-join-heading">Your next adventure starts here.</h2><p>Come fly with us in our independent Roblox aviation roleplay community.</p></div><a class="air-action red" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }} <span aria-hidden="true">→</span></a></div>
   </section>
 </div>
-<script src="/static/homepage-airline.js?v={{ asset_version }}" defer></script>
+
 {% endblock %}
