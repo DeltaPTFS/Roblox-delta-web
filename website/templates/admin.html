@@ -56,14 +56,14 @@
   <div class="owner-announcement-top">
     <div><span class="eyebrow">{{ 'OWNERSHIP CONTROL · ALL WEBSITE BROADCASTS' if panel_level == 'OWNER' else 'STAFF OPERATIONS · YOUR WEBSITE BROADCAST' }}</span>
       <h2 id="announcement-editor-title">Website Announcements</h2>
-      <p>Post an update above the navigation on the homepage, Flights, SkyMiles, Partnerships and other pages — <strong>never on Forms pages.</strong> {{ 'Ownership can replace or remove any announcement.' if panel_level == 'OWNER' else 'You can edit or remove only the announcement you published. Another staff member’s active announcement cannot be replaced here.' }}</p>
+      <p>Publish an announcement that appears in the <a href="/news">News Center</a>, on the homepage, and in the site-wide announcement banner (except Forms pages). Only one announcement is active at a time. {{ 'Ownership can replace or remove any announcement.' if panel_level == 'OWNER' else 'You can edit or remove only the announcement you published. Another staff member’s active announcement cannot be replaced here.' }}</p>
     </div>
     <span class="owner-announcement-state {{ 'is-live' if announcement_settings and announcement_settings.enabled else '' }}">
       <i aria-hidden="true"></i>{{ 'LIVE ON WEBSITE' if announcement_settings and announcement_settings.enabled else 'NOT PUBLISHED' }}
     </span>
   </div>
   {% if request.query_params.get('announcement_saved') %}
-  <div class="notice success" role="status">Announcement settings saved. {{ 'Your message is live across the website.' if announcement_settings and announcement_settings.enabled else 'The announcement is hidden.' }}</div>
+  <div class="notice success" role="status">Announcement settings saved. {{ 'Your message is live in the News Center and across the website.' if announcement_settings and announcement_settings.enabled else 'The announcement is hidden.' }}</div>
   {% endif %}
   {% if request.query_params.get('announcement_removed') %}<div class="notice success" role="status">Website announcement removed.</div>{% endif %}
   {% if not announcement_can_save %}<p class="owner-announcement-locked" role="status">An announcement posted by another staff member is live. Only its author or Ownership can change it. You can publish after it is removed.</p>{% endif %}
@@ -107,7 +107,7 @@
     {% endif %}
     <div class="owner-announcement-preview">
       <span class="eyebrow">LIVE PREVIEW</span>
-      <p>This is how the announcement will look above the website header.</p>
+      <p>Preview of the announcement banner. Your message will also appear in the News Center.</p>
       <div class="owner-preview-strip" id="owner-news-preview" data-tone="{{ announcement_settings.tone if announcement_settings else 'UPDATE' }}">
         <span class="owner-preview-pulse" aria-hidden="true"></span>
         <div><small id="owner-news-preview-type">{{ 'IMPORTANT' if announcement_settings and announcement_settings.tone == 'IMPORTANT' else 'EVENT' if announcement_settings and announcement_settings.tone == 'EVENT' else 'DELTA UPDATE' }}</small>
