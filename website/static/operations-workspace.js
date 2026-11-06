@@ -66,9 +66,9 @@
       if (preferred) history.pushState(null, '', preferred);
       if (target) {
         openNestedDetails(target);
-        target.scrollIntoView({block: 'start', behavior: 'instant'});
+        target.scrollIntoView({block: 'start', behavior: 'auto'});
       } else {
-        shell.querySelector('.ops-workspace-nav')?.scrollIntoView({block:'start', behavior:'instant'});
+        shell.querySelector('.ops-workspace-nav')?.scrollIntoView({block:'start', behavior:'auto'});
       }
     }
   }
