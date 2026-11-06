@@ -1373,7 +1373,7 @@ async def owner_publish_community_news(
     check_csrf(request, csrf)
     actor = await require_owner(request, db)
     title = " ".join(title.split())
-    body = body.replace("\\r\\n", "\\n").strip()
+    body = body.replace("\r\n", "\n").strip()
     word_count = len(body.split())
     if not 1 <= len(title) <= 180:
         raise HTTPException(422, "News title must be 1–180 characters.")
