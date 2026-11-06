@@ -24,7 +24,7 @@
       <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
       <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
     </a>
-    {% if request.url.path not in ['/', '/home'] %}
+    {% if request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships'] %}
     <nav class="community-primary-nav" aria-label="Primary navigation">
       <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
       <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
@@ -102,5 +102,20 @@
       </div>
     </div>
   </div>
+  {% if request.url.path in ['/partnerships', '/core-partnerships'] %}
+  <div class="partner-nav-row">
+    <nav class="partner-nav-inner" aria-label="Main navigation">
+      <a href="/home">Home</a>
+      <a href="/flights">Flights</a>
+      <a href="/forms">Forms</a>
+      <a href="/news">News</a>
+      <a href="/partnerships" class="is-current" aria-current="page">Partnerships</a>
+      <a href="/skymiles">SkyMiles</a>
+      {% if nav_level in ("OWNER", "ADMIN", "STAFF") %}
+      <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}">{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
   <span class="premium-header-accent" aria-hidden="true"></span>
 </header>

@@ -1,0 +1,271 @@
+/* Shared public-site footer and Partnerships header fixes.
+   Kept separate from homepage typography and app/member layouts. */
+
+/* Always keep the full public footer navy, including links and small print. */
+body .community-footer{
+  box-sizing:border-box;
+  width:100%;
+  margin:0;
+  background:#101d37!important;
+  background-image:none!important;
+  color:#dce5f2!important;
+  border-top:1px solid #34465e!important;
+  min-height:190px;
+  padding:44px max(28px,7vw)!important;
+  position:relative;
+}
+body .community-footer .community-footer-brand,
+body .community-footer .community-footer-copy,
+body .community-footer .community-footer-copy strong{
+  color:#fff!important;
+}
+body .community-footer .community-footer-copy p,
+body .community-footer>div:last-child p{
+  color:#bdcada!important;
+  opacity:1!important;
+}
+body .community-footer a{color:#fff!important;font-weight:800}
+body .community-footer a:hover{color:#ffc1ce!important}
+body .community-footer img{filter:none}
+body .community-footer :focus-visible{
+  outline:2px solid #ff647e;
+  outline-offset:4px;
+}
+
+/* Make the end of the partner page one continuous, dark-navy surface. */
+body.delta-partner-page{background:#101d37}
+body.delta-partner-page .partner-end,
+body.delta-partner-page .partner-disclaimer{
+  background:#101d37!important;
+  color:#fff;
+}
+body.delta-partner-page .partner-end{
+  border-bottom:1px solid rgba(255,255,255,.15);
+}
+body.delta-partner-page .partner-disclaimer{
+  box-sizing:border-box;
+  max-width:none;
+  width:100%;
+  padding:21px max(28px,calc((100vw - 1210px)/2))!important;
+  margin:0;
+  color:#c5d0df!important;
+  font-size:12px;
+  line-height:1.8;
+}
+body.delta-partner-page .community-footer{
+  border-top:1px solid #34465e!important;
+}
+
+/* A two-level airline navigation: identity and account in the top navy row;
+   uncluttered site navigation underneath with the active red underline. */
+body.delta-partner-page .premium-header.community-header{
+  background:#101d37!important;
+  color:#fff!important;
+  border-bottom:0!important;
+  box-shadow:0 3px 14px rgba(8,19,39,.16)!important;
+  backdrop-filter:none!important;
+}
+body.delta-partner-page .premium-header .premium-announcement{
+  display:none!important;
+}
+body.delta-partner-page .premium-header .premium-nav-shell{
+  box-sizing:border-box;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  width:min(1270px,calc(100% - 56px))!important;
+  min-height:85px!important;
+  gap:28px!important;
+  padding:9px 0!important;
+}
+body.delta-partner-page .premium-nav-shell:before,
+body.delta-partner-page .premium-nav-shell:after,
+body.delta-partner-page .delta-nav-sparkles,
+body.delta-partner-page .premium-header-accent{display:none!important}
+body.delta-partner-page .premium-header .community-brand{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-width:0;
+  flex:0 0 auto!important;
+  color:#fff!important;
+  letter-spacing:.12em!important;
+}
+body.delta-partner-page .premium-header .premium-brand-icon{
+  width:43px!important;height:43px!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  transform:none!important;box-shadow:none!important;
+}
+body.delta-partner-page .premium-header .premium-brand-icon img{
+  width:39px!important;height:39px!important;object-fit:contain;
+}
+body.delta-partner-page .premium-header .premium-brand-words{
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:25px!important;line-height:.95!important;font-weight:850!important;
+  letter-spacing:.16em!important;
+}
+body.delta-partner-page .premium-header .premium-brand-words small{
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:8px!important;letter-spacing:.15em!important;
+  margin-top:5px!important;color:#cdd9e8!important;
+}
+body.delta-partner-page .premium-header .community-primary-nav{
+  display:none!important;
+}
+body.delta-partner-page .premium-header .premium-header-actions{
+  margin-left:auto!important;
+  display:flex!important;align-items:center!important;
+  justify-content:flex-end!important;
+  gap:13px!important;
+  min-width:0!important;
+  flex:0 1 auto!important;
+}
+body.delta-partner-page .premium-header .delta-language-switch{
+  min-height:42px!important;
+  border:1px solid #51617b!important;
+  border-radius:3px!important;
+  background:#1b2c4a!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+body.delta-partner-page .premium-header .delta-account-menu>summary.delta-account-trigger{
+  min-height:43px!important;
+  border-radius:3px!important;
+  background:#1b2c4a!important;
+  border:1px solid #526480!important;
+  box-shadow:none!important;
+}
+body.delta-partner-page .premium-header .sky-nav-dropdown>summary{
+  background:transparent!important;
+  border:1px solid #50617a!important;
+  border-radius:3px!important;
+  min-height:43px!important;
+  box-shadow:none!important;
+  color:#fff!important;
+  padding:10px 13px!important;
+}
+body.delta-partner-page .premium-header .sky-nav-dropdown>summary:hover{
+  background:#1e304f!important;
+}
+body.delta-partner-page .premium-get-started{
+  background:#c8102e!important;
+  border-radius:3px!important;
+  box-shadow:none!important;
+  min-height:42px!important;
+}
+body.delta-partner-page .partner-nav-row{
+  background:#142440;
+  border-top:1px solid #344761;
+  border-bottom:2px solid #253954;
+}
+body.delta-partner-page .partner-nav-inner{
+  box-sizing:border-box;
+  display:flex;
+  align-items:stretch;
+  gap:2px;
+  width:min(1270px,calc(100% - 56px));
+  margin:0 auto;
+  min-height:54px;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#6a7d98 transparent;
+  -webkit-overflow-scrolling:touch;
+}
+body.delta-partner-page .partner-nav-inner>a{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  padding:15px 18px 13px;
+  border-bottom:3px solid transparent;
+  background:transparent;
+  color:#d9e2ef!important;
+  text-transform:uppercase;
+  white-space:nowrap;
+  font:800 12px/1.35 Arial,Helvetica,sans-serif!important;
+  letter-spacing:.035em;
+  text-decoration:none!important;
+  transition:background-color .15s ease;
+}
+body.delta-partner-page .partner-nav-inner>a:hover,
+body.delta-partner-page .partner-nav-inner>a.is-current{
+  color:#fff!important;
+  background:#1d314f;
+}
+body.delta-partner-page .partner-nav-inner>a.is-current{
+  border-bottom-color:#eb284c;
+}
+body.delta-partner-page .partner-nav-inner>a.is-current:after{
+  content:"";
+  position:absolute;
+  left:15px;right:15px;bottom:-2px;
+  height:2px;background:#ff4766;
+  box-shadow:0 0 11px 2px rgba(236,42,83,.47);
+}
+body.delta-partner-page .partner-nav-inner>a:focus-visible{
+  outline:2px solid #fff;outline-offset:-5px;
+}
+@media(max-width:950px){
+  body.delta-partner-page .premium-header .premium-nav-shell{
+    min-height:76px!important;
+  }
+  body.delta-partner-page .partner-nav-inner>a{
+    padding-inline:15px;
+    font-size:11px!important;
+  }
+}
+@media(max-width:700px){
+  body .community-footer{
+    padding:35px 23px!important;
+    min-height:0;
+  }
+  body.delta-partner-page .premium-header .premium-nav-shell{
+    width:calc(100% - 30px)!important;
+    min-height:71px!important;
+    gap:9px!important;
+  }
+  body.delta-partner-page .premium-header .premium-brand-icon{
+    width:32px!important;height:35px!important;
+  }
+  body.delta-partner-page .premium-header .premium-brand-icon img{
+    width:31px!important;height:31px!important;
+  }
+  body.delta-partner-page .premium-header .premium-brand-words{
+    font-size:20px!important;letter-spacing:.09em!important;
+  }
+  body.delta-partner-page .premium-header .premium-brand-words small{
+    font-size:7px!important;
+  }
+  body.delta-partner-page .premium-header .premium-header-actions{
+    gap:6px!important;
+  }
+  body.delta-partner-page .premium-header .delta-language-switch{
+    display:none!important;
+  }
+  body.delta-partner-page .partner-nav-inner{
+    width:calc(100% - 20px);
+    min-height:51px;
+  }
+  body.delta-partner-page .partner-nav-inner>a{
+    padding:14px 13px 12px;
+    font-size:10px!important;
+  }
+  body.delta-partner-page .partner-disclaimer{
+    padding:18px 23px!important;
+  }
+}
+@media(max-width:480px){
+  body.delta-partner-page .premium-header .premium-brand-words{
+    font-size:17px!important;
+  }
+  body.delta-partner-page .premium-header .sky-nav-dropdown>summary{
+    padding:9px 10px!important;
+  }
+  body.delta-partner-page .premium-header .sky-menu-label{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.delta-partner-page .partner-nav-inner>a{transition:none!important}
+}

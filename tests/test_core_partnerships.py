@@ -99,3 +99,30 @@ def test_partnership_uses_accessible_editorial_layout_instead_of_cinematic_effec
     assert 'grid-template-columns:repeat(4,minmax(0,1fr))' in css
     assert "prefers-reduced-motion:reduce" in css
 
+
+
+def test_partner_navigation_has_a_clean_second_row_and_preserves_member_controls():
+    header = Path("website/templates/_unified_site_header.html").read_text()
+    css = Path("website/static/site-chrome.css").read_text()
+    assert "request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships']" in header
+    assert 'class="partner-nav-row"' in header
+    assert 'class="partner-nav-inner"' in header
+    assert 'aria-current="page">Partnerships</a>' in header
+    assert 'class="premium-header-actions"' in header
+    assert 'class="community-account-slot"' in header
+    assert "body.delta-partner-page .partner-nav-inner>a.is-current" in css
+    assert "body.delta-partner-page .premium-header .premium-announcement" in css
+    assert "display:none!important" in css
+
+
+def test_partner_footer_and_disclaimer_keep_dark_navy_background():
+    base = Path("website/templates/community_base.html").read_text()
+    css = Path("website/static/site-chrome.css").read_text()
+    assert 'href="/static/site-chrome.css?v={{ asset_version }}"' in base
+    assert 'class="community-footer"' in base
+    assert "body .community-footer{" in css
+    assert "background:#101d37!important" in css
+    assert "body.delta-partner-page .partner-end," in css
+    assert "body.delta-partner-page .partner-disclaimer{" in css
+    assert "body.delta-partner-page .partner-nav-inner" in css
+    assert "@media(max-width:700px)" in css
