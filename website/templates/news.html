@@ -1,1 +1,77 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>News Center | Delta Roblox</title><link rel="icon" href="/static/delta-emblem.svg"><link rel="stylesheet" href="/static/news-editorial.css"></head><body><div class="notice">INDEPENDENT ROBLOX AVIATION COMMUNITY · NOT AFFILIATED WITH DELTA AIR LINES</div><header><a class="brand" href="/home"><img src="/static/delta-emblem.svg" alt=""> DELTA <small>ROBLOX</small></a><nav><a href="/home">Home</a><a href="/flights">Flights</a><a href="/forms">Careers &amp; Forms</a><a href="/skymiles">SkyMiles</a><a href="/news" aria-current="page">News</a></nav><a href="/login">Sign In →</a></header><main><div class="intro"><span>THE LATEST FROM DELTA</span><h1>News Center</h1><p>Selected stories from the official Delta Air Lines News Hub. This is real-airline news, not announcements about the Roblox community.</p></div><div class="articles">{% for article in articles %}<article><div class="date">{{ article.date }}<br><strong>{{ article.category }}</strong></div><div><h2>{{ article.title }}</h2><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">Read at Delta News Hub →</a></div></article>{% endfor %}</div><p class="more"><a href="https://news.delta.com/" target="_blank" rel="noopener noreferrer">Browse all official Delta news →</a></p></main><footer>DELTA ROBLOX · Independent aviation roleplay community. Not affiliated with or operated by Delta Air Lines, Inc.</footer></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101b33">
+  <meta name="description" content="Announcements, flight updates, events and community news from the Delta Roblox team.">
+  <title>News &amp; Announcements | Delta Roblox</title>
+  <link rel="icon" href="/static/delta-emblem.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/news-editorial.css">
+</head>
+<body>
+  <div class="notice">DELTA ROBLOX NEWSROOM <span>INDEPENDENT AVIATION COMMUNITY</span></div>
+  <header class="news-site-header">
+    <a class="brand" href="/home" aria-label="Return to Delta Roblox homepage"><img src="/static/delta-emblem.svg" alt="" width="38" height="38"><span>DELTA <small>AIR LINES · ROBLOX</small></span></a>
+    <nav aria-label="Main navigation">
+      <a href="/home">Home</a>
+      <a href="/flights">Flights</a>
+      <a href="/forms">Forms</a>
+      <a href="/news" aria-current="page">News</a>
+      <a href="/partnerships">Partnerships</a>
+      <a href="/skymiles">SkyMiles</a>
+    </nav>
+    {% if manage_url %}
+    <a class="header-link" href="{{ manage_url }}">Manage announcements →</a>
+    {% else %}
+    <a class="header-link" href="/login">Sign In →</a>
+    {% endif %}
+  </header>
+
+  <main>
+    <div class="intro">
+      <span class="eyebrow">UPDATES FROM THE DELTA ROBLOX TEAM</span>
+      <h1>News &amp; Announcements</h1>
+      <p>Follow the latest messages from our team, including upcoming flights, community events, opportunities and important notices.</p>
+    </div>
+
+    <section class="news-feed" aria-label="Published community announcements">
+    {% if announcement %}
+      <article class="featured-announcement">
+        <div class="announcement-meta"><span class="category">{{ announcement.category }}</span>{% if announcement.date %}<time>{{ announcement.date }}</time>{% endif %}</div>
+        <h2>Latest announcement</h2>
+        <p class="announcement-message">{{ announcement.message }}</p>
+        <p class="announcement-author">Published by {{ announcement.author }}</p>
+        {% if announcement.link_label and announcement.link_path %}
+        <a class="news-action" href="{{ announcement.link_path }}">{{ announcement.link_label }} <span aria-hidden="true">→</span></a>
+        {% endif %}
+      </article>
+    {% else %}
+      <div class="no-announcement">
+        <span class="eyebrow">COMMUNITY NOTICEBOARD</span>
+        <h2>No announcements have been published yet.</h2>
+        <p>When the Delta Roblox team posts an update, you’ll find it here.</p>
+        <a class="news-action" href="/flights">Browse upcoming flights <span aria-hidden="true">→</span></a>
+      </div>
+    {% endif %}
+    </section>
+
+    {% if manage_url %}
+    <div class="publish-link">
+      <div><strong>Have something to share?</strong><p>Publish or update the community announcement from your staff panel. The latest published message also appears on the homepage.</p></div>
+      <a class="news-action" href="{{ manage_url }}">Open announcement editor →</a>
+    </div>
+    {% endif %}
+
+    <section class="explore-news" aria-labelledby="explore-title">
+      <div class="section-heading"><span class="eyebrow">MORE FROM OUR COMMUNITY</span><h2 id="explore-title">Explore Delta Roblox</h2></div>
+      <div class="explore-grid">
+        <a href="/flights"><strong>Upcoming flights</strong><span>Find the next departure →</span></a>
+        <a href="/forms"><strong>Careers &amp; Forms</strong><span>See opportunities →</span></a>
+        <a href="/partnerships"><strong>Partnerships</strong><span>Learn more →</span></a>
+      </div>
+    </section>
+  </main>
+  <footer><strong>DELTA ROBLOX</strong><p>Independent Roblox aviation community. Not affiliated with, endorsed by, or operated by Delta Air Lines, Inc. All flight bookings and rewards on this site are community features.</p></footer>
+</body>
+</html>
