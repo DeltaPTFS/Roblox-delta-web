@@ -462,3 +462,124 @@ body .notice{font-size:12px!important}
   .news-site-header .site-theme-toggle span{display:none}
   body .news-site-header nav a{font-size:13px!important}
 }
+
+
+/* White-by-default SkyMiles dashboard: formerly every statistics card and
+   operations panel was permanently navy, even with the user's light preference. */
+html[data-site-theme="light"] body:has(.delta-dashboard-v2) .delta-dashboard-v2{color:#192f49!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero.program-banner{
+  background:#fff!important;color:#18314a!important;border:1px solid #d5dfe9!important;
+  box-shadow:0 10px 32px #0c223919!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero:before{display:none!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero h1,
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero-body>p,
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-flight-route{color:#162d47!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero-body>.eyebrow{color:#ad0d2b!important;font-size:12px!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero h1 em{color:#bd1232!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero-tags>span{
+  background:#f4f7fa!important;color:#314962!important;border:1px solid #dce4ec!important;
+  font-size:12px!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dash-hero-side{
+  border-color:#dce4eb!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-route-caption{color:#56708a!important;font-size:12px!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-premium-outline{
+  background:#fff!important;color:#142f4b!important;border-color:#92a3b5!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dashboard-clock.dashboard-clock{
+  background:#fff!important;color:#243950!important;
+  border-color:#d6e0ea!important;box-shadow:0 8px 25px #132f4a13!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dashboard-clock p,
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dashboard-clock small{color:#63768c!important;font-size:13px!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dashboard-clock strong{color:#203b56!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .dashboard-v2-grid>article:not(.delta-next-flight),
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-activity-card{
+  background:#fff!important;color:#1c324d!important;
+  border:1px solid #dae3ec!important;
+  box-shadow:0 8px 28px #0e284a13!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 :is(.delta-stat-number,.delta-qualification-value strong,.delta-stat-label,.delta-stat-card-foot,.delta-stat-card-foot strong,.delta-identity-card .identity h3,.delta-activity-card h2,.delta-activity-row b){
+  color:#172d46!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 :is(.delta-stat-upper .eyebrow,.delta-card-link,.delta-view-all){color:#af0d2f!important;font-size:13px!important}
+html[data-site-theme="light"] .delta-dashboard-v2 :is(.delta-qualification-value small,.delta-qualification-card p,.delta-activity-card .section-head p,.delta-identity-card .identity p,.delta-activity-row small){
+  color:#63768b!important;font-size:13px!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-stat-card-foot strong{
+  background:#f9e9ed!important;border-color:#e9c2cc!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-activity-row{border-color:#e0e6ed!important}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-verified-icon{
+  background:#e9f7ef!important;color:#17694d!important;border-color:#bfdfce!important;
+}
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-dashboard-v2-grid .delta-next-flight,
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-next-flight{color:#fff!important}
+/* Keep actual aircraft photography legible in both modes. */
+html[data-site-theme="light"] .delta-dashboard-v2 .delta-next-flight :is(h2,p){color:#fff!important}
+
+/* Staff panels follow the same white baseline, with red operational accents. */
+html[data-site-theme="light"] body:has(.delta-admin-v2){background:#fff!important;color:#19314b!important}
+html[data-site-theme="light"] body:has(.delta-admin-v2) main{background:#fff!important}
+html[data-site-theme="light"] .delta-admin-v2{color:#19314b!important}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-hero.panel-welcome,
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi,
+html[data-site-theme="light"] .delta-admin-v2 .card.page-card,
+html[data-site-theme="light"] .delta-admin-v2 .admin-member{
+  background:#fff!important;color:#19314b!important;
+  border:1px solid #d7e1e9!important;
+  box-shadow:0 8px 26px #122a450e!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-hero:before{display:none!important}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-hero :is(h1,p),
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-hero-emblem :is(strong,span),
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi strong,
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi>div>span,
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi>small,
+html[data-site-theme="light"] .delta-admin-v2 .card.page-card :is(h2,h4,p),
+html[data-site-theme="light"] .delta-admin-v2 .admin-member .identity b{
+  color:#1e3650!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-hero .eyebrow,
+html[data-site-theme="light"] .delta-admin-v2 .eyebrow{color:#a80e2d!important;font-size:12px!important}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-sections{
+  background:#f7f9fb!important;border:1px solid #d8e0e8!important;
+  box-shadow:0 4px 18px #0f274415!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-sections a{
+  background:transparent;color:#1e3a56!important;font-size:14px!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-sections a:hover{
+  background:#e9eef3!important;color:#aa1230!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .member-directory summary b,
+html[data-site-theme="light"] .delta-admin-v2 .discord-role-map summary b{
+  color:#243950!important;font-size:19px!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .member-directory summary small,
+html[data-site-theme="light"] .delta-admin-v2 .discord-role-map summary small{color:#64768b!important}
+html[data-site-theme="light"] .delta-admin-v2 .directory-list a,
+html[data-site-theme="light"] .delta-admin-v2 .role-chip-list>span{
+  color:#243a52!important;background:#f5f7fa!important;border:1px solid #dbe2eb!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .directory-list a:hover{background:#ecf2f6!important}
+html[data-site-theme="light"] .delta-admin-v2 .directory-list a small,
+html[data-site-theme="light"] .delta-admin-v2 .directory-list em{color:#65778b!important;font-size:12px!important}
+html[data-site-theme="light"] .delta-admin-v2 input:not([type=hidden]):not([type=checkbox]),
+html[data-site-theme="light"] .delta-admin-v2 :is(select,textarea){
+  background:#fff!important;color:#1d3652!important;border:1px solid #bdcad7!important;
+  font-size:15px!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 input::placeholder,
+html[data-site-theme="light"] .delta-admin-v2 textarea::placeholder{color:#79889a!important}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-member-actions .search label,
+html[data-site-theme="light"] .delta-admin-v2 .adjust label,
+html[data-site-theme="light"] .delta-admin-v2 .create-flight form label{color:#263e56!important;font-size:14px!important}
+html[data-site-theme="light"] .delta-admin-v2 .button.outline{
+  background:#fff!important;color:#203b57!important;border-color:#a5b5c6!important;
+}
+html[data-site-theme="light"] .delta-admin-v2 .button{font-size:14px!important}
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi>div>span,
+html[data-site-theme="light"] .delta-admin-v2 .delta-admin-kpi>small{font-size:13px!important}
