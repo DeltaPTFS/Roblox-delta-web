@@ -72,7 +72,7 @@ async def community_news(request: Request, db: Session = Depends(get_db)):
         level = permission(user, get_settings()) if user else "MEMBER"
     except SQLAlchemyError:
         level = "MEMBER"
-    manage_url = f"/{level.lower()}#news-article-editor" if level in ("OWNER", "ADMIN", "STAFF") else None
+    manage_url = "/owner#news-article-editor" if level == "OWNER" else (f"/{level.lower()}#site-announcement-editor" if level in ("ADMIN", "STAFF") else None)
     return templates.TemplateResponse(
         "news.html",
         {"request": request, "articles": articles, "announcement": None, "manage_url": manage_url},
