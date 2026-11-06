@@ -1,0 +1,233 @@
+/* Color contrast audit — light (white) and dark (navy) surfaces.
+   Loaded after legacy page themes so text never blends into its card. */
+
+/* Partner roadmap: intentional, readable navigation cards rather than three
+   cramped inline columns. */
+.partner-page .partner-next{
+  padding-top:90px;
+  padding-bottom:94px;
+}
+.partner-page .partner-next .partner-future-heading{
+  max-width:800px;
+  margin-bottom:30px;
+}
+.partner-page .partner-next .partner-future-heading h2{
+  font-size:clamp(34px,3.9vw,52px);
+  line-height:1.15;
+  color:#172c45;
+  margin:12px 0 16px;
+  font-weight:850;
+}
+.partner-page .partner-next .partner-future-heading p{
+  font-size:16px!important;line-height:1.75!important;
+  color:#4d637b;max-width:660px;
+}
+.partner-page .partner-next-grid.partner-future-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:17px;
+  border:0!important;
+  margin-top:27px;
+}
+.partner-page .partner-next-card,
+.partner-page .partner-next-grid>.partner-next-card{
+  display:flex;
+  flex-direction:column;
+  min-height:285px;
+  padding:29px 28px 26px!important;
+  background:#fff;
+  border:1px solid #dce3eb!important;
+  border-top:4px solid #c8102e!important;
+  color:#18314b!important;
+  text-decoration:none!important;
+  transition:background-color .17s ease,border-color .17s ease,transform .17s ease;
+}
+.partner-page .partner-next-card:hover{
+  background:#f7f9fb;
+  border-color:#a5b9cc!important;
+  border-top-color:#c8102e!important;
+  transform:translateY(-2px);
+}
+.partner-page .partner-next-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.partner-page .partner-next-number{
+  font-size:12px;font-weight:900;letter-spacing:.12em;color:#ad1030;
+}
+.partner-page .partner-next-symbol{
+  font-size:24px;color:#a50c2b;line-height:1;
+}
+.partner-page .partner-next-card h3{
+  font-size:clamp(24px,2vw,28px)!important;
+  line-height:1.2;
+  color:#18314b!important;
+  margin:28px 0 11px!important;
+  font-weight:850;
+}
+.partner-page .partner-next-card p{
+  color:#52697f!important;
+  font-size:15px!important;
+  line-height:1.7!important;
+  margin:0 0 25px!important;
+}
+.partner-page .partner-next-link{
+  margin-top:auto;
+  color:#ab0c2c!important;
+  font-size:13px!important;
+  font-weight:900;
+  display:inline-flex;
+  align-items:center;
+  gap:13px;
+}
+.partner-page .partner-next-card:hover .partner-next-link{text-decoration:underline;text-underline-offset:4px}
+
+/* On a white page, all standalone text must be dark enough. */
+html[data-site-theme="light"] body.delta-partner-page :is(.partner-overview-heading,.partner-future-heading,.partner-benefit,.partner-eligibility,.partner-rewards-copy,.partner-stamp-inner) h2,
+html[data-site-theme="light"] body.delta-partner-page :is(.partner-overview-heading,.partner-future-heading,.partner-benefit,.partner-eligibility,.partner-rewards-copy,.partner-stamp-inner) h3,
+html[data-site-theme="light"] body.delta-airline-home :is(.air-section-heading,.air-story,.air-news-item,.air-reason,.air-feature-copy,.air-partner-details) h2,
+html[data-site-theme="light"] body.delta-airline-home :is(.air-section-heading,.air-story,.air-news-item,.air-reason,.air-feature-copy,.air-partner-details) h3{
+  color:#172c46!important;
+}
+html[data-site-theme="light"] body.delta-partner-page :is(.partner-future-heading,.partner-overview-heading,.partner-benefit,.partner-rewards-copy,.partner-eligibility) p,
+html[data-site-theme="light"] body.delta-airline-home :is(.air-story,.air-news-item,.air-reason,.air-feature-copy,.air-partner-details) p{
+  color:#52687e!important;
+}
+html[data-site-theme="light"] body.delta-partner-page .partner-hero :is(h2,p),
+html[data-site-theme="light"] body.delta-airline-home :is(.air-hero,.air-partner:not(.air-partner-editorial),.air-join) :is(h1,h2,h3,p){
+  color:#fff!important;
+}
+
+/* In dark mode, headings and descriptions may inherit old light-mode colors
+   from specific component styles. Force sufficient contrast *on dark surfaces*. */
+html[data-site-theme="dark"] body.delta-partner-page .partner-page :is(
+  .partner-overview-heading,.partner-future-heading,.partner-section-heading,
+  .partner-rewards-copy,.partner-benefit,.partner-eligibility,
+  .partner-stamp-inner,.partner-next-card
+) :is(h1,h2,h3,strong){
+  color:#f2f7ff!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page :is(
+  .partner-overview-heading,.partner-future-heading,.partner-section-heading,
+  .partner-rewards-copy,.partner-benefit,.partner-eligibility,
+  .partner-stamp-inner,.partner-next-card
+) :is(p,small){
+  color:#cad9e9!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-eyebrow{
+  color:#ff9fb4!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-breadcrumb,
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-breadcrumb a,
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-stamp-note{
+  color:#c8d8e9!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-overview,
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-next{
+  background:#0c1930!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-next-card{
+  background:#172f4e!important;
+  color:#eff6ff!important;
+  border-color:#47627e!important;
+  border-top-color:#ef4363!important;
+  box-shadow:0 5px 21px #0612295e;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-next-card:hover{
+  background:#213d5e!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-next-card :is(.partner-next-number,.partner-next-symbol,.partner-next-link){
+  color:#ff9eb5!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-tier-list span{
+  color:#e9f3ff!important;background:#203c5c!important;
+  border-color:#587593!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-future-grid{
+  border-color:#48617e!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-feature-lines>div{
+  color:#e0edfa!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-stamp-inner strong{
+  color:#f3f8ff!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-hero :is(h2,p),
+html[data-site-theme="dark"] body.delta-partner-page .partner-page .partner-end :is(h2,p){
+  color:#fff!important;
+}
+
+/* Dark homepage: headings, descriptions, labels and arrow links remain distinct
+   on blue cards as shown in user screenshots. */
+html[data-site-theme="dark"] body.delta-airline-home .air-home :is(
+  .air-experience,.air-reasons,.air-news,.air-partner-editorial,.air-feature,
+  .air-essentials,.air-story,.air-news-item,.air-news-feature,.air-partner-showcase
+) :is(h2,h3,strong,b){
+  color:#f1f6fd!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-home :is(
+  .air-experience,.air-reasons,.air-news,.air-partner-editorial,.air-feature,
+  .air-essentials,.air-story,.air-news-item,.air-news-feature,.air-partner-showcase
+) :is(p,small){
+  color:#c6d7e8!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-story-copy .air-inline-link,
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-news-item a,
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-reason a,
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-partner-details .air-action{
+  color:#ffacbf!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-essential,
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-essential b{
+  color:#f3f8fe!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-essential:hover{
+  background:#263f5f!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-hero :is(h1,p),
+html[data-site-theme="dark"] body.delta-airline-home .air-home .air-join :is(h2,p){
+  color:#fff!important;
+}
+
+/* General dark dashboard and staff page form/readout contrast. */
+html[data-site-theme="dark"] body :is(.card,.page-card,.settings-card,.tier-card,.flight-card) :is(h1,h2,h3,h4,b,strong,label){
+  color:#eaf3ff;
+}
+html[data-site-theme="dark"] body :is(.card,.page-card,.settings-card,.tier-card,.flight-card) :is(p,small,dd,dt){
+  color:#c3d2e2;
+}
+html[data-site-theme="dark"] body :is(.card,.page-card,.settings-card,.tier-card,.flight-card) :is(input,textarea,select){
+  color:#f1f6fd;
+}
+html[data-site-theme="light"] body :is(.card,.page-card,.settings-card,.tier-card,.flight-card) :is(input,textarea,select){
+  color:#19314c;
+}
+html[data-site-theme="dark"] body .delta-dashboard-v2 .delta-stat-card-foot,
+html[data-site-theme="dark"] body .delta-dashboard-v2 .delta-qualification-value,
+html[data-site-theme="dark"] body .delta-dashboard-v2 .delta-identity-card :is(h3,p){
+  color:#f3f7fd!important;
+}
+html[data-site-theme="dark"] body .delta-dashboard-v2 .delta-stat-label,
+html[data-site-theme="dark"] body .delta-dashboard-v2 .delta-route-caption{
+  color:#c8d7e8!important;
+}
+html[data-site-theme="dark"] body .delta-account-panel .delta-account-trigger-label strong{
+  color:#f4f8fd!important;
+}
+/* Don't recolor the red CTAs to pastel pink when they have a filled background. */
+html[data-site-theme="dark"] body .air-home .air-action.red,
+html[data-site-theme="dark"] body .air-home .air-action.dark,
+html[data-site-theme="dark"] body .air-home .air-search-button,
+html[data-site-theme="dark"] body .partner-page .partner-btn-red,
+html[data-site-theme="dark"] body .news-primary-link{
+  color:#fff!important;
+}
+@media(max-width:900px){
+  .partner-page .partner-next-grid.partner-future-grid{grid-template-columns:1fr;gap:12px}
+  .partner-page .partner-next-card,.partner-page .partner-next-grid>.partner-next-card{
+    min-height:0;padding:23px!important;
+  }
+  .partner-page .partner-next-card h3{margin:18px 0 8px!important}
+  .partner-page .partner-next-card p{margin-bottom:18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .partner-page .partner-next-card{transition:none!important}
+  .partner-page .partner-next-card:hover{transform:none}
+}
