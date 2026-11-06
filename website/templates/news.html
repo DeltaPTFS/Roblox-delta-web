@@ -22,7 +22,7 @@
     @media(max-width:750px){.news-explore-grid{grid-template-columns:1fr}.news-hero-inner{min-height:300px;padding:50px 0}.news-update-card{padding:25px}}
   </style>
   <link rel="stylesheet" href="/static/site-appearance.css?v=20261106-news">
-  <link rel="stylesheet" href="/static/news-editorial.css?v=20261106-refresh">
+  <link rel="stylesheet" href="/static/news-editorial.css?v=20261106-refresh"><link rel="stylesheet" href="/static/news-longform.css?v=20261106-longform">
 </head>
 <body class="news-page">
   <div class="news-utility">
@@ -84,43 +84,43 @@
           <h2>Latest announcements</h2>
           <p>Only updates from the Delta Roblox team appear here.</p>
         </div>
-        <span class="news-section-status">{{ 'LATEST UPDATE' if announcement else 'NO ACTIVE POSTS' }}</span>
+        <span class="news-section-status">{{ 'LATEST ARTICLES' if articles else 'NO ACTIVE POSTS' }}</span>
       </div>
 
-      {% if announcement %}
-      <article class="news-update-card news-update-live">
-        <div class="news-update-body">
-          <div class="news-meta">
-            <span class="news-category">{{ announcement.category }}</span>
-            {% if announcement.date %}<time>{{ announcement.date }}</time>{% endif %}
+      {% if articles %}
+      <div class="news-longform-list">
+        {% for article in articles %}
+        <article class="news-update-card news-longform-article" id="news-article-{{ article.id }}">
+          <div class="news-update-body">
+            <div class="news-meta">
+              <span class="news-category">COMMUNITY NEWS</span>
+              <time>{{ article.updated_at.strftime('%B %d, %Y') }}</time>
+            </div>
+            <h3>{{ article.title }}</h3>
+            <div class="news-announcement-text news-full-article">{{ article.body }}</div>
+            <p class="news-byline">Published by <strong>Delta Roblox Ownership</strong></p>
           </div>
-          <h3>Community announcement</h3>
-          <p class="news-announcement-text">{{ announcement.message }}</p>
-          <p class="news-byline">Published by <strong>{{ announcement.author }}</strong></p>
-          {% if announcement.link_label and announcement.link_path %}
-          <a class="news-primary-link" href="{{ announcement.link_path }}">{{ announcement.link_label }} <span aria-hidden="true">→</span></a>
-          {% endif %}
-        </div>
-        <aside class="news-side-panel" aria-label="Newsroom information">
-          <img src="/static/delta-emblem.svg" width="58" height="58" alt="">
-          <span>FROM DELTA ROBLOX</span>
-          <strong>Official community updates.</strong>
-          <p>Everything posted here comes directly from our team.</p>
-        </aside>
-      </article>
+          <aside class="news-side-panel">
+            <img src="/static/delta-emblem.svg" width="58" height="58" alt="">
+            <span>COMMUNITY NEWSROOM</span>
+            <strong>From our team.</strong>
+            <p>Official stories, updates and notices from Delta Roblox.</p>
+          </aside>
+        </article>
+        {% endfor %}
+      </div>
       {% else %}
       <div class="news-update-card news-update-empty">
         <div class="news-update-body">
           <span class="news-category">NEWSROOM STATUS</span>
-          <h3>Nothing published yet.<br>Stay tuned.</h3>
-          <p>Our team hasn't published an announcement right now. When there's a new flight update, event or important notice, you'll see it here.</p>
+          <h3>Nothing published yet. Stay tuned.</h3>
+          <p>Once our team publishes an article, it will appear here and be featured on the homepage.</p>
           <a class="news-primary-link" href="/flights">Explore upcoming flights <span aria-hidden="true">→</span></a>
         </div>
         <div class="news-side-panel news-empty-visual">
           <img src="/static/delta-emblem.svg" width="72" height="72" alt="">
           <span>THE NEWSROOM</span>
           <strong>Your next update starts here.</strong>
-          <p>Check back for the next announcement from our community.</p>
         </div>
       </div>
       {% endif %}
@@ -130,7 +130,7 @@
         <div>
           <span class="news-overline">FOR COMMUNITY STAFF</span>
           <h3 id="news-editor-heading">Have an announcement to share?</h3>
-          <p>Publish the latest update from your staff panel. Your announcement will appear here and on the homepage.</p>
+          <p>Write a long-form article in your Owner Panel. Published articles appear here and on the homepage.</p>
         </div>
         <a class="news-editor-button" href="{{ manage_url }}">Open announcement editor <span aria-hidden="true">→</span></a>
       </section>

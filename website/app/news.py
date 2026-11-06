@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .database import get_db
-from .models import SiteAnnouncement, User
+from .models import SiteAnnouncement, CommunityNewsArticle, User
 from .security import linked_user_from_session, permission
 
 router = APIRouter()
@@ -48,17 +48,33 @@ def published_news(db: Session):
         return None
 
 
+
+def published_articles(db: Session, limit: int = 12):
+    """Published owner news only, newest first; safe when migrations are pending."""
+    try:
+        rows = db.scalars(
+            select(CommunityNewsArticle)
+            .where(CommunityNewsArticle.published.is_(True))
+            .order_by(CommunityNewsArticle.updated_at.desc(), CommunityNewsArticle.id.desc())
+            .limit(limit)
+        ).all()
+        return rows
+    except SQLAlchemyError:
+        db.rollback()
+        return []
+
+
 @router.get("/news", response_class=HTMLResponse)
 async def community_news(request: Request, db: Session = Depends(get_db)):
-    article = published_news(db)
+    articles = published_articles(db)
     try:
         user = linked_user_from_session(request, db)
         level = permission(user, get_settings()) if user else "MEMBER"
     except SQLAlchemyError:
         level = "MEMBER"
-    manage_url = f"/{level.lower()}#site-announcement-editor" if level in ("OWNER", "ADMIN", "STAFF") else None
+    manage_url = "/owner#news-article-editor" if level == "OWNER" else (f"/{level.lower()}#site-announcement-editor" if level in ("ADMIN", "STAFF") else None)
     return templates.TemplateResponse(
         "news.html",
-        {"request": request, "announcement": article, "manage_url": manage_url},
+        {"request": request, "articles": articles, "announcement": None, "manage_url": manage_url},
         headers={"Cache-Control": "private, no-store", "Vary": "Cookie"},
     )

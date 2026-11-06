@@ -10,7 +10,7 @@ ROOT = Path("website")
 def test_newsroom_has_real_layout_and_no_phantom_headlines():
     template = (ROOT / "templates/news.html").read_text(encoding="utf-8")
     assert 'class="news-hero"' in template
-    assert 'class="news-update-card news-update-live"' in template
+    assert 'class="news-update-card news-longform-article"' in template
     assert 'class="news-update-card news-update-empty"' in template
     assert 'class="news-explore-grid"' in template
     assert 'class="news-footer"' in template
@@ -19,7 +19,7 @@ def test_newsroom_has_real_layout_and_no_phantom_headlines():
     assert 'href="/static/site-appearance.css?v=20261106-news"' in template
     assert "No ACTIVE NEWS" not in template
     assert "news.delta.com" not in template
-    assert "announcement.message" in template
+    assert "article.body" in template
     assert "Nothing published yet." in template
     assert "if manage_url" in template
     assert "site-theme.js" in template

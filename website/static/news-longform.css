@@ -1,0 +1,21 @@
+/* Long-form articles: readable, preserve written paragraphs and safe plaintext. */
+.news-longform-list{display:flex;flex-direction:column;gap:24px}
+.news-longform-article{scroll-margin-top:40px}
+.news-longform-article .news-update-body{min-width:0}
+.news-longform-article .news-full-article{
+  font-size:clamp(16px,1.3vw,19px)!important;
+  line-height:1.85!important;
+  color:#243c57!important;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  max-width:72ch;
+  margin:17px 0 22px;
+}
+.news-longform-article .news-update-body h3{font-size:clamp(28px,3.1vw,42px);overflow-wrap:anywhere}
+html[data-site-theme="dark"] .news-longform-article .news-full-article{color:#e2ebf6!important}
+@media(max-width:760px){
+  .news-longform-list{gap:16px}
+  .news-longform-article .news-full-article{font-size:16px!important;line-height:1.75!important}
+  .news-longform-article .news-side-panel{padding:20px 26px}
+}

@@ -1,0 +1,22 @@
+/* Owner newsroom long-form editor, independent of brief banner. */
+.ops-workspace .owner-news-article-editor{border-top:4px solid #c8102e!important}
+.ops-workspace .owner-news-article-form{display:flex;flex-direction:column;gap:19px;max-width:960px;margin-top:27px}
+.ops-workspace .owner-news-article-form>label:not(.owner-announcement-publish){display:flex;flex-direction:column;gap:9px;font-weight:800;color:var(--ops-ink);font-size:16px}
+.ops-workspace .owner-news-article-form input[type=text]{width:100%;min-height:50px}
+.ops-workspace .owner-news-article-form textarea{width:100%;min-height:315px;line-height:1.7;padding:17px;font-size:16px!important;resize:vertical;white-space:pre-wrap}
+.ops-workspace .owner-news-hint{font-size:13px;font-weight:500;color:var(--ops-secondary)}
+.ops-workspace .owner-news-word-count{text-align:right;font-size:14px;color:var(--ops-secondary);margin-top:-13px}
+.ops-workspace .owner-news-word-count.is-over{color:#bf1536!important;font-weight:850}
+.ops-workspace .owner-news-article-form button:disabled{opacity:.45;cursor:not-allowed}
+.ops-workspace .owner-news-history{border-top:1px solid var(--ops-line);margin-top:38px;padding-top:26px}
+.ops-workspace .owner-news-history h3{font-size:23px!important;color:var(--ops-ink)!important;margin:0 0 15px}
+.ops-workspace .owner-news-articles{display:flex;flex-direction:column;gap:10px}
+.ops-workspace .owner-news-history-row{border:1px solid var(--ops-line);background:var(--ops-soft);padding:18px;display:flex;gap:19px;align-items:center;flex-wrap:wrap}
+.ops-workspace .owner-news-history-row>div{flex:1;min-width:220px;display:flex;flex-direction:column;gap:5px}
+.ops-workspace .owner-news-history-row strong{font-size:16px!important;color:var(--ops-ink)!important}
+.ops-workspace .owner-news-history-row small{color:var(--ops-secondary);font-size:13px}
+.ops-workspace .owner-news-status{padding:6px 10px;border:1px solid var(--ops-line);font-size:12px;font-weight:800;color:var(--ops-secondary)}
+.ops-workspace .owner-news-status.is-published{background:#e2f3e7;color:#136b40;border-color:#aad6b9}
+html[data-site-theme="dark"] .ops-workspace .owner-news-status.is-published{background:#194d3c;color:#bdffda;border-color:#508f70}
+.ops-workspace .owner-news-history-row form{margin:0}
+@media(max-width:680px){.ops-workspace .owner-news-article-form textarea{min-height:250px}.ops-workspace .owner-news-history-row{align-items:flex-start;flex-direction:column}.ops-workspace .owner-news-history-row>div{min-width:0}}

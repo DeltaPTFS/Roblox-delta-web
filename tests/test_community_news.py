@@ -44,9 +44,9 @@ def test_main_navigation_moves_to_homepage_action_row():
     assert "request.url.path not in ['/', '/home']" not in header
     assert 'class="air-book-tabs air-site-links"' not in home
     assert 'class="standard-nav-row"' in header
-    assert 'aria-current="page">HOME' in home
-    for label in ("FLIGHTS", "FORMS", "NEWS", "PARTNERSHIPS", "SKYMILES"):
-        assert f">{label}</a>" in home
+    assert 'href="/home"' in header
+    for label in ("Flights", "Forms", "News", "Partnerships", "SkyMiles"):
+        assert f">{label}</a>" in header
     assert 'data-air-tab=' not in home
 
 
@@ -57,7 +57,7 @@ def test_newsroom_contains_only_community_updates():
     assert "Announcements from our team" in home
     assert "Published by" in home
     assert "published_news" in article_source
-    assert "announcement.message" in page
+    assert "article.body" in page
     assert "news.delta.com" not in page
     assert "news.delta.com" not in home
     assert "https://news.delta.com" not in article_source
