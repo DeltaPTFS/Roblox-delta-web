@@ -4,7 +4,7 @@
 {% set panel_avatar = panel_user.discord_avatar_url if panel_user and panel_user.discord_avatar_url else "/static/avatar.svg" %}
 {% if account_avatar is defined and account_avatar %}{% set panel_avatar = account_avatar %}{% endif %}
 {% set name_parts = panel_name.split() %}
-{% set panel_initials = ((name_parts[0][:1] if name_parts else "D") ~ (name_parts[-1][:1] if name_parts|length > 1 else ""))|upper %}
+{% set panel_initials = ((name_parts[0][:1] if name_parts else "D") ~ (name_parts[1][:1] if name_parts|length > 1 else ""))|upper %}
 {% set panel_has_photo = panel_avatar and panel_avatar != "/static/avatar.svg" %}
 {% set panel_main = (discord_role_details if panel_user and discord_role_details is defined and discord_role_details else (profile_main_roles if profile_main_roles is defined else [])) %}
 {% set panel_crew = crew_role_details if crew_role_details is defined else [] %}
