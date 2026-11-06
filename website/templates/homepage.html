@@ -1,454 +1,130 @@
-{% extends "community_base.html" %}{% block title %}Delta Air Lines Roblox | Flights, Crew & SkyMiles Roleplay{% endblock %}
+{% extends "community_base.html" %}
+{% block title %}Delta Roblox | Flights, SkyMiles & Aviation Community{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="/static/homepage-cinematic.css?v={{ asset_version }}">
-<link rel="stylesheet" href="/static/cabin-experience.css?v={{ asset_version }}-grid2">
-<style>
-/* Four large, equal-size, edge-to-edge photo cards. */
-.community-section:is(.cabin-experience,.showcase) .cabin-all-photos {
-  display:grid!important;
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  width:min(100%,1200px)!important;
-  max-width:1200px!important;
-  gap:clamp(12px,1.8vw,22px)!important;
-  margin:24px auto 0!important;
-  align-items:stretch!important;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-all-photos .cabin-photo-card {
-  display:block!important;
-  position:relative!important;
-  isolation:isolate;
-  margin:0!important;
-  padding:0!important;
-  min-width:0!important;
-  width:100%!important;
-  aspect-ratio:16 / 9!important;
-  height:auto!important;
-  overflow:hidden!important;
-  border-radius:12px;
-  background:#07152b;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-photo-open {
-  display:block;
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  cursor:zoom-in;
-  overflow:hidden;
-  border-radius:inherit;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-photo-open:focus-visible {
-  outline:3px solid #ff9bbb;
-  outline-offset:-4px;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-photo-open img {
-  display:block!important;
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  max-width:none!important;
-  max-height:none!important;
-  aspect-ratio:auto!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  margin:0!important;
-  padding:0!important;
-  animation:none!important;
-  filter:none!important;
-  transform:none!important;
-  transition:none!important;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay {
-  position:absolute;
-  z-index:2;
-  left:11px;
-  bottom:11px;
-  width:max-content;
-  max-width:calc(100% - 22px);
-  box-sizing:border-box;
-  padding:6px 9px;
-  color:#fff;
-  text-align:left;
-  background:rgba(5,18,39,.81);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:7px;
-  box-shadow:0 3px 12px rgba(0,0,0,.25);
-  pointer-events:none;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay span {
-  display:block;
-  font-size:9px;
-  font-weight:800;
-  line-height:1.2;
-  color:#ffc6d6;
-  letter-spacing:.09em;
-  margin:0 0 2px;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay h3 {
-  display:block;
-  margin:0!important;
-  padding:0!important;
-  font-size:clamp(12px,1.2vw,15px)!important;
-  line-height:1.22!important;
-  font-weight:750;
-  color:white!important;
-}
-.community-section:is(.cabin-experience,.showcase) .cabin-zoom-icon {
-  position:absolute;
-  top:10px;
-  right:10px;
-  z-index:1;
-  display:grid;
-  place-items:center;
-  width:28px;
-  height:28px;
-  border-radius:7px;
-  background:rgba(7,19,38,.65);
-  color:#fff;
-  font-size:16px;
-  pointer-events:none;
-}
-.cabin-fullscreen-viewer {
-  position:fixed;
-  inset:0;
-  box-sizing:border-box;
-  width:100vw;
-  height:100vh;
-  height:100dvh;
-  max-width:none;
-  max-height:none;
-  margin:0;
-  padding:clamp(14px,2.5vw,32px);
-  border:none;
-  background:rgba(1,6,18,.97);
-  color:#fff;
-}
-.cabin-fullscreen-viewer::backdrop {background:rgba(0,0,0,.94)}
-.cabin-fullscreen-viewer[open] {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-}
-.cabin-fullscreen-viewer img {
-  display:block;
-  width:auto;
-  max-width:100%;
-  max-height:calc(100dvh - 115px);
-  height:auto;
-  object-fit:contain;
-  border-radius:4px;
-}
-.cabin-fullscreen-viewer .cabin-viewer-caption {
-  color:#d6e0f1;
-  margin:0;
-  font-size:12px;
-  text-align:center;
-}
-.cabin-fullscreen-viewer .cabin-viewer-close {
-  position:absolute;
-  z-index:2;
-  top:clamp(10px,2vw,23px);
-  right:clamp(10px,2vw,23px);
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  border:1px solid #8292ae;
-  background:#1d304c;
-  color:#fff;
-  font-size:26px;
-  line-height:1;
-  cursor:pointer;
-}
-.cabin-fullscreen-viewer .cabin-viewer-close:focus-visible {
-  outline:3px solid #ffc2d5;
-  outline-offset:3px;
-}
-@media(max-width:700px) {
-  .community-section:is(.cabin-experience,.showcase) .cabin-all-photos {gap:8px!important}
-  .community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay {
-    left:5px;bottom:5px;
-    max-width:calc(100% - 10px);
-    padding:4px 6px;
-    border-radius:5px;
-  }
-  .community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay span {
-    font-size:7px;
-    letter-spacing:.02em;
-    margin-bottom:1px;
-  }
-  .community-section:is(.cabin-experience,.showcase) .cabin-photo-overlay h3 {
-    font-size:clamp(9px,1.8vw,12px)!important;
-    line-height:1.15!important;
-  }
-  .community-section:is(.cabin-experience,.showcase) .cabin-zoom-icon {
-    width:21px;height:21px;top:5px;right:5px;font-size:13px;
-  }
-}
-
-/* The fifth showcase photo is centered but remains identical in size to the other four. */
-.community-section.showcase .cabin-all-photos .cabin-photo-card:last-child {
-  grid-column:1 / -1;
-  width:calc((100% - clamp(12px,1.8vw,22px)) / 2)!important;
-  justify-self:center;
-}
-@media(max-width:700px) {
-  .community-section.showcase .cabin-all-photos .cabin-photo-card:last-child {
-    width:calc((100% - 8px) / 2)!important;
-  }
-}
-
-/* Your next chapter: photo next to text, responsive without stretching. */
-.community-section.future {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);
-  gap:clamp(26px,4.2vw,72px);
-  align-items:center;
-  min-height:500px;
-}
-.community-section.future .future-content {
-  max-width:690px;
-  min-width:0;
-}
-.community-section.future .future-photo {
-  position:relative;
-  display:block;
-  margin:0;
-  min-width:0;
-  width:100%;
-}
-.community-section.future .future-photo-open {
-  display:block;
-  width:100%;
-  overflow:hidden;
-  border-radius:18px;
-  border:1px solid rgba(191,215,250,.38);
-  background:#07152b;
-  box-shadow:0 18px 48px rgba(0,0,0,.35);
-  cursor:zoom-in;
-}
-.community-section.future .future-photo-open:focus-visible {outline:3px solid #ffc0d3;outline-offset:4px}
-.community-section.future .future-photo img {
-  display:block;
-  width:100%;
-  height:auto;
-  aspect-ratio:1536 / 906;
-  object-fit:contain;
-  object-position:center;
-  filter:none!important;
-  animation:none!important;
-  transition:none!important;
-  transform:none!important;
-}
-@media(max-width:940px) {
-  .community-section.future {
-    grid-template-columns:1fr;
-    min-height:0;
-    gap:32px;
-  }
-  .community-section.future .future-photo {max-width:780px;justify-self:center}
-}
-</style>
+<link rel="stylesheet" href="/static/homepage-airline.css?v={{ asset_version }}">
 {% endblock %}
 {% block content %}
-<div class="home-scroll-meter" aria-hidden="true"><span class="home-scroll-meter-fill"></span></div>
-<section class="delta-advertising" aria-roledescription="carousel" aria-label="Delta Air Lines advertising showcase" id="advertisements">
-  <div class="delta-ad-bar"><div><span class="delta-ad-live-dot" aria-hidden="true"></span><span>DELTA SPOTLIGHT</span><span class="delta-ad-bar-divider">/</span><span class="delta-ad-bar-muted">FEATURED CAMPAIGNS</span></div><span class="delta-ad-sponsored">ROBLOX AVIATION ROLEPLAY</span></div>
-  <div class="delta-ad-frame" data-ad-carousel tabindex="0" aria-label="Featured Delta campaigns, use arrows to change">
-    <div class="delta-ad-slide is-active" data-ad-slide="0" role="group" aria-roledescription="slide" aria-label="Advertisement 1 of 6: Los Angeles sunset flights" aria-hidden="false">
-      <img src="/static/ads/delta-lax.webp" alt="Delta Roblox aviation advertisement for New York to Los Angeles nonstop flights." width="2048" height="1209" loading="eager" decoding="async" fetchpriority="high">
-      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore Los Angeles sunset flights"></a>
+<div class="air-home">
+  <section class="air-book" aria-label="Quick access to community travel" id="plan">
+    <div class="air-container">
+      <div class="air-book-top">
+        <div class="air-book-tabs" role="tablist" aria-label="Travel options">
+          <button class="air-tab" type="button" role="tab" aria-selected="true" aria-controls="air-panel-flights" id="air-tab-flights" data-air-tab="flights"><span aria-hidden="true">✈</span> BOOK A FLIGHT</button>
+          <button class="air-tab" type="button" role="tab" aria-selected="false" aria-controls="air-panel-trips" id="air-tab-trips" tabindex="-1" data-air-tab="trips">MY TRIPS</button>
+          <button class="air-tab" type="button" role="tab" aria-selected="false" aria-controls="air-panel-status" id="air-tab-status" tabindex="-1" data-air-tab="status">FLIGHT STATUS</button>
+          <button class="air-tab" type="button" role="tab" aria-selected="false" aria-controls="air-panel-miles" id="air-tab-miles" tabindex="-1" data-air-tab="miles">SKYMILES</button>
+        </div>
+        <span class="air-book-context">VIRTUAL FLIGHTS · ROBLOX ROLEPLAY</span>
+      </div>
+      <div class="air-book-panel" role="tabpanel" id="air-panel-flights" aria-labelledby="air-tab-flights" data-air-panel="flights">
+        <div class="air-book-field"><small>FROM</small><strong>Our virtual network</strong><span>Depart with Delta Roblox</span></div>
+        <div class="air-book-field"><small>TO</small><strong>Your next adventure</strong><span>See destinations in the schedule</span></div>
+        <div class="air-book-field"><small>WHEN</small><strong>Upcoming departures</strong><span>View posted community flights</span></div>
+        <a href="/flights" class="air-search-button">EXPLORE FLIGHTS <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="air-book-panel" role="tabpanel" id="air-panel-trips" aria-labelledby="air-tab-trips" data-air-panel="trips" hidden>
+        <div class="air-book-field"><small>YOUR BOOKINGS</small><strong>My upcoming trips</strong><span>Review your confirmed community reservations</span></div>
+        <div class="air-book-field"><small>ACCOUNT</small><strong>Secure member access</strong><span>Sign in to manage flight plans</span></div>
+        <a href="/trips" class="air-search-button">VIEW MY TRIPS <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="air-book-panel" role="tabpanel" id="air-panel-status" aria-labelledby="air-tab-status" data-air-panel="status" hidden>
+        <div class="air-book-field"><small>FLIGHT INFORMATION</small><strong>Stay ready for takeoff</strong><span>Review scheduled roleplay departures and their status</span></div>
+        <div class="air-book-field"><small>UPDATES</small><strong>Follow each flight</strong><span>Open the flight board for details</span></div>
+        <a href="/flights" class="air-search-button">VIEW FLIGHT BOARD <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="air-book-panel" role="tabpanel" id="air-panel-miles" aria-labelledby="air-tab-miles" data-air-panel="miles" hidden>
+        <div class="air-book-field"><small>MEMBERSHIP</small><strong>Delta Roblox SkyMiles</strong><span>Track miles, rewards and your Medallion journey</span></div>
+        <div class="air-book-field"><small>REWARDS</small><strong>Make every flight count</strong><span>Community points, not airline frequent-flyer miles</span></div>
+        <a href="/skymiles" class="air-search-button">MY SKYMILES <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="air-book-note">Flights, reservations and SkyMiles on this site are part of a fan-made Roblox experience—not real-world airline services.</p>
     </div>
-    <div class="delta-ad-slide" data-ad-slide="1" role="group" aria-roledescription="slide" aria-label="Advertisement 2 of 6: New York. The world is yours." aria-hidden="true">
-      <img src="/static/ads/delta-new-york.webp" alt="Delta Air Lines Roblox aviation campaign featuring New York and worldwide travel." width="2048" height="1209" loading="lazy" decoding="async" >
-      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore New York. The world is yours."></a>
-    </div>
-    <div class="delta-ad-slide" data-ad-slide="2" role="group" aria-roledescription="slide" aria-label="Advertisement 3 of 6: A century of stories" aria-hidden="true">
-      <img src="/static/ads/delta-centennial-ad.webp" alt="Delta Centennial campaign with Delta aircraft in the hangar." width="2048" height="1209" loading="lazy" decoding="async" >
-      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore A century of stories"></a>
-    </div>
-    <div class="delta-ad-slide" data-ad-slide="3" role="group" aria-roledescription="slide" aria-label="Advertisement 4 of 6: Technical operations" aria-hidden="true">
-      <img src="/static/ads/delta-tech-ops.webp" alt="Delta technical operations airplane service campaign." width="2048" height="1209" loading="lazy" decoding="async" >
-      <a class="delta-ad-hitarea" href="/forms" aria-label="Explore Technical operations"></a>
-    </div>
-    <div class="delta-ad-slide" data-ad-slide="4" role="group" aria-roledescription="slide" aria-label="Advertisement 5 of 6: We move engines that move the world" aria-hidden="true">
-      <img src="/static/ads/delta-engine.webp" alt="Delta aircraft engine and ground crew technical operations campaign." width="2048" height="1209" loading="lazy" decoding="async" >
-      <a class="delta-ad-hitarea" href="/forms" aria-label="Explore We move engines that move the world"></a>
-    </div>
-    <div class="delta-ad-slide" data-ad-slide="5" role="group" aria-roledescription="slide" aria-label="Advertisement 6 of 6: Skipping class never felt so good" aria-hidden="true">
-      <img src="/static/ads/delta-skipping.webp" alt="Delta Air Lines Roblox advertisement featuring a close-up airplane tail." width="2048" height="1209" loading="lazy" decoding="async" >
-      <a class="delta-ad-hitarea" href="/flights" aria-label="Explore Skipping class never felt so good"></a>
-    </div>
-    <div class="delta-ad-controls" aria-label="Advertisement navigation">
-      <button type="button" class="delta-ad-control" data-ad-previous aria-label="Previous advertisement"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
-      <button type="button" class="delta-ad-control delta-ad-pause" data-ad-toggle aria-label="Pause advertisement rotation" aria-pressed="false"><span data-ad-pause-icon aria-hidden="true">Ⅱ</span><span data-ad-play-icon aria-hidden="true" hidden>▶</span></button>
-      <button type="button" class="delta-ad-control" data-ad-next aria-label="Next advertisement"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-    </div>
-  </div>
-</section>
-<div class="home-flight-ticker" aria-label="Delta Roblox community highlights">
-  <div class="home-ticker-inner">
-    <span><i aria-hidden="true">✦</i> VIRTUAL AVIATION</span>
-    <span><i aria-hidden="true">✈</i> HOSTED FLIGHTS</span>
-    <span><i aria-hidden="true">✦</i> SKYMILES REWARDS</span>
-    <span><i aria-hidden="true">✈</i> VIRGIN ATLANTIC PARTNERSHIP</span>
-    <span><i aria-hidden="true">✦</i> KEEP CLIMBING</span>
-  </div>
-</div>
-<section class="community-hero home-cinematic-hero" id="top">
-  <div class="home-cinematic-ambient" aria-hidden="true"><span class="home-ambient-one"></span><span class="home-ambient-two"></span></div>
-  <div class="home-flight-trails" aria-hidden="true"><i></i><i></i><i></i></div>
-  <div class="hero-photo"><img src="/static/gallery/delta-terminal.webp" alt="Delta airport terminal and aviation experience" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=function(){this.onerror=null;this.classList.add('image-unavailable')};this.src='/gallery/media/delta-terminal'"></div>
-  <div class="hero-content"><div class="eyebrow"><span class="pulse-dot"></span> DELTA AIR LINES · ROBLOX ROLEPLAY</div>
-  <h1>Every flight.<br><em>A new experience.</em></h1>
-  <p>Discover our community, join a hosted aviation experience, or build your story with our crew. Your journey starts here.</p>
-  <div class="hero-actions"><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join our Discord" }}</a><a class="community-btn outlined" href="/signup">Get Started</a><a class="community-btn outlined" href="/forms">Explore applications</a></div></div>
-  <a class="scroll-cue" href="#discover">SCROLL TO EXPLORE <span class="scroll-cue-icon" aria-hidden="true"></span></a>
-</section>
-<section class="community-section discover" id="discover"><div class="section-head"><span class="eyebrow">WELCOME ABOARD</span>
-<h2>More than an airline.<br><em>A community.</em></h2>
-<p>Step into a realistic Delta-inspired aviation experience: hosted flights, ground operations, team opportunities, and a virtual SkyMiles program.</p></div>
-<div class="feature-grid"><a class="feature-card" href="/flights"><span class="feature-index">01 / OPERATIONS</span><h3>Upcoming Flights</h3><p>Book your next roleplay journey and stay up to date with the crew.</p><span>Explore flights</span></a>
-<a class="feature-card" href="/forms"><span class="feature-index">02 / OPPORTUNITIES</span><h3>Applications & Forms</h3><p>Apply for opportunities or complete your flight fillout using Discord sign-in.</p><span>See open forms</span></a>
-<a class="feature-card" href="/skymiles"><span class="feature-index">03 / RECOGNITION</span><h3>SkyMiles</h3><p>Keep your existing account, trips, Medallion progress and member rewards.</p><span>Visit SkyMiles</span></a></div></section>
-<section class="community-section showcase" aria-labelledby="showcase-title">
-  <div class="cabin-spotlight-heading"><div>
-    <span class="eyebrow">BEHIND THE EXPERIENCE</span>
-    <h2 id="showcase-title">Built for the sky.<br><em>Made for you.</em></h2>
-    <p>Explore the flights, spaces, and experiences that bring Delta Roblox to life.</p>
-  </div></div>
-  <div class="cabin-all-photos">
-    <figure class="cabin-photo-card">
-      <a class="cabin-photo-open" href="/static/gallery/delta-centennial.webp" aria-label="View full-screen: Take to the skies">
-        <img src="/static/gallery/delta-centennial.webp" alt="Delta airplane flying past palm trees" loading="lazy" decoding="async">
-        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-      </a>
-      <figcaption class="cabin-photo-overlay"><span>FLIGHT OPERATIONS</span><h3>Take to the skies</h3></figcaption>
-    </figure>
-    <figure class="cabin-photo-card">
-      <a class="cabin-photo-open" href="/static/gallery/delta-terminal.webp" aria-label="View full-screen: From check-in to boarding">
-        <img src="/static/gallery/delta-terminal.webp" alt="Delta terminal check-in experience" loading="lazy" decoding="async">
-        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-      </a>
-      <figcaption class="cabin-photo-overlay"><span>GUEST EXPERIENCE</span><h3>From check-in to boarding</h3></figcaption>
-    </figure>
-    <figure class="cabin-photo-card">
-      <a class="cabin-photo-open" href="/static/gallery/delta-lounge.webp" aria-label="View full-screen: Discover the lounge">
-        <img src="/static/gallery/delta-lounge.webp" alt="Modern Delta roleplay lounge" loading="lazy" decoding="async">
-        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-      </a>
-      <figcaption class="cabin-photo-overlay"><span>HOSPITALITY</span><h3>Discover the lounge</h3></figcaption>
-    </figure>
-    <figure class="cabin-photo-card">
-      <a class="cabin-photo-open" href="/static/gallery/delta-hq.webp" aria-label="View full-screen: Explore Delta HQ">
-        <img src="/static/gallery/delta-hq.webp" alt="Delta HQ reception" loading="lazy" decoding="async">
-        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-      </a>
-      <figcaption class="cabin-photo-overlay"><span>OUR COMMUNITY</span><h3>Explore Delta HQ</h3></figcaption>
-    </figure>
-    <figure class="cabin-photo-card">
-      <a class="cabin-photo-open" href="/static/gallery/delta-electric.webp" aria-label="View full-screen: Innovation on the ground">
-        <img src="/static/gallery/delta-electric.webp" alt="Delta electric ground service vehicle" loading="lazy" decoding="async">
-        <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-      </a>
-      <figcaption class="cabin-photo-overlay"><span>GROUND OPERATIONS</span><h3>Innovation on the ground</h3></figcaption>
-    </figure>
-  </div>
-</section>
-<section class="community-section cabin-experience" id="cabin-experience" aria-labelledby="cabin-experience-title">
-<div class="cabin-spotlight-heading"><div><span class="eyebrow">A LOOK INSIDE OUR ROBLOX CABIN</span><h2 id="cabin-experience-title">The Delta <em>experience.</em></h2><p>Four moments from our Roblox cabin, all on display.</p></div></div>
-<div class="cabin-all-photos">
-  <figure class="cabin-photo-card">
-    <a class="cabin-photo-open" href="/static/gallery/cabin-entertainment-original.png" aria-label="View full-screen: Immersed in the experience">
-      <img src="/static/gallery/cabin-entertainment-original.png" alt="Delta Roblox cabin with red lighting and entertainment screens" loading="lazy" decoding="async">
-      <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-    </a>
-    <figcaption class="cabin-photo-overlay"><span>THE CABIN</span><h3>Immersed in the experience</h3></figcaption>
-  </figure>
-  <figure class="cabin-photo-card">
-    <a class="cabin-photo-open" href="/static/gallery/cabin-service-original.jpg" aria-label="View full-screen: The little touches">
-      <img src="/static/gallery/cabin-service-original.jpg" alt="Delta Roblox inflight refreshments and tray" loading="lazy" decoding="async">
-      <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-    </a>
-    <figcaption class="cabin-photo-overlay"><span>INFLIGHT DETAILS</span><h3>The little touches</h3></figcaption>
-  </figure>
-  <figure class="cabin-photo-card">
-    <a class="cabin-photo-open" href="/static/gallery/cabin-blue-original.png" aria-label="View full-screen: Blue hour in the cabin">
-      <img src="/static/gallery/cabin-blue-original.png" alt="Delta Roblox cabin with blue lighting and seatback screens" loading="lazy" decoding="async">
-      <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-    </a>
-    <figcaption class="cabin-photo-overlay"><span>THE ATMOSPHERE</span><h3>Blue hour in the cabin</h3></figcaption>
-  </figure>
-  <figure class="cabin-photo-card">
-    <a class="cabin-photo-open" href="/static/gallery/cabin-window-original.jpg" aria-label="View full-screen: Settle in. Take off.">
-      <img src="/static/gallery/cabin-window-original.jpg" alt="Delta Roblox airplane window and tray table" loading="lazy" decoding="async">
-      <span class="cabin-zoom-icon" aria-hidden="true">⤢</span>
-    </a>
-    <figcaption class="cabin-photo-overlay"><span>INFLIGHT MOMENTS</span><h3>Settle in. Take off.</h3></figcaption>
-  </figure>
-</div></section>
-<section class="community-section delta-ad-secondary" aria-labelledby="delta-spotlights-title">
-  <div class="section-head"><span class="eyebrow">MORE TO EXPLORE</span><h2 id="delta-spotlights-title">Beyond the flight.<br><em>Discover Delta.</em></h2><p>Explore the destinations and operations that make our Roblox aviation community unique.</p></div>
-  <div class="delta-ad-secondary-grid">
-    <a class="delta-ad-feature-card" href="/flights"><img src="/static/ads/delta-new-york.webp" alt="New York, the world is yours — Delta advertising campaign" loading="lazy" decoding="async"><span class="delta-ad-feature-footer"><span><small>DESTINATIONS</small><strong>Discover your next journey</strong></span><span aria-hidden="true">→</span></span></a>
-    <a class="delta-ad-feature-card" href="/forms"><img src="/static/ads/delta-tech-ops.webp" alt="Delta Technical Operations airplane maintenance campaign" loading="lazy" decoding="async"><span class="delta-ad-feature-footer"><span><small>BEHIND THE SCENES</small><strong>Explore crew opportunities</strong></span><span aria-hidden="true">→</span></span></a>
-  </div>
-</section>
-<section class="community-section core-home-spotlight" aria-labelledby="core-home-title">
-  <div class="core-home-card">
-    <div class="core-home-copy"><span class="eyebrow">OUR FIRST CORE PARTNERSHIP · SEPTEMBER 29, 2026</span>
-      <h2 id="core-home-title">Together, we <em>fly further.</em></h2>
-      <p>Meet Virgin Atlantic, our first core partner in the Delta Roblox roleplay community. Discover new destinations, Sky Priority experiences, and more ways to earn SkyMiles.</p>
-      <a href="/partnerships" class="community-btn primary">Explore our partnership <span aria-hidden="true">→</span></a>
-    </div>
-    <div class="core-home-partner" aria-label="Virgin Atlantic Roblox roleplay partner"><img src="/static/partnerships/virgin-flag.svg" width="260" height="260" alt="Virgin Atlantic inspired flag emblem"><strong>virgin atlantic</strong><small>DELTA ROBLOX × VIRGIN ATLANTIC ROBLOX</small></div>
-  </div>
-</section>
-<section class="community-section future" aria-labelledby="future-heading">
-  <div class="future-content">
-    <span class="eyebrow">A WORLD OF POSSIBILITY</span>
-    <h2 id="future-heading">Your next chapter<br>starts with <em>Delta.</em></h2>
-    <p>No SkyMiles registration is needed to view and complete a roleplay application. Log in through Discord, and we'll check your server roles for access.</p>
-    <div class="hero-actions"><a class="community-btn primary" href="/forms">Apply now</a><a class="community-btn outlined" href="/skymiles">Access SkyMiles</a></div>
-  </div>
-  <figure class="future-photo">
-    <a class="future-photo-open cabin-photo-open" href="/static/gallery/delta-aircraft-lineup.avif" aria-label="View Delta aircraft lineup full-screen">
-      <img src="/static/gallery/delta-aircraft-lineup.avif" width="900" height="531" alt="Delta Roblox aircraft lined up on the airport apron beneath a blue sky" loading="lazy" decoding="async">
-    </a>
-  </figure>
-</section>
-<section class="community-section small-cta"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>Ready to keep climbing?</h2><a class="community-btn primary" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ "Go to Discord" if main_discord_member else "Join Delta Air Lines on Discord" }}</a></section>
-<dialog class="cabin-fullscreen-viewer" id="cabin-fullscreen-viewer" aria-label="Full-screen Delta Roblox photograph">
-  <button type="button" class="cabin-viewer-close" aria-label="Close full-screen photo" data-cabin-viewer-close>×</button>
-  <img alt="" decoding="async">
-  <p class="cabin-viewer-caption" aria-live="polite"></p>
-</dialog>
-<script>
-(() => {
-  const grids=document.querySelectorAll('.showcase .cabin-all-photos, .cabin-experience .cabin-all-photos, .future .future-photo');
-  const viewer=document.getElementById('cabin-fullscreen-viewer');
-  if(!grids.length||!viewer||typeof viewer.showModal!=='function') return;
-  const image=viewer.querySelector('img');
-  const caption=viewer.querySelector('.cabin-viewer-caption');
-  for (const grid of grids) {
-    grid.addEventListener('click',event=>{
-      const link=event.target.closest('a.cabin-photo-open');
-      if(!link||!grid.contains(link))return;
-      event.preventDefault();
-      const preview=link.querySelector('img');
-      image.src=link.href;
-      image.alt=preview.alt;
-      caption.textContent=preview.alt;
-      viewer.showModal();
-    });
-  }
-  viewer.querySelector('[data-cabin-viewer-close]').addEventListener('click',()=>viewer.close());
-  viewer.addEventListener('click',event=>{if(event.target===viewer)viewer.close()});
-  viewer.addEventListener('close',()=>{image.removeAttribute('src');caption.textContent=''});
-})();
-</script>
-<script src="/static/homepage-cinematic.js?v={{ asset_version }}" defer></script>
+  </section>
 
+  <section class="air-hero" aria-labelledby="air-hero-title">
+    <picture class="air-hero-photo">
+      <source srcset="/static/gallery/delta-aircraft-lineup.avif" type="image/avif">
+      <img src="/static/gallery/delta-centennial.webp" alt="Delta-inspired aircraft parked together on an airport apron" width="1536" height="906" fetchpriority="high" decoding="async">
+    </picture>
+    <div class="air-hero-scrim"></div>
+    <div class="air-container air-hero-inner">
+      <span class="air-kicker light">WELCOME TO DELTA ROBLOX</span>
+      <h1 id="air-hero-title">A world of aviation.<br>One community.</h1>
+      <p>Discover the excitement of flying with a community built around virtual departures, dedicated crew and unforgettable moments.</p>
+      <div class="air-hero-buttons"><a href="/flights" class="air-action red">VIEW UPCOMING FLIGHTS <span aria-hidden="true">→</span></a><a href="{{ discord_href if main_discord_member else '/join' }}" class="air-action clear" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }}</a></div>
+    </div>
+    <div class="air-hero-rail"><div class="air-container"><span>DELTA ROBLOX</span><span>YOUR NEXT JOURNEY STARTS HERE</span><span>KEEP CLIMBING</span></div></div>
+  </section>
+
+  <section class="air-essentials" aria-label="Popular options">
+    <div class="air-container air-essentials-grid">
+      <a href="/flights" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">✈</span><span><b>Book a Flight</b><small>Browse departures</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
+      <a href="/trips" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">▤</span><span><b>My Trips</b><small>Manage bookings</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
+      <a href="/forms" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">◇</span><span><b>Careers & Forms</b><small>Join the crew</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
+      <a href="/skymiles" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">★</span><span><b>SkyMiles</b><small>Member benefits</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section class="air-section air-experience" id="discover" aria-labelledby="air-discover-heading">
+    <div class="air-container">
+      <div class="air-section-heading">
+        <div><span class="air-kicker">THE DELTA ROBLOX EXPERIENCE</span><h2 id="air-discover-heading">There's more to the journey.</h2></div>
+        <p>From your first check-in to the final approach, explore a virtual aviation community made for people who love to fly.</p>
+      </div>
+      <div class="air-story-grid">
+        <article class="air-story">
+          <a class="air-story-image" href="/flights"><img src="/static/gallery/delta-centennial.webp" loading="lazy" decoding="async" alt="Delta aircraft seen near a sunlit airport" width="1200" height="760"></a>
+          <div class="air-story-copy"><span class="air-kicker">FLIGHT OPERATIONS</span><h3>See where we're flying.</h3><p>Find upcoming virtual flights, view departure details and reserve your place on board.</p><a href="/flights" class="air-inline-link">EXPLORE FLIGHTS <span aria-hidden="true">→</span></a></div>
+        </article>
+        <article class="air-story">
+          <a class="air-story-image" href="/experience"><img src="/static/gallery/cabin-blue-original.png" loading="lazy" decoding="async" alt="Delta Roblox cabin with blue lighting and seatback screens" width="1200" height="760"></a>
+          <div class="air-story-copy"><span class="air-kicker">ONBOARD EXPERIENCE</span><h3>Take a look inside.</h3><p>Explore the cabin, inflight atmosphere and the details that make every journey memorable.</p><a href="/experience" class="air-inline-link">DISCOVER THE EXPERIENCE <span aria-hidden="true">→</span></a></div>
+        </article>
+        <article class="air-story">
+          <a class="air-story-image" href="/forms"><img src="/static/gallery/delta-terminal.webp" loading="lazy" decoding="async" alt="Airport terminal and guest services environment" width="1200" height="760"></a>
+          <div class="air-story-copy"><span class="air-kicker">CAREERS & OPPORTUNITIES</span><h3>Make your mark.</h3><p>Discover flight operations, ground crew and other opportunities to help shape our community.</p><a href="/forms" class="air-inline-link">EXPLORE OPEN FORMS <span aria-hidden="true">→</span></a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="air-feature" aria-labelledby="air-miles-heading">
+    <div class="air-feature-photo"><img src="/static/gallery/delta-lounge.webp" loading="lazy" decoding="async" alt="Comfortable Delta-inspired lounge seating and terminal interior" width="1200" height="760"></div>
+    <div class="air-feature-copy"><span class="air-kicker">DELTA ROBLOX SKYMILES</span><h2 id="air-miles-heading">The journey is more rewarding together.</h2><p>Earn community SkyMiles, discover Medallion recognition and keep track of your virtual adventures in one place.</p><p class="air-fine-print">SkyMiles on this website are virtual community rewards and are not associated with the real Delta SkyMiles program.</p><a class="air-action dark" href="/skymiles">EXPLORE SKYMILES <span aria-hidden="true">→</span></a></div>
+  </section>
+
+  <section class="air-section air-reasons" aria-labelledby="air-reasons-heading">
+    <div class="air-container">
+      <div class="air-section-heading"><div><span class="air-kicker">FLY WITH OUR COMMUNITY</span><h2 id="air-reasons-heading">Everything you need, all in one place.</h2></div></div>
+      <div class="air-reasons-grid">
+        <div class="air-reason"><span class="air-reason-index">01</span><h3>Follow every departure</h3><p>Upcoming flights, scheduled events and the latest updates from our operations team.</p><a href="/flights">FLIGHT SCHEDULE <span aria-hidden="true">→</span></a></div>
+        <div class="air-reason"><span class="air-reason-index">02</span><h3>Plan your next trip</h3><p>Reserve your place and manage community flight bookings from your account.</p><a href="/trips">MY TRIPS <span aria-hidden="true">→</span></a></div>
+        <div class="air-reason"><span class="air-reason-index">03</span><h3>Find your place on the team</h3><p>Explore the forms and recruitment opportunities available to Discord members.</p><a href="/forms">CAREERS & FORMS <span aria-hidden="true">→</span></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="air-partner" aria-labelledby="air-partner-heading">
+    <div class="air-container air-partner-inner">
+      <div class="air-partner-copy"><span class="air-kicker light">OUR FIRST CORE PARTNERSHIP</span><h2 id="air-partner-heading">Connecting communities. Expanding horizons.</h2><p>Meet Virgin Atlantic, our first core roleplay partner, and discover how our communities fly further together.</p><a href="/partnerships" class="air-action clear">LEARN ABOUT OUR PARTNERSHIP <span aria-hidden="true">→</span></a></div>
+      <div class="air-partner-identity"><img src="/static/partnerships/virgin-flag.svg" loading="lazy" decoding="async" alt="Virgin Atlantic Roblox partnership emblem" width="180" height="180"><strong>Virgin Atlantic</strong><span>DELTA ROBLOX CORE PARTNER</span></div>
+    </div>
+  </section>
+
+  <section class="air-section air-news" aria-labelledby="air-news-heading">
+    <div class="air-container">
+      <div class="air-section-heading air-news-head"><div><span class="air-kicker">NEWS & UPDATES</span><h2 id="air-news-heading">Stay in the know.</h2></div><a href="/news" class="air-inline-link">VISIT NEWS CENTER <span aria-hidden="true">→</span></a></div>
+      <div class="air-news-grid">
+        <article class="air-news-item"><span class="air-kicker">AVIATION NEWS</span><h3>What's happening in the world of Delta?</h3><p>Find selected official airline stories, updates and announcements from the real Delta News Hub.</p><a href="/news">READ THE LATEST <span aria-hidden="true">→</span></a></article>
+        <article class="air-news-item"><span class="air-kicker">COMMUNITY UPDATES</span><h3>Your next departure begins with the schedule.</h3><p>Stay connected to the virtual flight program and check for upcoming community activities.</p><a href="/flights">VIEW THE FLIGHT BOARD <span aria-hidden="true">→</span></a></article>
+        <article class="air-news-item"><span class="air-kicker">MEMBER INFORMATION</span><h3>Explore what's possible with SkyMiles.</h3><p>See rewards, membership features and more ways to enjoy your time with Delta Roblox.</p><a href="/skymiles">EXPLORE MEMBERSHIP <span aria-hidden="true">→</span></a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="air-join" aria-labelledby="air-join-heading">
+    <div class="air-container air-join-inner"><div><span class="air-kicker light">KEEP CLIMBING</span><h2 id="air-join-heading">Your next adventure starts here.</h2><p>Come fly with us in our independent Roblox aviation roleplay community.</p></div><a class="air-action red" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }} <span aria-hidden="true">→</span></a></div>
+  </section>
+</div>
+<script src="/static/homepage-airline.js?v={{ asset_version }}" defer></script>
 {% endblock %}
