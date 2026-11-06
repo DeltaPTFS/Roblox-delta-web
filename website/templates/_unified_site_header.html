@@ -22,11 +22,7 @@
     </div>
     <a class="community-brand" href="/home" aria-label="Delta Roblox homepage">
       <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
-      <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small>
-        {% if request.url.path in ['/', '/home'] %}
-        <span class="home-nav-message">{{ 'YOUR JOURNEY CONTINUES' if header_user else 'YOUR JOURNEY STARTS HERE' }}</span>
-        {% endif %}
-      </span>
+      <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
     </a>
     <nav class="community-primary-nav" aria-label="Primary navigation">
       <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
@@ -34,9 +30,7 @@
       <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
       <a href="/news">News</a>
       <a href="/partnerships" {% if request.url.path in ['/core-partnerships', '/partnerships'] %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
-      {% if header_user or request.url.path not in ['/', '/home'] %}
       <a href="/skymiles" {% if request.url.path in ['/dashboard', '/skymiles', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
-      {% endif %}
       {% if nav_level in ("OWNER","ADMIN","STAFF") %}
       <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}"
          {% if request.url.path in ['/owner','/admin','/staff'] %}class="is-current" aria-current="page"{% endif %}>{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
@@ -70,9 +64,7 @@
               <a href="/forms" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▤</span><span><b>Forms</b><small>Applications &amp; fillouts</small></span></a>
               <a href="/partnerships" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◇</span><span><b>Partnerships</b><small>Virgin Atlantic</small></span></a>
               <a href="/experience" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◉</span><span><b>Cabin Experience</b><small>Browse our gallery</small></span></a>
-              {% if header_user or request.url.path not in ['/', '/home'] %}
               <a href="/skymiles" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◈</span><span><b>SkyMiles</b><small>Member dashboard</small></span></a>
-              {% endif %}
               {% if header_user %}
               <a href="/miles" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◆</span><span><b>My Miles</b><small>Balance and status</small></span></a>
               <a href="/trips" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">⌁</span><span><b>My Trips</b><small>Reservations</small></span></a>
@@ -102,7 +94,7 @@
               <a href="/staff">▥ <span>Staff Panel</span><span aria-hidden="true">↗</span></a>
               {% endif %}
             </div>
-            <div class="sky-menu-footer"><span>KEEP CLIMBING</span><span>DELTA ROBLOX · INDEPENDENT COMMUNITY</span></div>
+            <div class="sky-menu-footer"><span>KEEP CLIMBING</span><span>DELTA AIR LINES · ROBLOX ROLEPLAY</span></div>
           </div>
         </details>
       </div>
