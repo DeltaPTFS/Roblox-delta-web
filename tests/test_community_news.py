@@ -45,8 +45,8 @@ def test_main_navigation_moves_to_homepage_action_row():
     assert 'class="air-book-tabs air-site-links"' not in home
     assert 'class="standard-nav-row"' in header
     assert 'href="/home"' in header
-    for label in ("FLIGHTS", "FORMS", "NEWS", "PARTNERSHIPS", "SKYMILES"):
-        assert f">{label.title()}</a>" in header
+    for label in ("Flights", "Forms", "News", "Partnerships", "SkyMiles"):
+        assert f">{label}</a>" in header
     assert 'data-air-tab=' not in home
 
 
