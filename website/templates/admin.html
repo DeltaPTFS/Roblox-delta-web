@@ -27,6 +27,7 @@
     <a href="#member-actions" data-ops-tab="members">Members</a>
     {% if panel_level in ('OWNER', 'ADMIN') %}<a href="#flight-operations" data-ops-tab="flights">Flights</a>{% endif %}
     <a href="#site-announcement-editor" data-ops-tab="announcements">Announcements</a>
+    {% if panel_level == 'OWNER' %}<a href="#news-article-editor" data-ops-tab="news">News Articles</a>{% endif %}
     {% if panel_level == 'OWNER' %}<a href="#system-integrations" data-ops-tab="system">System &amp; Logs</a>{% endif %}
   </nav>
 
@@ -43,7 +44,7 @@
       {% else %}
       <a href="#member-directory"><span aria-hidden="true">02</span><strong>Member directory</strong><small>Browse community members</small><i aria-hidden="true">→</i></a>
       {% endif %}
-      <a href="#site-announcement-editor"><span aria-hidden="true">03</span><strong>Post an update</strong><small>Newsroom and site announcements</small><i aria-hidden="true">→</i></a>
+      <a href="{{ '#news-article-editor' if panel_level == 'OWNER' else '#site-announcement-editor' }}"><span aria-hidden="true">03</span><strong>{{ 'Publish news' if panel_level == 'OWNER' else 'Post an update' }}</strong><small>{{ 'Write a complete article for the Newsroom' if panel_level == 'OWNER' else 'Manage website announcements' }}</small><i aria-hidden="true">→</i></a>
       <a href="/forms"><span aria-hidden="true">04</span><strong>Applications</strong><small>Forms and submissions</small><i aria-hidden="true">↗</i></a>
     </div>
   </section>
@@ -51,6 +52,60 @@
 {% if request.query_params.get('skymiles_applied') %}<div class="toast admin-success" role="status">✓ SkyMiles Applied!</div>{% endif %}
 {% if request.query_params.get('qualifications_applied') %}<div class="toast admin-success" role="status">✓ MQP and segments applied! New totals: {{ request.query_params.get('mqp_total') }} MQP · {{ request.query_params.get('segments_total') }} segments.</div>{% endif %}
 {% if request.query_params.get('moderation_applied') %}<div class="toast admin-success" role="status">✓ Moderation action recorded and member notified.</div>{% endif %}{% if request.query_params.get('access_updated') %}<div class="toast admin-success" role="status">✓ Member access updated!</div>{% endif %}
+
+{% if panel_level == 'OWNER' %}
+<section class="card page-card owner-news-article-editor" data-ops-group="news" id="news-article-editor" aria-labelledby="news-article-title">
+  <div class="owner-announcement-top">
+    <div>
+      <span class="eyebrow">OWNERSHIP / COMMUNITY NEWSROOM</span>
+      <h2 id="news-article-title">Publish a News Announcement</h2>
+      <p>Write full-length news for your community. Published articles appear in the News Center and the newest article is featured on the homepage. This is separate from the short website banner.</p>
+    </div>
+    <a class="button outline" href="/news">View News Center →</a>
+  </div>
+  {% if request.query_params.get('news_saved') %}<div class="notice success" role="status">News article saved. Published articles are displayed in the News Center and homepage.</div>{% endif %}
+  <form class="owner-news-article-form" action="/owner/news/publish" method="post" id="owner-longform-news-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label for="longform-news-title">News headline
+      <input type="text" id="longform-news-title" name="title" maxlength="180" placeholder="Example: Introducing Our Winter Flight Schedule" required>
+    </label>
+    <label for="longform-news-body">News announcement
+      <span class="owner-news-hint">Up to 10,000 words. Press Enter to create paragraphs.</span>
+      <textarea id="longform-news-body" name="body" rows="14" placeholder="Write your announcement here..." aria-describedby="longform-news-count" required></textarea>
+    </label>
+    <div id="longform-news-count" class="owner-news-word-count" role="status" aria-live="polite"><strong data-news-words>0</strong> / 10,000 words</div>
+    <label class="owner-announcement-publish">
+      <input type="checkbox" name="published" value="on" checked>
+      <span><strong>Publish in the News Center</strong><small>Uncheck to save as a draft instead.</small></span>
+    </label>
+    <div class="owner-announcement-actions">
+      <button class="button primary" type="submit" data-news-submit>Save News Announcement <span aria-hidden="true">→</span></button>
+    </div>
+  </form>
+  <div class="owner-news-history">
+    <h3>Recent articles</h3>
+    {% if owner_news_articles %}
+    <div class="owner-news-articles">
+      {% for article in owner_news_articles %}
+      <article class="owner-news-history-row">
+        <div>
+          <strong>{{ article.title }}</strong>
+          <small>{{ article.updated_at.strftime('%b %d, %Y') if article.updated_at else '' }} · {{ article.body.split()|length }} words</small>
+        </div>
+        <span class="owner-news-status {{ 'is-published' if article.published else '' }}">{{ 'Published' if article.published else 'Draft / Hidden' }}</span>
+        <form method="post" action="/owner/news/{{ article.id }}/visibility">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <button type="submit" class="button outline">{{ 'Unpublish' if article.published else 'Publish' }}</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p>No news articles have been written yet. Your first one will appear here.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 
 {% if panel_level in ('OWNER','ADMIN','STAFF') %}
 <section class="card page-card owner-announcement-editor" data-ops-group="announcements" id="site-announcement-editor" aria-labelledby="announcement-editor-title">
@@ -190,5 +245,6 @@
 <section class="card page-card ownership-logs" data-ops-group="system"><span class="eyebrow">⚠️ FULL MODERATION HISTORY</span><h2>Warnings, no-shows, and restrictions</h2><div class="audit-table">{% for item in moderation_logs %}<article><time>{{ item.created_at.strftime('%b %d, %Y · %H:%M UTC') }}</time><div><b>{{ item.action.replace('_',' ')|title }}</b><small>Member #{{ item.user_id }} · Moderator #{{ item.moderator_id }}{% if item.flight_id %} · Flight #{{ item.flight_id }}{% endif %}</small><p>{{ item.reason }}{% if item.reversed_at %} · Reversed {{ item.reversed_at.strftime('%b %d, %Y') }}{% endif %}</p></div></article>{% else %}<p class="empty">No moderation history.</p>{% endfor %}</div></section><section class="card page-card ownership-logs" data-ops-group="system"><span class="eyebrow">📨 DISCORD DELIVERY LOG</span><h2>Member notifications</h2><div class="audit-table">{% for item in notification_logs %}<article><time>{{ item.created_at.strftime('%b %d, %Y · %H:%M UTC') }}</time><div><b>{{ item.notification_type.replace('_',' ')|title }} · {{ item.delivery_status|title }}</b><small>Member #{{ item.user_id }}{% if item.flight_id %} · Flight #{{ item.flight_id }}{% endif %}</small>{% if item.error %}<p>{{ item.error }}</p>{% endif %}</div></article>{% else %}<p class="empty">No notification attempts.</p>{% endfor %}</div></section>
 {% endif %}
 </div>
+<script src="/static/news-editor.js?v={{ asset_version }}-10000" defer></script>
 <script src="/static/operations-workspace.js?v=20261106" defer></script>
 {% endblock %}
