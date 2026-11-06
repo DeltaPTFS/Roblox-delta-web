@@ -4,18 +4,6 @@
 {% set nav_level = auth if auth is defined else (access if access is defined else "MEMBER") %}
 <header class="community-header premium-header unified-delta-header" id="site-header">
   {% include "_site_announcement.html" %}
-  <div class="premium-announcement">
-    <div class="premium-announcement-inner">
-      {% if header_viewer %}
-      <span class="premium-announcement-label"><span class="premium-live-pulse" aria-hidden="true"></span> YOUR JOURNEY CONTINUES WITH DELTA ROBLOX</span>
-      {% else %}
-      <a class="premium-signup-message" href="/signup"><span class="premium-live-pulse" aria-hidden="true"></span><span>NEW TO DELTA ROBLOX?</span> <strong>SIGN UP <span aria-hidden="true">↗</span></strong></a>
-      {% endif %}
-      <a class="premium-announcement-partner" href="/partnerships" aria-label="Explore our Virgin Atlantic core partnership">
-        <span class="premium-partner-label">OUR FIRST CORE PARTNER</span><strong>VIRGIN ATLANTIC</strong><span aria-hidden="true">→</span>
-      </a>
-    </div>
-  </div>
   <div class="premium-nav-shell">
     <div class="delta-nav-sparkles" aria-hidden="true">
       <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -94,7 +82,6 @@
       </div>
     </div>
   </div>
-  {% if request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships'] %}
   <div class="standard-nav-row">
     <nav class="community-primary-nav standard-nav-inner" aria-label="Primary navigation">
       <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
@@ -109,21 +96,5 @@
       {% endif %}
     </nav>
   </div>
-  {% endif %}
-  {% if request.url.path in ['/partnerships', '/core-partnerships'] %}
-  <div class="partner-nav-row">
-    <nav class="partner-nav-inner" aria-label="Main navigation">
-      <a href="/home">Home</a>
-      <a href="/flights">Flights</a>
-      <a href="/forms">Forms</a>
-      <a href="/news">News</a>
-      <a href="/partnerships" class="is-current" aria-current="page">Partnerships</a>
-      <a href="/skymiles">SkyMiles</a>
-      {% if nav_level in ("OWNER", "ADMIN", "STAFF") %}
-      <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}">{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
-      {% endif %}
-    </nav>
-  </div>
-  {% endif %}
   <span class="premium-header-accent" aria-hidden="true"></span>
 </header>
