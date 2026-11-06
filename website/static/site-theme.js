@@ -14,6 +14,12 @@
     if (remember) {
       try { localStorage.setItem('delta-site-appearance', mode); } catch (_) {}
     }
+    const appearanceSettings = document.querySelector('form[action="/settings/theme"]');
+    if (appearanceSettings) {
+      for (const radio of appearanceSettings.querySelectorAll('input[name="theme"]')) {
+        radio.checked = radio.value === mode;
+      }
+    }
     for (const button of document.querySelectorAll('[data-site-theme-toggle]')) {
       button.setAttribute('aria-pressed', String(dark));
       button.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
