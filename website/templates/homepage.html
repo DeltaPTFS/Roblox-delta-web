@@ -107,7 +107,23 @@
         <div><span class="air-kicker">DELTA ROBLOX NEWSROOM</span><h2 id="air-news-heading">Announcements from our team.</h2></div>
         <a href="/news" class="air-inline-link">ALL ANNOUNCEMENTS <span aria-hidden="true">→</span></a>
       </div>
-      {% if site_announcement %}
+      {% if featured_news %}
+      {% set article = featured_news[0] %}
+      <article class="air-news-feature air-news-article">
+        <div class="air-news-feature-main">
+          <span class="air-kicker">LATEST NEWS · FROM OUR TEAM</span>
+          <h3>{{ article.title }}</h3>
+          <p>{{ article.body.split()[:58]|join(' ') }}{% if article.body.split()|length > 58 %}…{% endif %}</p>
+          <div class="air-news-author">Community Newsroom · {{ article.updated_at.strftime('%B %d, %Y') }}</div>
+          <a class="air-inline-link" href="/news#news-article-{{ article.id }}">READ THE FULL ANNOUNCEMENT <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="air-news-feature-side">
+          <strong>From the Delta Roblox Team</strong>
+          <p>News, upcoming events and important stories—published directly by our community.</p>
+          <a href="/news" class="air-inline-link">VIEW NEWS CENTER →</a>
+        </div>
+      </article>
+      {% elif site_announcement %}
       <article class="air-news-feature">
         <div class="air-news-feature-main">
           <span class="air-kicker">{{ 'IMPORTANT NOTICE' if site_announcement.tone == 'IMPORTANT' else 'EVENT & FLIGHTS' if site_announcement.tone == 'EVENT' else 'COMMUNITY UPDATE' }}</span>
@@ -126,7 +142,7 @@
         <div class="air-news-feature-side"><strong>Stay connected.</strong><p>Check back for updates directly from Delta Roblox leadership.</p></div>
       </div>
       {% endif %}
-      {% if auth in ("OWNER","ADMIN","STAFF") %}<p class="air-news-editor-link"><a href="{{ '/owner' if auth == 'OWNER' else '/admin' if auth == 'ADMIN' else '/staff' }}#site-announcement-editor">Manage community announcements →</a></p>{% endif %}
+      {% if auth in ("OWNER","ADMIN","STAFF") %}<p class="air-news-editor-link"><a href="{{ '/owner#news-article-editor' if auth == 'OWNER' else ('/admin' if auth == 'ADMIN' else '/staff') ~ '#site-announcement-editor' }}">Manage community news →</a></p>{% endif %}
     </div>
   </section>
 
