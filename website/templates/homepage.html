@@ -7,19 +7,6 @@
 <div class="air-home">
   <section class="air-book" aria-label="Quick access to community travel" id="plan">
     <div class="air-container">
-      <div class="air-book-top air-nav-top">
-        <nav class="air-book-tabs air-site-links" aria-label="Main site navigation">
-          <a class="air-tab is-current" href="/home" aria-current="page">HOME</a>
-          <a class="air-tab" href="/flights">FLIGHTS</a>
-          <a class="air-tab" href="/forms">FORMS</a>
-          <a class="air-tab" href="/news">NEWS</a>
-          <a class="air-tab" href="/partnerships">PARTNERSHIPS</a>
-          <a class="air-tab" href="/skymiles">SKYMILES</a>
-          {% if auth in ("OWNER","ADMIN","STAFF") %}
-          <a class="air-tab" href="{{ '/owner' if auth == 'OWNER' else '/admin' if auth == 'ADMIN' else '/staff' }}">{{ 'OWNER PANEL' if auth == 'OWNER' else 'ADMIN PANEL' if auth == 'ADMIN' else 'STAFF PANEL' }}</a>
-          {% endif %}
-        </nav>
-      </div>
       <div class="air-book-panel air-book-panel-default" id="air-panel-flights">
         <div class="air-book-field"><small>FROM</small><strong>Our virtual network</strong><span>Depart with Delta Roblox</span></div>
         <div class="air-book-field"><small>TO</small><strong>Your next adventure</strong><span>See destinations in the schedule</span></div>
