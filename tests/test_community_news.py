@@ -41,8 +41,9 @@ def test_newsroom_shows_only_current_staff_published_announcement(tmp_path):
 def test_main_navigation_moves_to_homepage_action_row():
     header = Path("website/templates/_unified_site_header.html").read_text()
     home = Path("website/templates/homepage.html").read_text()
-    assert "request.url.path not in ['/', '/home']" in header
-    assert 'class="air-book-tabs air-site-links"' in home
+    assert "request.url.path not in ['/', '/home']" not in header
+    assert 'class="air-book-tabs air-site-links"' not in home
+    assert 'class="standard-nav-row"' in header
     assert 'aria-current="page">HOME' in home
     for label in ("FLIGHTS", "FORMS", "NEWS", "PARTNERSHIPS", "SKYMILES"):
         assert f">{label}</a>" in home
