@@ -217,3 +217,83 @@ body.delta-airline-home .unified-delta-header .premium-brand-words{font-size:20p
 .air-feature-photo{height:250px;min-height:250px}
 }
 @media(prefers-reduced-motion:reduce){.air-home *, .air-home *::before,.air-home *::after{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+
+
+/* Home's second row is now the primary navigation. The brand row retains
+   account/language/menu controls, without duplicated links. */
+body.delta-airline-home .air-nav-top{min-height:59px;border-bottom:1px solid #45536e}
+body.delta-airline-home .air-site-links{
+  display:flex;align-items:stretch;flex-wrap:nowrap;gap:0;
+  width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:thin;scrollbar-color:#64738b transparent;
+  -webkit-overflow-scrolling:touch;
+}
+body.delta-airline-home .air-site-links .air-tab{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  white-space:nowrap;flex:none;text-decoration:none!important;
+  color:#d5dfed!important;font-size:12px;letter-spacing:.055em;
+  font-weight:800;padding:18px 20px 15px;min-height:60px;
+  border:0;border-bottom:4px solid transparent;
+  background:transparent!important;box-shadow:none;line-height:1.3;
+}
+body.delta-airline-home .air-site-links .air-tab:hover,
+body.delta-airline-home .air-site-links .air-tab.is-current{
+  color:#fff!important;background:#1b2945!important;
+}
+body.delta-airline-home .air-site-links .air-tab.is-current{
+  border-bottom-color:#e42048;
+  text-shadow:0 0 10px rgba(245,106,130,.17);
+}
+body.delta-airline-home .air-site-links .air-tab.is-current:after{
+  content:"";position:absolute;left:12px;right:12px;bottom:-2px;
+  height:2px;background:#f53b61;box-shadow:0 0 13px 2px rgba(238,29,72,.48);
+}
+body.delta-airline-home .air-site-links .air-tab:focus-visible{
+  outline:2px solid #fff;outline-offset:-5px;
+}
+body.delta-airline-home .air-book-panel-default{min-height:112px}
+body.delta-airline-home .air-news-feature{
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,.7fr);
+  align-items:stretch;gap:0;background:#fff;border:1px solid #dee3e9;
+  border-top:4px solid #c8102e;
+}
+body.delta-airline-home .air-news-feature-main{
+  padding:42px 44px;min-width:0;
+}
+body.delta-airline-home .air-news-feature-main h3{
+  color:#142943;font-size:clamp(23px,2.7vw,34px);margin:13px 0 14px;
+}
+body.delta-airline-home .air-news-feature-main p{
+  font-size:clamp(14px,1.5vw,17px);line-height:1.7;max-width:690px;
+  color:#3d4e61;overflow-wrap:anywhere;margin:0 0 22px;
+}
+body.delta-airline-home .air-news-author{
+  color:#657587;font-size:12px;margin-bottom:22px;
+}
+body.delta-airline-home .air-news-feature-side{
+  background:#edf1f5;border-left:1px solid #dde4eb;padding:38px 35px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+body.delta-airline-home .air-news-feature-side strong{
+  font-size:21px;line-height:1.27;color:#172e49;font-weight:750;
+}
+body.delta-airline-home .air-news-feature-side p{
+  color:#5e6e7f;font-size:14px;line-height:1.7;margin:13px 0 18px;
+}
+body.delta-airline-home .air-news-editor-link{
+  margin:19px 0 0;font-size:12px;font-weight:800;
+}
+body.delta-airline-home .air-news-editor-link a{color:#a80b2a;text-decoration:underline;text-underline-offset:4px}
+@media(max-width:950px){
+  body.delta-airline-home .air-site-links{justify-content:flex-start}
+  body.delta-airline-home .air-site-links .air-tab{
+    padding:17px 15px 13px;min-height:55px;font-size:11px;
+  }
+}
+@media(max-width:650px){
+  body.delta-airline-home .air-nav-top{margin:0 -16px;padding:0 16px}
+  body.delta-airline-home .air-site-links .air-tab{font-size:10px;padding-inline:14px}
+  body.delta-airline-home .air-news-feature{grid-template-columns:1fr}
+  body.delta-airline-home .air-news-feature-main{padding:30px 24px}
+  body.delta-airline-home .air-news-feature-side{border-left:0;border-top:1px solid #dde4eb;padding:27px 24px}
+}
