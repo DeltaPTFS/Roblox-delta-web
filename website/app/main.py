@@ -28,7 +28,7 @@ from .gallery import router as gallery_router
 from .config import get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .discord_gateway import start_discord_gateway
-from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, SiteAnnouncement, Status, Tier, TierConfig, Transaction, User, WebSession
+from .models import AuditLog, Booking, Feedback, Flight, FlightStatus, ModerationAction, NotificationLog, Redemption, Reward, SheetSyncEvent, SiteAnnouncement, CommunityNewsArticle, Status, Tier, TierConfig, Transaction, User, WebSession
 from .oauth import discord_announce_booking, discord_announce_update, discord_authorize, discord_custom_emoji_assets, discord_custom_emojis, discord_dm, discord_guild_member, discord_guild_roles, discord_identity, discord_member_roles, discord_remove_skymiles_roles, discord_scheduled_events, discord_server_name, discord_set_medallion_roles, discord_sync_skymiles_roles, expected_skymiles_role_ids, roblox_authorize, roblox_identity
 from .security import check_csrf, consume_oauth, csrf_token, current_user, linked_user_from_session, oauth_values, permission
 from .session import DatabaseSessionMiddleware
@@ -96,7 +96,7 @@ app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 app.include_router(community_router)
 app.include_router(crew_bridge_router)
 app.include_router(gallery_router)
-from .news import router as news_router
+from .news import router as news_router, published_articles
 app.include_router(news_router)
 
 
@@ -473,7 +473,8 @@ async def homepage(request: Request, db: Session = Depends(get_db)):
         crew_role_details=crew["roles"],crew_member=crew["member"],crew_roles_status=crew["status"],
         main_discord_member=member_main,
         discord_href="https://discord.com/channels/"+settings.discord_guild_id if member_main and settings.discord_guild_id else settings.discord_invite_url,
-        auth=permission(user,settings) if user else "MEMBER"
+        auth=permission(user,settings) if user else "MEMBER",
+        featured_news=published_articles(db, limit=1)
     ))
 
 
@@ -1338,11 +1339,12 @@ async def render_staff_panel(request:Request,q:str,db:Session,required:str,direc
     flight_form=request.session.pop("flight_form",{})
     flight_form_error=request.session.pop("flight_form_error",None)
     announcement_settings=db.scalar(select(SiteAnnouncement).where(SiteAnnouncement.id==1))
+    owner_news_articles=db.scalars(select(CommunityNewsArticle).order_by(CommunityNewsArticle.updated_at.desc()).limit(20)).all() if required=="OWNER" else []
     announcement_can_save=(required=="OWNER" or not announcement_settings
         or not announcement_settings.enabled or announcement_settings.updated_by==actor.id)
     announcement_can_remove=bool(announcement_settings and announcement_settings.message.strip()
         and (required=="OWNER" or announcement_settings.updated_by==actor.id))
-    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings,announcement_can_save=announcement_can_save,announcement_can_remove=announcement_can_remove,directory_total=directory_total,directory_page=directory_page,directory_pages=max(1,(directory_total+23)//24),guild_roles_loaded=request.query_params.get("show_roles") == "1"))
+    return templates.TemplateResponse("admin.html",context(request,user=actor,users=users,member_directory=member_directory,guild_roles=guild_roles,flights=flights,flight_logs=flight_logs,feedback=feedback,audit_logs=audit_logs,moderation_logs=moderation_logs,notification_logs=notification_logs,sheet_sync_counts=sheet_sync_counts,sheet_sync_logs=sheet_sync_logs,user_map=user_map,member_bookings=member_bookings,moderation=moderation,flight_form=flight_form,flight_form_error=flight_form_error,panel_level=required,auth=permission(actor,settings),announcement_settings=announcement_settings,owner_news_articles=owner_news_articles,announcement_can_save=announcement_can_save,announcement_can_remove=announcement_can_remove,directory_total=directory_total,directory_page=directory_page,directory_pages=max(1,(directory_total+23)//24),guild_roles_loaded=request.query_params.get("show_roles") == "1"))
 
 
 @app.get("/staff",response_class=HTMLResponse)
@@ -1355,6 +1357,73 @@ async def admin(request:Request,q:str="",directory_page:int=1,db:Session=Depends
 
 @app.get("/owner",response_class=HTMLResponse)
 async def owner_panel(request:Request,q:str="",directory_page:int=1,db:Session=Depends(get_db)): return await render_staff_panel(request,q,db,"OWNER",directory_page)
+
+
+@app.post("/owner/news/publish")
+@limiter.limit("6/minute")
+async def owner_publish_community_news(
+    request: Request,
+    title: str = Form(...),
+    body: str = Form(...),
+    published: str = Form(""),
+    csrf: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    """Owner writes a standalone article, not the short site-wide banner."""
+    check_csrf(request, csrf)
+    actor = await require_owner(request, db)
+    title = " ".join(title.split())
+    body = body.replace("\\r\\n", "\\n").strip()
+    word_count = len(body.split())
+    if not 1 <= len(title) <= 180:
+        raise HTTPException(422, "News title must be 1–180 characters.")
+    if not 1 <= word_count <= 10_000:
+        raise HTTPException(422, "News body must contain 1–10,000 words.")
+    if len(body.encode("utf-8")) > 500_000:
+        raise HTTPException(413, "News is too large to save.")
+    article = CommunityNewsArticle(
+        title=title, body=body, published=(published == "on"),
+        author_id=actor.id,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db.add(article)
+    db.flush()
+    db.add(AuditLog(
+        staff_user_id=actor.id, target_user_id=None, action="COMMUNITY_NEWS_CREATED",
+        old_value=None, new_value={"id": article.id, "title": title, "published": article.published, "words": word_count},
+        reason="Ownership saved community news article",
+        security_metadata={"ip": request.client.host if request.client else None},
+    ))
+    db.commit()
+    return RedirectResponse("/owner?news_saved=1#news-article-editor", 303)
+
+
+@app.post("/owner/news/{article_id}/visibility")
+@limiter.limit("10/minute")
+async def owner_toggle_community_news(
+    request: Request,
+    article_id: int,
+    csrf: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    check_csrf(request, csrf)
+    actor = await require_owner(request, db)
+    article = db.scalar(select(CommunityNewsArticle).where(CommunityNewsArticle.id == article_id).with_for_update())
+    if not article:
+        raise HTTPException(404, "News article not found")
+    was_published = article.published
+    article.published = not was_published
+    article.updated_at = datetime.now(timezone.utc)
+    db.add(AuditLog(
+        staff_user_id=actor.id, target_user_id=None, action="COMMUNITY_NEWS_VISIBILITY",
+        old_value={"id": article.id, "published": was_published},
+        new_value={"id": article.id, "published": article.published},
+        reason="Ownership changed community news visibility",
+        security_metadata={"ip": request.client.host if request.client else None},
+    ))
+    db.commit()
+    return RedirectResponse("/owner?news_saved=1#news-article-editor", 303)
 
 
 @app.post("/owner/announcement")
