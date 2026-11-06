@@ -24,11 +24,12 @@
       <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
       <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
     </a>
+    {% if request.url.path not in ['/', '/home'] %}
     <nav class="community-primary-nav" aria-label="Primary navigation">
       <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
       <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
       <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
-      <a href="/news">News</a>
+      <a href="/news" {% if request.url.path == '/news' %}class="is-current" aria-current="page"{% endif %}>News</a>
       <a href="/partnerships" {% if request.url.path in ['/core-partnerships', '/partnerships'] %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
       <a href="/skymiles" {% if request.url.path in ['/dashboard', '/skymiles', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
       {% if nav_level in ("OWNER","ADMIN","STAFF") %}
@@ -36,6 +37,7 @@
          {% if request.url.path in ['/owner','/admin','/staff'] %}class="is-current" aria-current="page"{% endif %}>{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
       {% endif %}
     </nav>
+    {% endif %}
     <div class="premium-header-actions">
       <label class="delta-language-switch" for="delta-language-select"><span class="delta-language-icon" aria-hidden="true">🌐</span><span class="delta-lang-visually-hidden">Language</span><select id="delta-language-select" aria-label="Language" autocomplete="off"><option value="en" lang="en">English</option><option value="es" lang="es">Español</option><option value="fr" lang="fr">Français</option><option value="ru" lang="ru">Русский</option><option value="pt" lang="pt">Português</option><option value="de" lang="de">Deutsch</option><option value="it" lang="it">Italiano</option><option value="ja" lang="ja">日本語</option><option value="zh" lang="zh">简体中文</option><option value="nl" lang="nl">Nederlands</option><option value="tr" lang="tr">Türkçe</option><option value="ko" lang="ko">한국어</option></select></label>
 
@@ -60,7 +62,7 @@
             <div class="sky-menu-grid">
               <a href="/home" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">⌂</span><span><b>Delta Home</b><small>Explore the community</small></span></a>
               <a href="/flights" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">✈</span><span><b>Flights</b><small>Upcoming departures</small></span></a>
-              <a href="/news" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▣</span><span><b>Delta News</b><small>Official airline headlines</small></span></a>
+              <a href="/news" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▣</span><span><b>Community News</b><small>Announcements from our team</small></span></a>
               <a href="/forms" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">▤</span><span><b>Forms</b><small>Applications &amp; fillouts</small></span></a>
               <a href="/partnerships" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◇</span><span><b>Partnerships</b><small>Virgin Atlantic</small></span></a>
               <a href="/experience" class="sky-menu-item"><span class="sky-menu-icon" aria-hidden="true">◉</span><span><b>Cabin Experience</b><small>Browse our gallery</small></span></a>
@@ -94,7 +96,7 @@
               <a href="/staff">▥ <span>Staff Panel</span><span aria-hidden="true">↗</span></a>
               {% endif %}
             </div>
-            <div class="sky-menu-footer"><span>KEEP CLIMBING</span><span>DELTA AIR LINES · ROBLOX ROLEPLAY</span></div>
+            <div class="sky-menu-footer"><span>KEEP CLIMBING</span><span>DELTA ROBLOX · COMMUNITY UPDATES</span></div>
           </div>
         </details>
       </div>
