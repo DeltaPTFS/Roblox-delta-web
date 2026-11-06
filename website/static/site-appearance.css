@@ -1,0 +1,405 @@
+/* Delta Roblox design system: white is the default, blue is an opt-in dark mode.
+   Loaded last on public and SkyMiles layouts. Changes are scoped, preserving
+   explicitly branded image heroes, primary actions, and the navy footer. */
+
+html[data-site-theme="light"]{color-scheme:light;background:#fff}
+html[data-site-theme="dark"]{color-scheme:dark;background:#0b1930}
+html,body{font-family:Arial,Helvetica,sans-serif!important}
+body{font-size:17px!important;line-height:1.65!important}
+main{min-width:0}
+p,li,dt,dd{overflow-wrap:break-word}
+input,select,textarea,button{font-family:inherit}
+
+/* Consistent readable typography on every page. Avoid scaling decorative icons,
+   numeric dashboards, or buttons that have their own deliberate sizing. */
+:is(.air-home,.partner-page,.page-card,.card,.settings-grid,.flight-card,.tier-card,.delta-dashboard-v2) p{
+  font-size:clamp(15px,1.2vw,18px)!important;
+  line-height:1.72!important;
+}
+:is(.air-home,.partner-page,.page-card,.card,.delta-dashboard-v2) :is(h2,h3){line-height:1.22}
+:is(.air-home,.partner-page,.page-card,.card,.settings-grid,.delta-dashboard-v2) :is(.eyebrow,.air-kicker,.partner-eyebrow){
+  font-size:12px!important;letter-spacing:.09em;
+}
+:is(.air-home,.partner-page,.page-card,.settings-grid) small{
+  font-size:clamp(12px,.95vw,14px)!important;line-height:1.45;
+}
+:is(.air-home,.partner-page,.page-card,.settings-grid) :is(.button,.air-action,.partner-btn,.air-inline-link,.partner-text-link){
+  font-size:clamp(13px,1.05vw,15px)!important;
+}
+:is(.page-card,.settings-grid,.flight-card,.tier-card) :is(label,input,select,textarea){
+  font-size:15px!important;
+}
+:is(.card,.page-card,.flight-card,.tier-card) :is(.row,.detail,.meta,.description){font-size:15px}
+.air-home .air-book-field strong{font-size:clamp(20px,1.9vw,26px)!important}
+.air-home .air-book-field small,.air-home .air-book-field span,.air-home .air-book-note{
+  font-size:clamp(12px,1vw,14px)!important;
+}
+.air-home .air-site-links .air-tab,
+body.delta-partner-page .partner-nav-inner>a,
+.unified-delta-header .community-primary-nav a{
+  font-size:clamp(13px,1vw,15px)!important;
+}
+.air-home .air-essential b{font-size:17px!important}
+.air-home .air-essential small{font-size:13px!important}
+.air-home .air-story h3,.air-home .air-news-feature h3{font-size:clamp(25px,2.2vw,32px)!important}
+.air-home .air-news-author,.air-home .air-partner-note{font-size:13px!important}
+.partner-page .partner-benefit h3{font-size:24px!important}
+.partner-page .partner-benefit p,.partner-page .partner-eligibility p{font-size:15px!important}
+
+/* A readable, polished appearance switch across authenticated/public pages. */
+.unified-delta-header .site-theme-toggle{
+  -webkit-appearance:none;appearance:none;box-sizing:border-box;
+  flex:none;display:inline-flex!important;align-items:center;justify-content:center;
+  gap:8px;min-height:44px;min-width:81px;padding:9px 12px!important;
+  background:#fff;border:1px solid #ccd6e1;border-radius:6px;
+  cursor:pointer;color:#142843;font:750 13px/1 Arial,Helvetica,sans-serif!important;
+  letter-spacing:0;box-shadow:none;
+}
+.unified-delta-header .site-theme-toggle:hover{border-color:#c8102e;background:#fafbfc}
+.unified-delta-header .site-theme-toggle:focus-visible{outline:3px solid #ca2344;outline-offset:2px}
+.unified-delta-header .site-theme-toggle .theme-symbol-sun{display:none}
+html[data-site-theme="dark"] .unified-delta-header .site-theme-toggle .theme-symbol-moon{display:none}
+html[data-site-theme="dark"] .unified-delta-header .site-theme-toggle .theme-symbol-sun{display:block}
+html[data-site-theme="dark"] .unified-delta-header .site-theme-toggle{
+  background:#182b47;color:#f7faff;border-color:#536780;
+}
+html[data-site-theme="dark"] .unified-delta-header .site-theme-toggle:hover{background:#253c5c;border-color:#f04263}
+
+/* White/default header and navigation. */
+html[data-site-theme="light"] .unified-delta-header.premium-header.community-header{
+  background:#fff!important;color:#172b45!important;
+  border-bottom:1px solid #d6dfe8!important;
+  box-shadow:0 4px 16px #1529400e!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html[data-site-theme="light"] .unified-delta-header .premium-announcement{
+  background:#f7f9fb!important;border-bottom:1px solid #e4e9ee!important;
+  color:#445972!important;
+}
+html[data-site-theme="light"] .unified-delta-header .premium-announcement-label,
+html[data-site-theme="light"] .unified-delta-header .premium-signup-message,
+html[data-site-theme="light"] .unified-delta-header .premium-signup-message strong,
+html[data-site-theme="light"] .unified-delta-header .premium-announcement-partner,
+html[data-site-theme="light"] .unified-delta-header .premium-announcement-partner strong{
+  color:#38516a!important;font-size:12px!important;text-shadow:none!important;
+}
+html[data-site-theme="light"] .unified-delta-header .premium-live-pulse{box-shadow:none!important}
+html[data-site-theme="light"] .unified-delta-header .premium-nav-shell,
+html[data-site-theme="light"] .unified-delta-header .premium-brand-icon{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+html[data-site-theme="light"] .unified-delta-header .delta-nav-sparkles,
+html[data-site-theme="light"] .unified-delta-header .premium-nav-shell:before,
+html[data-site-theme="light"] .unified-delta-header .premium-nav-shell:after,
+html[data-site-theme="light"] .unified-delta-header .premium-header-accent{display:none!important}
+html[data-site-theme="light"] .unified-delta-header .community-brand,
+html[data-site-theme="light"] .unified-delta-header .premium-brand-words,
+html[data-site-theme="light"] .unified-delta-header .community-brand:hover{
+  color:#112641!important;text-shadow:none!important;
+}
+html[data-site-theme="light"] .unified-delta-header .premium-brand-words small{
+  color:#657789!important;font-size:9px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .community-primary-nav a{
+  color:#233a54!important;background:transparent!important;text-shadow:none!important;
+}
+html[data-site-theme="light"] .unified-delta-header .community-primary-nav a:hover,
+html[data-site-theme="light"] .unified-delta-header .community-primary-nav a.is-current{color:#b90c2d!important}
+html[data-site-theme="light"] .unified-delta-header .delta-language-switch,
+html[data-site-theme="light"] .unified-delta-header .sky-nav-dropdown>summary,
+html[data-site-theme="light"] .unified-delta-header .premium-header .sky-nav-dropdown>summary,
+html[data-site-theme="light"] .unified-delta-header .delta-account-menu>summary.delta-account-trigger,
+html[data-site-theme="light"] body.delta-partner-page .unified-delta-header .delta-account-menu>summary.delta-account-trigger{
+  background:#fff!important;color:#142d47!important;border:1px solid #ccd7e3!important;
+  box-shadow:none!important;border-radius:6px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .delta-language-switch select,
+html[data-site-theme="light"] .unified-delta-header .sky-menu-chevron{
+  color:#172c46!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-nav-dropdown>summary:hover,
+html[data-site-theme="light"] .unified-delta-header .delta-account-menu>summary.delta-account-trigger:hover{
+  background:#f3f5f8!important;border-color:#a0b0c2!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-bars i{background:#bc1437!important}
+html[data-site-theme="light"] .unified-delta-header .delta-account-trigger-label strong{
+  color:#162b43!important;font-size:15px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .delta-account-trigger-label small{
+  color:#607289!important;font-size:12px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .premium-get-started{
+  background:#c8102e!important;color:#fff!important;border-radius:5px!important;
+  box-shadow:none!important;
+}
+
+/* The clean second-row navigation follows the active appearance. */
+html[data-site-theme="light"] body.delta-partner-page .partner-nav-row,
+html[data-site-theme="light"] body.delta-airline-home .air-book,
+html[data-site-theme="light"] body.delta-airline-home .air-book-top{
+  background:#fff!important;color:#152943!important;border-color:#e3e7ec!important;
+}
+html[data-site-theme="light"] body.delta-partner-page .partner-nav-row{
+  border-top:1px solid #e2e7ee!important;border-bottom:1px solid #d8dfe8!important;
+}
+html[data-site-theme="light"] body.delta-partner-page .partner-nav-inner>a,
+html[data-site-theme="light"] body.delta-airline-home .air-site-links .air-tab{
+  background:transparent!important;color:#253c55!important;font-weight:800!important;
+}
+html[data-site-theme="light"] body.delta-partner-page .partner-nav-inner>a:hover,
+html[data-site-theme="light"] body.delta-partner-page .partner-nav-inner>a.is-current,
+html[data-site-theme="light"] body.delta-airline-home .air-site-links .air-tab:hover,
+html[data-site-theme="light"] body.delta-airline-home .air-site-links .air-tab.is-current{
+  background:#f5f7fa!important;color:#a90d2c!important;
+}
+html[data-site-theme="light"] body.delta-airline-home .air-book-field{border-color:#dce2e8!important}
+html[data-site-theme="light"] body.delta-airline-home .air-book-field strong{color:#132c49!important}
+html[data-site-theme="light"] body.delta-airline-home .air-book-field small,
+html[data-site-theme="light"] body.delta-airline-home .air-book-field span,
+html[data-site-theme="light"] body.delta-airline-home .air-book-note{color:#52687e!important}
+html[data-site-theme="light"] body.delta-airline-home .air-search-button{background:#c8102e!important;color:#fff!important}
+html[data-site-theme="light"] body.delta-airline-home .air-book-panel{background:#fff!important}
+html[data-site-theme="light"] body.delta-partner-page,
+html[data-site-theme="light"] body.delta-partner-page main,
+html[data-site-theme="light"] body.delta-partner-page .partner-page,
+html[data-site-theme="light"] body.delta-airline-home,
+html[data-site-theme="light"] body.delta-airline-home main,
+html[data-site-theme="light"] body.delta-airline-home .air-home{
+  background:#fff!important;color:#182e47!important;
+}
+
+/* Account dropdown: white/light, dark text, clear initials and real photos. */
+.delta-avatar-frame{
+  position:relative;flex:none;display:inline-flex;align-items:center;
+  justify-content:center;overflow:hidden;border-radius:50%;isolation:isolate;
+  width:39px;height:39px;background:#fff0f3;border:1px solid #e6c5ce;
+  color:#a61130;
+}
+.delta-avatar-frame.delta-avatar-large{width:64px;height:64px}
+.delta-avatar-initials{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
+  font-size:13px;font-weight:900;letter-spacing:.015em;line-height:1}
+.delta-avatar-large .delta-avatar-initials{font-size:22px}
+.delta-avatar-frame>.delta-avatar-photo{position:absolute;inset:0;width:100%;height:100%;display:block;
+  border:0!important;border-radius:50%;object-fit:cover;opacity:0;transition:opacity .2s ease}
+.delta-avatar-frame.has-photo>.delta-avatar-photo{opacity:1}
+.delta-account-identity>.delta-avatar-frame.delta-account-avatar{margin:0;box-shadow:0 0 0 3px #edf0f3!important}
+html[data-site-theme="light"] .delta-account-menu{color:#182b45!important}
+html[data-site-theme="light"] .delta-account-panel.account-dropdown{
+  background:#fff!important;color:#20334d!important;border:1px solid #d0dae5!important;
+  border-radius:12px!important;box-shadow:0 20px 60px #071b3340!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-cover{
+  background:#f4f6f8!important;border-bottom:1px solid #dfe6ed!important;
+}
+html[data-site-theme="light"] .delta-account-cover span{color:#52677c!important;font-size:12px!important}
+html[data-site-theme="light"] .delta-account-identity h3{color:#172e48!important;font-size:22px!important}
+html[data-site-theme="light"] .delta-account-identity small{color:#b40e30!important;font-size:11px!important}
+html[data-site-theme="light"] .delta-account-identity p{color:#566d85!important;font-size:14px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-role-heading{border-color:#dce3ea!important}
+html[data-site-theme="light"] .delta-account-panel .delta-role-heading strong{color:#183149!important;font-size:15px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-role-heading small{color:#687f93!important;font-size:11px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-role-chip{
+  background:#f3f6f9!important;border:1px solid #ced9e4!important;
+  color:#263d55!important;font-size:12px!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-role-empty{color:#667990!important;font-size:13px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-access-badge,
+html[data-site-theme="light"] .delta-account-panel .delta-member-tier{
+  background:#f3f6f8!important;border:1px solid #dce3ea!important;
+  color:#24415c!important;font-size:12px!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-balance{
+  background:#f4f7fa!important;border:1px solid #d8e1ea!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-balance strong{color:#192e47!important}
+html[data-site-theme="light"] .delta-account-panel .delta-account-balance small{color:#63758a!important;font-size:11px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-account-balance a{color:#a0102b!important;font-size:13px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-account-links{border-color:#dce3ea!important}
+html[data-site-theme="light"] .delta-account-panel.account-dropdown .delta-account-links a{
+  background:#fff!important;color:#253c55!important;font-size:15px!important;
+}
+html[data-site-theme="light"] .delta-account-panel.account-dropdown .delta-account-links a:hover{
+  background:#f2f5f8!important;color:#a20a2a!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-subheading{color:#aa1230!important;font-size:11px!important}
+html[data-site-theme="light"] .delta-account-panel .delta-account-sync{
+  background:#f4f6f9!important;color:#5d7187!important;font-size:13px!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-close{
+  color:#2d4156!important;background:#fff!important;border-color:#cdd8e2!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-logout{
+  background:#f6f8fa!important;border-color:#d8e0e8!important;
+}
+html[data-site-theme="light"] .delta-account-panel .delta-account-logout button{
+  background:#fff!important;color:#b60c2f!important;border:1px solid #d7b3be!important;
+}
+/* The avatar and readable text remain visible in navy mode. */
+html[data-site-theme="dark"] .delta-avatar-frame{background:#294763;color:#fff;border-color:#7386a0}
+html[data-site-theme="dark"] .delta-account-menu summary .delta-account-trigger-label strong{font-size:15px!important;color:#fff}
+html[data-site-theme="dark"] .delta-account-menu summary .delta-account-trigger-label small{font-size:12px!important}
+html[data-site-theme="dark"] .delta-account-panel.account-dropdown .delta-account-links a{font-size:15px!important}
+
+/* Navigation menu: white panel on white mode, deep blue on dark mode. */
+html[data-site-theme="light"] .unified-delta-header .sky-nav .sky-nav-panel{
+  background:#fff!important;border:1px solid #cbd7e4!important;
+  box-shadow:0 20px 55px #0f274331!important;color:#1d3551!important;
+  border-radius:10px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-heading{
+  background:#f3f6f9!important;border-color:#dce4ec!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-heading strong{color:#182e48!important}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-heading small{color:#ab0f2d!important}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-status{background:#e8f5ee;color:#19664a;border-color:#bfdacc}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-section{color:#63788d!important;font-size:12px!important}
+html[data-site-theme="light"] .unified-delta-header .sky-nav-panel .sky-menu-item{
+  background:#fff!important;border-color:#dae3ec!important;color:#1b3049!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-nav-panel .sky-menu-item:hover{
+  background:#f4f6f9!important;border-color:#a5b5c7!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-nav-panel .sky-menu-item b{
+  color:#182e48!important;font-size:14px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-nav-panel .sky-menu-item small{
+  color:#61748b!important;font-size:12px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-icon{
+  background:#f3f5f8;color:#b11030!important;box-shadow:none;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-bottom{border-color:#dce4ec!important}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-bottom>a{
+  color:#203a56!important;background:#fff;font-size:14px!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-bottom>a:hover{background:#f2f5f8!important}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-bottom>.sky-menu-create{
+  background:#c8102e!important;color:#fff!important;
+}
+html[data-site-theme="light"] .unified-delta-header .sky-menu-footer{
+  background:#f4f6f8!important;color:#65768a!important;border-color:#dce3ea!important;font-size:11px;
+}
+html[data-site-theme="dark"] .unified-delta-header .sky-menu-grid .sky-menu-item b{
+  font-size:14px!important;
+}
+html[data-site-theme="dark"] .unified-delta-header .sky-menu-grid .sky-menu-item small{
+  font-size:12px!important;
+}
+html[data-site-theme="dark"] .sky-menu-bottom>a{font-size:14px!important}
+
+/* The visitor's white page remains white, while the old blue background
+   becomes the deliberate dark-mode experience. Keep hero images legible. */
+html[data-site-theme="light"] body{background:#fff!important;color:#182e47!important}
+html[data-site-theme="light"] body:before{display:none!important}
+html[data-site-theme="light"] body:has(.delta-dashboard-v2){background:#fff!important}
+html[data-site-theme="light"] body:has(.delta-dashboard-v2) main{background:#fff!important}
+html[data-site-theme="light"] body .delta-dashboard-v2{color:#182e47}
+html[data-site-theme="light"] body .delta-dash-hero{box-shadow:0 14px 40px #122c4e1a}
+html[data-site-theme="light"] body :is(.card,.page-card,.settings-card,.tier-card,.flight-card){
+  box-shadow:0 7px 25px #182b440d;
+}
+html[data-site-theme="dark"] body{
+  background:#0c1930!important;color:#eaf1fb!important;
+  --bg:#0c1930;--white:#152740;--ink:#e9f1fc;--muted:#aebfd1;--line:#324865;
+}
+html[data-site-theme="dark"] body:before{display:none!important}
+html[data-site-theme="dark"] body main{background:#0c1930!important}
+html[data-site-theme="dark"] .unified-delta-header.premium-header.community-header,
+html[data-site-theme="dark"] body.delta-partner-page .premium-header.community-header{
+  background:#0c1930!important;border-color:#314764!important;box-shadow:none!important;
+}
+html[data-site-theme="dark"] .unified-delta-header .premium-announcement{
+  background:#0a162a!important;border-color:#314764!important;
+}
+html[data-site-theme="dark"] body.delta-partner-page .partner-nav-row,
+html[data-site-theme="dark"] body.delta-airline-home .air-book,
+html[data-site-theme="dark"] body.delta-airline-home .air-book-top{
+  background:#122641!important;color:#edf3fc!important;border-color:#2f4965!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-book-panel{background:#122641!important}
+html[data-site-theme="dark"] body.delta-airline-home .air-book-field strong{color:#fff!important}
+html[data-site-theme="dark"] body.delta-airline-home .air-book-field small,
+html[data-site-theme="dark"] body.delta-airline-home .air-book-field span,
+html[data-site-theme="dark"] body.delta-airline-home .air-book-note{color:#b5c8dd!important}
+html[data-site-theme="dark"] body.delta-airline-home .air-site-links .air-tab,
+html[data-site-theme="dark"] body.delta-partner-page .partner-nav-inner>a{
+  color:#e3ebf7!important;
+}
+html[data-site-theme="dark"] body.delta-airline-home .air-home,
+html[data-site-theme="dark"] body.delta-airline-home main,
+html[data-site-theme="dark"] body.delta-partner-page .partner-page,
+html[data-site-theme="dark"] body.delta-partner-page main{background:#0c1930!important;color:#e9f2ff!important}
+html[data-site-theme="dark"] :is(.air-home,.partner-page) :is(h1,h2,h3){color:#f8fbff}
+html[data-site-theme="dark"] .air-hero :is(h1,p),
+html[data-site-theme="dark"] .partner-hero :is(h1,h2,p){color:#fff!important}
+html[data-site-theme="dark"] .air-home .air-essentials,
+html[data-site-theme="dark"] .air-home .air-story,
+html[data-site-theme="dark"] .air-home .air-reasons,
+html[data-site-theme="dark"] .air-home .air-experience,
+html[data-site-theme="dark"] .air-home .air-partner-editorial,
+html[data-site-theme="dark"] .air-home .air-news,
+html[data-site-theme="dark"] .air-home .air-news-feature,
+html[data-site-theme="dark"] .partner-page .partner-stamp,
+html[data-site-theme="dark"] .partner-page .partner-benefits,
+html[data-site-theme="dark"] .partner-page .partner-benefit,
+html[data-site-theme="dark"] .partner-page .partner-eligibility,
+html[data-site-theme="dark"] .partner-page .partner-rewards-copy,
+html[data-site-theme="dark"] .partner-page .partner-future{
+  background:#132742!important;border-color:#354b64!important;color:#ecf2f9!important;
+}
+html[data-site-theme="dark"] :is(.air-home,.partner-page) :is(.air-section-heading>p,.air-story p,.air-partner-details>p,.air-news-feature-main p,.air-news-feature-side p,.partner-overview-heading p,.partner-section-heading>p,.partner-benefit p,.partner-eligibility p,.partner-rewards-copy p,.partner-future-heading p,.partner-future-grid p){
+  color:#c1d0df!important;
+}
+html[data-site-theme="dark"] .air-home .air-essentials a,
+html[data-site-theme="dark"] .air-home .air-story h3,
+html[data-site-theme="dark"] .air-home .air-partner-editorial h2,
+html[data-site-theme="dark"] .air-home .air-partner-details h3,
+html[data-site-theme="dark"] .partner-page .partner-benefit h3{color:#f4f7fc!important}
+html[data-site-theme="dark"] .air-home .air-feature,
+html[data-site-theme="dark"] .air-home .air-news-feature-side,
+html[data-site-theme="dark"] .air-home .air-partner-showcase{
+  background:#172e4c!important;color:#edf4ff!important;border-color:#38516e!important;
+}
+html[data-site-theme="dark"] .air-home .air-feature-copy h2{color:#fff!important}
+html[data-site-theme="dark"] .air-home .air-feature-copy p{color:#cbd9e7!important}
+html[data-site-theme="dark"] .partner-page .partner-tier-list span{
+  background:#1c3553!important;color:#ecf2fb!important;border-color:#4b6582!important;
+}
+html[data-site-theme="dark"] .partner-page .partner-stamp-inner small{color:#bbcddd!important}
+html[data-site-theme="dark"] .partner-page .partner-overview-caption{background:#0d213bdd}
+html[data-site-theme="dark"] .partner-page .partner-feature-lines>div{color:#e0eafb;border-color:#3e5771!important}
+html[data-site-theme="dark"] body :is(.card,.page-card,.settings-card,.tier-card,.flight-card){
+  background:#142943!important;border-color:#344c69!important;color:#e9f2fb!important;
+}
+
+/* Keep the site footer deliberately navy in BOTH modes, per design preference. */
+html[data-site-theme] body .community-footer,
+html[data-site-theme] body.delta-partner-page .partner-disclaimer,
+html[data-site-theme] body.delta-partner-page .partner-end{
+  background:#101d37!important;color:#dae5f2!important;
+}
+html[data-site-theme] body .community-footer p{color:#cad6e4!important}
+
+/* Mobile: bigger text, but compact controls that cannot crowd the account. */
+@media(max-width:1020px){
+  .unified-delta-header .premium-header-actions{gap:8px!important}
+  .unified-delta-header .site-theme-toggle{min-width:44px;padding:9px!important}
+  .unified-delta-header .site-theme-toggle span{display:none}
+}
+@media(max-width:620px){
+  body{font-size:16px!important}
+  .unified-delta-header .site-theme-toggle{width:40px;min-width:40px;min-height:42px;padding:8px!important}
+  .unified-delta-header .site-theme-toggle svg{width:18px;height:18px}
+  .unified-delta-header .premium-header-actions{gap:6px!important}
+  :is(.air-home,.partner-page,.card,.page-card) p{font-size:15px!important}
+  .air-home .air-site-links .air-tab,
+  body.delta-partner-page .partner-nav-inner>a{font-size:13px!important}
+  .unified-delta-header .delta-account-trigger-label{display:none!important}
+  .unified-delta-header .delta-account-caret{display:none!important}
+  .unified-delta-header .delta-account-menu>summary.delta-account-trigger{min-width:44px!important;max-width:48px!important;padding:5px!important}
+  .delta-avatar-small{width:34px;height:34px}
+}
+@media(prefers-reduced-motion:reduce){
+  .delta-avatar-frame>.delta-avatar-photo{transition:none}
+  .unified-delta-header .site-theme-toggle{transition:none}
+}
