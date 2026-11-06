@@ -17,7 +17,7 @@ def test_articles_are_durable_and_drafts_never_public(tmp_path):
         user = User(
             discord_user_id="111111", discord_username="author",
             discord_display_name="Author", roblox_user_id="222222",
-            roblox_username="writer", skymiles_number="SM-TEST-NEWS"
+            roblox_username="writer", roblox_display_name="Writer", skymiles_number="SM-TEST-NEWS"
         )
         db.add(user)
         db.flush()
