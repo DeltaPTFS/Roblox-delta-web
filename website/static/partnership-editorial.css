@@ -137,3 +137,52 @@
  .partner-rewards-visual{height:260px;min-height:260px}
 }
 @media(prefers-reduced-motion:reduce){.partner-page *, .partner-page *:before,.partner-page *:after{animation:none!important;transition:none!important}}
+
+
+/* Extend the homepage's understated airline header to the partner pages. */
+body.delta-partner-page{background:#fff;color:#172b45;font-family:Arial,Helvetica,sans-serif}
+body.delta-partner-page .premium-header.community-header{
+ background:#101b33!important;border-bottom:1px solid #253650!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ font-family:Arial,Helvetica,sans-serif!important;
+}
+body.delta-partner-page .premium-header:before,
+body.delta-partner-page .delta-nav-sparkles,
+body.delta-partner-page .premium-header-accent{display:none!important}
+body.delta-partner-page .premium-announcement{
+ background:#08152c!important;border-bottom:1px solid #31415b!important;
+}
+body.delta-partner-page .premium-nav-shell{
+ width:min(1300px,calc(100% - 48px));min-height:79px!important;
+}
+body.delta-partner-page .premium-brand-icon{
+ transform:none!important;background:none!important;border:0!important;
+ box-shadow:none!important;border-radius:0!important;
+}
+body.delta-partner-page .premium-header .community-primary-nav>a{
+ background:transparent!important;color:#e3e8ef!important;transform:none!important;
+ border-radius:0!important;font-family:Arial,Helvetica,sans-serif!important;
+ font-size:12px!important;font-weight:800!important;
+ letter-spacing:.025em!important;text-transform:uppercase!important;
+}
+body.delta-partner-page .premium-header .community-primary-nav>a:hover,
+body.delta-partner-page .premium-header .community-primary-nav>a.is-current{
+ color:#fff!important;background:transparent!important;transform:none!important;
+}
+body.delta-partner-page .premium-header .community-primary-nav>a:after{
+ border-radius:0!important;background:#c8102e!important;box-shadow:none!important;
+}
+body.delta-partner-page .premium-header .community-primary-nav>a:hover:after,
+body.delta-partner-page .premium-header .community-primary-nav>a.is-current:after{
+ box-shadow:0 0 11px rgba(230,36,74,.4)!important;
+}
+body.delta-partner-page .sky-nav-dropdown>summary{border-radius:3px!important;box-shadow:none!important}
+body.delta-partner-page .premium-get-started{
+ background:#c8102e!important;box-shadow:none!important;border-radius:2px!important;
+}
+body.delta-partner-page .premium-header .delta-language-switch{
+ background:transparent!important;border-radius:2px!important;
+}
+@media(max-width:760px){
+ body.delta-partner-page .premium-nav-shell{width:calc(100% - 30px);min-height:69px!important}
+}
