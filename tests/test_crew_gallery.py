@@ -111,7 +111,7 @@ def test_public_homepage_header_and_footer_branding():
     header = Path("website/templates/_unified_site_header.html").read_text()
     css = Path("website/static/unified-delta-navigation.css").read_text()
     assert '{% include "_unified_site_header.html" %}' in base
-    assert 'class="community-primary-nav"' in header
+    assert 'class="community-primary-nav standard-nav-inner"' in header
     assert 'href="/flights"' in header
     assert 'href="/forms"' in header
     assert 'href="/skymiles"' in header
