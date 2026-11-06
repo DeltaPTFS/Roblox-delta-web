@@ -4,82 +4,180 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ffffff">
-  <script src="/static/site-theme-init.js"></script>
-  <meta name="description" content="Announcements, flight updates, events and community news from the Delta Roblox team.">
-  <title>News &amp; Announcements | Delta Roblox</title>
+  <meta name="description" content="Community announcements, flight updates and important news published by the Delta Roblox team.">
+  <title>Newsroom | Delta Roblox</title>
+  <script src="/static/site-theme-init.js?v=20261106"></script>
   <link rel="icon" href="/static/delta-emblem.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/static/news-editorial.css">
-  <link rel="stylesheet" href="/static/site-appearance.css">
+  <link rel="stylesheet" href="/static/site-appearance.css?v=20261106-news">
+  <link rel="stylesheet" href="/static/news-editorial.css?v=20261106-refresh">
+  <!-- Keep the newsroom readable even if a cached stylesheet has not refreshed. -->
+  <style>
+    .news-page{background:#fff;color:#172b45}
+    .news-container{width:min(1180px,calc(100% - 44px));margin:0 auto}
+    .news-hero{background:#10213c;color:#fff}
+    .news-hero-inner{min-height:365px;display:flex;align-items:center;padding:68px 0}
+    .news-hero h1{color:#fff;font-size:clamp(42px,5vw,68px);line-height:1.07;margin:16px 0}
+    .news-content{padding:65px 0 90px}
+    .news-update-card{background:#fff;border:1px solid #dce3ec;border-top:4px solid #c8102e;padding:38px}
+    .news-explore-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+    .news-explore-card{display:block;padding:29px;border:1px solid #dae2eb;text-decoration:none}
+    @media(max-width:750px){.news-explore-grid{grid-template-columns:1fr}.news-hero-inner{min-height:300px;padding:50px 0}.news-update-card{padding:25px}}
+  </style>
 </head>
-<body>
-  <div class="notice">DELTA ROBLOX NEWSROOM <span>INDEPENDENT AVIATION COMMUNITY</span></div>
+<body class="news-page">
+  <div class="news-utility">
+    <div class="news-container news-utility-inner">
+      <span>DELTA ROBLOX</span>
+      <span>THE COMMUNITY NEWSROOM</span>
+    </div>
+  </div>
+
   <header class="news-site-header">
-    <a class="brand" href="/home" aria-label="Return to Delta Roblox homepage"><img src="/static/delta-emblem.svg" alt="" width="38" height="38"><span>DELTA <small>AIR LINES · ROBLOX</small></span></a>
-    <nav aria-label="Main navigation">
-      <a href="/home">Home</a>
-      <a href="/flights">Flights</a>
-      <a href="/forms">Forms</a>
-      <a href="/news" aria-current="page">News</a>
-      <a href="/partnerships">Partnerships</a>
-      <a href="/skymiles">SkyMiles</a>
-    </nav>
-    <button class="site-theme-toggle" type="button" data-site-theme-toggle aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode">
-      <svg class="theme-symbol theme-symbol-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20.3 15.5A8.6 8.6 0 0 1 8.5 3.7 8.7 8.7 0 1 0 20.3 15.5Z"/></svg>
-      <svg class="theme-symbol theme-symbol-sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.1-7.1-1.4 1.4M6.3 17.7l-1.4 1.4m14.2 0-1.4-1.4M6.3 6.3 4.9 4.9"/></svg>
-      <span data-site-theme-label>Dark</span>
-    </button>
-    {% if manage_url %}
-    <a class="header-link" href="{{ manage_url }}">Manage announcements →</a>
-    {% else %}
-    <a class="header-link" href="/login">Sign In →</a>
-    {% endif %}
+    <div class="news-container news-header-inner">
+      <a class="news-brand" href="/home" aria-label="Delta Roblox home">
+        <img src="/static/delta-emblem.svg" width="44" height="44" alt="">
+        <span>DELTA <small>AIR LINES · ROBLOX</small></span>
+      </a>
+      <nav class="news-main-nav" aria-label="Main navigation">
+        <a href="/home">Home</a>
+        <a href="/flights">Flights</a>
+        <a href="/forms">Forms</a>
+        <a class="is-active" href="/news" aria-current="page">News</a>
+        <a href="/partnerships">Partnerships</a>
+        <a href="/skymiles">SkyMiles</a>
+      </nav>
+      <div class="news-header-actions">
+        <button class="site-theme-toggle news-theme-toggle" type="button" data-site-theme-toggle aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode">
+          <svg class="theme-symbol theme-symbol-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20.3 15.5A8.6 8.6 0 0 1 8.5 3.7 8.7 8.7 0 1 0 20.3 15.5Z"/></svg>
+          <svg class="theme-symbol theme-symbol-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.1-7.1-1.4 1.4M6.3 17.7l-1.4 1.4m14.2 0-1.4-1.4M6.3 6.3 4.9 4.9"/></svg>
+          <span data-site-theme-label>Dark</span>
+        </button>
+        {% if manage_url %}
+        <a class="news-header-link" href="{{ manage_url }}">Manage news <span aria-hidden="true">↗</span></a>
+        {% else %}
+        <a class="news-header-link" href="/login">Sign in <span aria-hidden="true">→</span></a>
+        {% endif %}
+      </div>
+    </div>
   </header>
 
-  <main>
-    <div class="intro">
-      <span class="eyebrow">UPDATES FROM THE DELTA ROBLOX TEAM</span>
-      <h1>News &amp; Announcements</h1>
-      <p>Follow the latest messages from our team, including upcoming flights, community events, opportunities and important notices.</p>
-    </div>
+  <main id="main-content">
+    <section class="news-hero" aria-labelledby="news-page-title">
+      <div class="news-hero-image" aria-hidden="true">
+        <img src="/static/gallery/delta-centennial.webp" alt="" width="1400" height="800" decoding="async">
+      </div>
+      <div class="news-hero-overlay" aria-hidden="true"></div>
+      <div class="news-container news-hero-inner">
+        <div class="news-hero-copy">
+          <span class="news-overline news-overline-light">NEWS &amp; ANNOUNCEMENTS</span>
+          <h1 id="news-page-title">The latest from our team.</h1>
+          <p>Flight updates, upcoming events, opportunities and important announcements—all in one place, published by Delta Roblox.</p>
+          <a class="news-hero-link" href="#latest-updates">Read the latest <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+    </section>
 
-    <section class="news-feed" aria-label="Published community announcements">
-    {% if announcement %}
-      <article class="featured-announcement">
-        <div class="announcement-meta"><span class="category">{{ announcement.category }}</span>{% if announcement.date %}<time>{{ announcement.date }}</time>{% endif %}</div>
-        <h2>Latest announcement</h2>
-        <p class="announcement-message">{{ announcement.message }}</p>
-        <p class="announcement-author">Published by {{ announcement.author }}</p>
-        {% if announcement.link_label and announcement.link_path %}
-        <a class="news-action" href="{{ announcement.link_path }}">{{ announcement.link_label }} <span aria-hidden="true">→</span></a>
-        {% endif %}
+    <div class="news-container news-content">
+      <div class="news-section-heading" id="latest-updates">
+        <div>
+          <span class="news-overline">YOUR COMMUNITY. YOUR NEWS.</span>
+          <h2>Latest announcements</h2>
+          <p>Only updates from the Delta Roblox team appear here.</p>
+        </div>
+        <span class="news-section-status">{{ 'LATEST UPDATE' if announcement else 'NO ACTIVE POSTS' }}</span>
+      </div>
+
+      {% if announcement %}
+      <article class="news-update-card news-update-live">
+        <div class="news-update-body">
+          <div class="news-meta">
+            <span class="news-category">{{ announcement.category }}</span>
+            {% if announcement.date %}<time>{{ announcement.date }}</time>{% endif %}
+          </div>
+          <h3>Community announcement</h3>
+          <p class="news-announcement-text">{{ announcement.message }}</p>
+          <p class="news-byline">Published by <strong>{{ announcement.author }}</strong></p>
+          {% if announcement.link_label and announcement.link_path %}
+          <a class="news-primary-link" href="{{ announcement.link_path }}">{{ announcement.link_label }} <span aria-hidden="true">→</span></a>
+          {% endif %}
+        </div>
+        <aside class="news-side-panel" aria-label="Newsroom information">
+          <img src="/static/delta-emblem.svg" width="58" height="58" alt="">
+          <span>FROM DELTA ROBLOX</span>
+          <strong>Official community updates.</strong>
+          <p>Everything posted here comes directly from our team.</p>
+        </aside>
       </article>
-    {% else %}
-      <div class="no-announcement">
-        <span class="eyebrow">COMMUNITY NOTICEBOARD</span>
-        <h2>No announcements have been published yet.</h2>
-        <p>When the Delta Roblox team posts an update, you’ll find it here.</p>
-        <a class="news-action" href="/flights">Browse upcoming flights <span aria-hidden="true">→</span></a>
+      {% else %}
+      <div class="news-update-card news-update-empty">
+        <div class="news-update-body">
+          <span class="news-category">NEWSROOM STATUS</span>
+          <h3>Nothing published yet.<br>Stay tuned.</h3>
+          <p>Our team hasn't published an announcement right now. When there's a new flight update, event or important notice, you'll see it here.</p>
+          <a class="news-primary-link" href="/flights">Explore upcoming flights <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="news-side-panel news-empty-visual">
+          <img src="/static/delta-emblem.svg" width="72" height="72" alt="">
+          <span>THE NEWSROOM</span>
+          <strong>Your next update starts here.</strong>
+          <p>Check back for the next announcement from our community.</p>
+        </div>
       </div>
-    {% endif %}
-    </section>
+      {% endif %}
 
-    {% if manage_url %}
-    <div class="publish-link">
-      <div><strong>Have something to share?</strong><p>Publish or update the community announcement from your staff panel. The latest published message also appears on the homepage.</p></div>
-      <a class="news-action" href="{{ manage_url }}">Open announcement editor →</a>
+      {% if manage_url %}
+      <section class="news-editor-panel" aria-labelledby="news-editor-heading">
+        <div>
+          <span class="news-overline">FOR COMMUNITY STAFF</span>
+          <h3 id="news-editor-heading">Have an announcement to share?</h3>
+          <p>Publish the latest update from your staff panel. Your announcement will appear here and on the homepage.</p>
+        </div>
+        <a class="news-editor-button" href="{{ manage_url }}">Open announcement editor <span aria-hidden="true">→</span></a>
+      </section>
+      {% endif %}
+
+      <section class="news-explore" aria-labelledby="news-explore-heading">
+        <div class="news-section-heading news-section-heading-compact">
+          <div>
+            <span class="news-overline">DISCOVER MORE</span>
+            <h2 id="news-explore-heading">Explore Delta Roblox</h2>
+          </div>
+        </div>
+        <div class="news-explore-grid">
+          <a class="news-explore-card" href="/flights">
+            <span class="news-explore-index">01 / FLIGHT OPERATIONS</span>
+            <h3>Upcoming flights</h3>
+            <p>Browse destinations and check the next departures.</p>
+            <span class="news-explore-arrow">View flights <span aria-hidden="true">→</span></span>
+          </a>
+          <a class="news-explore-card" href="/forms">
+            <span class="news-explore-index">02 / OPPORTUNITIES</span>
+            <h3>Careers &amp; forms</h3>
+            <p>Explore applications, recruitment and ways to get involved.</p>
+            <span class="news-explore-arrow">Browse forms <span aria-hidden="true">→</span></span>
+          </a>
+          <a class="news-explore-card" href="/partnerships">
+            <span class="news-explore-index">03 / CONNECTIONS</span>
+            <h3>Airline partnerships</h3>
+            <p>Learn about our community partnership with Virgin Atlantic.</p>
+            <span class="news-explore-arrow">Our partners <span aria-hidden="true">→</span></span>
+          </a>
+        </div>
+      </section>
     </div>
-    {% endif %}
-
-    <section class="explore-news" aria-labelledby="explore-title">
-      <div class="section-heading"><span class="eyebrow">MORE FROM OUR COMMUNITY</span><h2 id="explore-title">Explore Delta Roblox</h2></div>
-      <div class="explore-grid">
-        <a href="/flights"><strong>Upcoming flights</strong><span>Find the next departure →</span></a>
-        <a href="/forms"><strong>Careers &amp; Forms</strong><span>See opportunities →</span></a>
-        <a href="/partnerships"><strong>Partnerships</strong><span>Learn more →</span></a>
-      </div>
-    </section>
   </main>
-  <footer><strong>DELTA ROBLOX</strong><p>Independent Roblox aviation community. Not affiliated with, endorsed by, or operated by Delta Air Lines, Inc. All flight bookings and rewards on this site are community features.</p></footer>
-<script src="/static/site-theme.js" defer></script>
+
+  <footer class="news-footer">
+    <div class="news-container news-footer-inner">
+      <div class="news-footer-brand">
+        <img src="/static/delta-emblem.svg" width="36" height="36" alt="">
+        <div><strong>DELTA ROBLOX</strong><span>KEEP CLIMBING.</span></div>
+      </div>
+      <p>Independent aviation community. Not affiliated with, endorsed by or operated by Delta Air Lines, Inc. Flights, member rewards and announcements on this site are community features.</p>
+      <a href="/home">Return home <span aria-hidden="true">↑</span></a>
+    </div>
+  </footer>
+
+  <script src="/static/site-theme.js?v=20261106" defer></script>
 </body>
 </html>
