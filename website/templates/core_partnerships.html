@@ -1,115 +1,137 @@
 {% extends "community_base.html" %}
-{% block title %}Core Partnerships | Virgin Atlantic × Delta Roblox{% endblock %}
+{% block title %}Airline Partners | Virgin Atlantic · Delta Roblox{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="/static/core-partnerships.css?v={{ asset_version }}">
-<link rel="stylesheet" href="/static/partnership-cinematic.css?v={{ asset_version }}-partner-photo-20261025">
-<script src="/static/partnership-cinematic.js?v={{ asset_version }}-partner-photo-20261025" defer></script>
+<link rel="stylesheet" href="/static/partnership-editorial.css?v={{ asset_version }}">
 {% endblock %}
 {% block content %}
-<div class="core-page">
-  <div class="core-scroll-meter" aria-hidden="true"><span class="core-scroll-meter-fill"></span></div>
-  <section class="core-hero" aria-labelledby="core-heading">
-    <div class="core-hero-orbit core-orbit-one" aria-hidden="true"></div>
-    <div class="core-hero-orbit core-orbit-two" aria-hidden="true"></div>
-    <div class="core-hero-route" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="core-hero-inner">
-      <div class="core-hero-copy">
-        <div class="core-overline"><span class="core-red-dot"></span> Delta Roblox <span class="core-overline-rule"></span> Partner spotlight</div>
-        <p class="core-issue">Our first core partnership <span aria-hidden="true">/</span> Announced September 29, 2026</p>
-        <h1 id="core-heading">Two airlines.<br><span>One shared horizon.</span></h1>
-        <p class="core-lede">We're proud to welcome <strong>Virgin Atlantic</strong> as the first core partner of our Delta Air Lines Roblox roleplay community — bringing new destinations, shared experiences, and more ways to be rewarded for every virtual flight.</p>
-        <div class="core-actions">
-          <a class="core-button core-button-primary" href="https://discord.gg/RbuYrETXAJ" target="_blank" rel="noopener noreferrer">Explore Virgin Atlantic <span aria-hidden="true">↗</span></a>
-          <a class="core-button core-button-outline" href="#benefits">View partnership benefits <span aria-hidden="true">↓</span></a>
-        </div>
-        <p class="core-disclaimer">A partnership between independent Roblox aviation roleplay communities. Not an official announcement by, or affiliation with, either real-world airline.</p>
-      </div>
-      <div class="core-hero-art" aria-label="Delta Roblox and Virgin Atlantic roleplay partnership">
-        <div class="core-partner-graphic">
-          <div class="core-graphic-topline"><span>CORE PARTNERSHIP 001</span><span>EST. 2026</span></div>
-          <div class="core-brands">
-            <div class="core-brand">
-              <img class="core-delta-mark" src="/static/delta-emblem.svg" width="88" height="88" alt="Delta-inspired triangular emblem">
-              <strong class="core-delta-word">DELTA</strong>
-              <span>ROBLOX COMMUNITY</span>
-            </div>
-            <span class="core-brand-cross" aria-hidden="true">×</span>
-            <div class="core-brand core-brand-virgin">
-              <img src="/static/partnerships/virgin-flag.svg" width="150" height="130" alt="Virgin Atlantic inspired red flag mark">
-              <strong class="core-virgin-word">virgin atlantic</strong>
-              <span>ROBLOX COMMUNITY</span>
-            </div>
-          </div>
-          <div class="core-graphic-footer"><span class="core-connected"><span class="core-status-dot"></span> Connected communities</span><span>KEEP CLIMBING · FLY FURTHER</span></div>
-        </div>
-        <div class="core-hero-stamp">NEW<br><strong>PARTNERSHIP</strong><span>2026</span></div>
+<div class="partner-page">
+  <nav class="partner-breadcrumb partner-wrap" aria-label="Breadcrumb">
+    <a href="/home">Home</a><span aria-hidden="true">/</span>
+    <span>Airline Partnerships</span>
+  </nav>
+
+  <section class="partner-intro partner-wrap" aria-labelledby="partner-page-title">
+    <span class="partner-eyebrow">PARTNER AIRLINES</span>
+    <h1 id="partner-page-title">Airline Partnerships</h1>
+    <p>Discover how working together creates more opportunities to explore, connect and enjoy the journey. Meet the first core partner of the Delta Roblox community.</p>
+  </section>
+
+  <section class="partner-hero" aria-labelledby="partner-hero-title">
+    <div class="partner-hero-photo">
+      <img src="/static/partnerships/delta-virgin-tails.jpg" width="1042" height="695" alt="Delta and Virgin Atlantic aircraft tails at an airport" fetchpriority="high" decoding="async">
+    </div>
+    <div class="partner-hero-shade" aria-hidden="true"></div>
+    <div class="partner-hero-body partner-wrap">
+      <div class="partner-hero-text">
+        <span class="partner-eyebrow partner-eyebrow-light">OUR FIRST CORE PARTNER</span>
+        <h2 id="partner-hero-title">Virgin Atlantic</h2>
+        <p>Bringing our communities closer through new destinations, shared experiences and benefits designed around the journey.</p>
+        <a class="partner-btn partner-btn-red" href="#benefits">Explore partnership benefits <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
 
-  <div class="core-facts" aria-label="Partnership details">
-    <div><span>01</span><strong>First core partner</strong><small>Virgin Atlantic Roblox</small></div>
-    <div><span>29 SEP</span><strong>Partnership announced</strong><small>2026</small></div>
-    <div><span>∞</span><strong>More possibilities</strong><small>Shared roleplay experiences</small></div>
+  <div class="partner-stamp">
+    <div class="partner-wrap partner-stamp-inner">
+      <span><strong>Virgin Atlantic</strong><small>Core Partner</small></span>
+      <span class="partner-stamp-divider" aria-hidden="true"></span>
+      <span><strong>September 29, 2026</strong><small>Partnership announced</small></span>
+      <span class="partner-stamp-note">DELTA ROBLOX × VIRGIN ATLANTIC ROBLOX</span>
+    </div>
   </div>
 
-  <section class="core-intro core-content-width" aria-labelledby="core-vision-title">
-    <div class="core-section-kicker">A partnership with purpose</div>
-    <div class="core-intro-grid">
-      <h2 id="core-vision-title">Better together.<br><em>Built for our flyers.</em></h2>
-      <div><p>This is more than a partnership announcement. Our two communities are working together on development projects designed to open up <strong>new destinations</strong>, improve experiences in the air, and bring new opportunities to members.</p><p>Our focus isn't a member count. It's giving our valued customers meaningful new ways to explore, fly, and connect.</p></div>
+  <section class="partner-overview partner-wrap" id="partnership-details" aria-labelledby="partner-overview-title">
+    <div class="partner-overview-heading">
+      <span class="partner-eyebrow">VIRGIN ATLANTIC</span>
+      <h2 id="partner-overview-title">More ways to explore, together.</h2>
+      <p>Our partnership brings two aviation communities together to create a more connected experience from check-in to arrival.</p>
+      <p>We're working toward more destinations, meaningful recognition and new opportunities for members to fly with both communities.</p>
+      <a class="partner-text-link" href="https://discord.gg/RbuYrETXAJ" target="_blank" rel="noopener noreferrer">Visit Virgin Atlantic's community <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="partner-overview-image">
+      <img src="/static/gallery/delta-aircraft-lineup.avif" alt="A lineup of Delta aircraft on the airport apron" width="900" height="531" loading="lazy" decoding="async">
+      <div class="partner-overview-caption">BETTER CONNECTIONS. MORE POSSIBILITIES.</div>
     </div>
   </section>
 
-  <section class="core-benefits" id="benefits" aria-labelledby="core-benefits-title">
-    <div class="core-content-width">
-      <div class="core-section-kicker">Your Sky Priority experience</div>
-      <div class="core-section-heading"><div><h2 id="core-benefits-title">Priority is <em>part of the journey.</em></h2><p>Eligible Delta Roblox members flying with Virgin Atlantic can enjoy a virtual Sky Priority experience.</p></div><span class="core-section-number">01 / BENEFITS</span></div>
-      <div class="core-benefit-grid">
-        <article class="core-benefit"><div class="core-benefit-icon" aria-hidden="true">01</div><h3>Priority Check-In</h3><p>A more seamless start to your virtual journey with dedicated priority check-in.</p></article>
-        <article class="core-benefit"><div class="core-benefit-icon" aria-hidden="true">02</div><h3>Security Screening</h3><p>Experience priority access through security in participating roleplay operations.</p></article>
-        <article class="core-benefit"><div class="core-benefit-icon" aria-hidden="true">03</div><h3>Priority Boarding</h3><p>Be among the first to board when your tier or cabin is eligible.</p></article>
-        <article class="core-benefit"><div class="core-benefit-icon" aria-hidden="true">04</div><h3>Lounge Access</h3><p>Enjoy access to partner lounge experiences where offered in-game.</p></article>
+  <section class="partner-benefits" id="benefits" aria-labelledby="partner-benefits-title">
+    <div class="partner-wrap">
+      <div class="partner-section-heading">
+        <span class="partner-eyebrow">PARTNERSHIP BENEFITS</span>
+        <h2 id="partner-benefits-title">Travel with more to look forward to.</h2>
+        <p>Eligible members may enjoy these Sky Priority-style experiences during participating community flights.</p>
       </div>
-      <div class="core-eligibility">
-        <div class="core-eligibility-heading"><span>WHO QUALIFIES?</span><strong>Eligible Delta Roblox cabins and tiers</strong></div>
-        <div class="core-tiers" aria-label="Eligible tiers and cabin classes"><span>First Class</span><span>Delta Comfort</span><span>Delta One</span><span>Gold</span><span>Platinum</span><span>Diamond</span></div>
+      <div class="partner-benefit-grid">
+        <article class="partner-benefit">
+          <span class="partner-benefit-number">01</span>
+          <h3>Priority Check-In</h3>
+          <p>Enjoy an easier start to your journey with dedicated check-in where available.</p>
+        </article>
+        <article class="partner-benefit">
+          <span class="partner-benefit-number">02</span>
+          <h3>Security Screening</h3>
+          <p>Access an expedited security experience during participating flight operations.</p>
+        </article>
+        <article class="partner-benefit">
+          <span class="partner-benefit-number">03</span>
+          <h3>Priority Boarding</h3>
+          <p>Eligible cabins and membership tiers can board ahead of the general boarding group.</p>
+        </article>
+        <article class="partner-benefit">
+          <span class="partner-benefit-number">04</span>
+          <h3>Lounge Access</h3>
+          <p>Discover selected partner lounge spaces when offered during a community event.</p>
+        </article>
+      </div>
+      <div class="partner-eligibility">
+        <div><strong>Eligible cabins &amp; membership tiers</strong><p>Benefits depend on your membership and the specific flight or event. They are not automatically available on every departure.</p></div>
+        <div class="partner-tier-list" aria-label="Eligible cabins and tiers"><span>First Class</span><span>Delta Comfort</span><span>Delta One</span><span>Gold</span><span>Platinum</span><span>Diamond</span></div>
       </div>
     </div>
   </section>
 
-  <section class="core-sky-section" aria-labelledby="core-sky-title">
-    <div class="core-sky-copy">
-      <div class="core-section-kicker">The rewards of flying together</div>
-      <h2 id="core-sky-title">More flights.<br><em>More ways to earn.</em></h2>
-      <p>Qualifying flights with our Virgin Atlantic partner can earn <strong>SkyMiles in the Delta Roblox rewards program</strong>, making your virtual travel experience even more valuable.</p>
-      <p>Virgin Atlantic <strong>Upper Class</strong> members will also be welcomed to our in-game <strong>Sky Priority Suite</strong> and <strong>SkyClub</strong> experiences on eligible Delta Roblox roleplay flights.</p>
-      <div class="core-reward-features"><span><b>→</b> Earn roleplay SkyMiles</span><span><b>→</b> Reciprocal premium recognition</span><span><b>→</b> Virtual SkyClub access</span></div>
-      <a class="core-text-link" href="/skymiles">Explore Delta SkyMiles <span aria-hidden="true">↗</span></a>
+  <section class="partner-rewards" aria-labelledby="partner-rewards-title">
+    <div class="partner-rewards-visual">
+      <img src="/static/gallery/delta-lounge.webp" width="1200" height="740" loading="lazy" decoding="async" alt="Delta-inspired lounge with seating and hospitality spaces">
     </div>
-    <div class="core-sky-visual">
-      <div class="core-sky-visual-overlay"><span>AN ELEVATED EXPERIENCE</span><strong>Welcome aboard.</strong><small>Roleplay flights. Shared horizons.</small></div>
-    </div>
-  </section>
-
-  <section class="core-connect core-content-width" aria-labelledby="core-connect-title">
-    <div class="core-connect-heading"><div class="core-section-kicker">A shared future</div><h2 id="core-connect-title">More destinations.<br><em>One community in the sky.</em></h2></div>
-    <div class="core-connect-panel">
-      <div class="core-connect-panel-copy"><span>OUR VISION</span><p>We look forward to working with Virgin Atlantic on community development projects that introduce more destinations and bring our virtual flyers a richer experience.</p><strong>The future is better when we build it together.</strong></div>
-      <div class="core-connect-panel-art core-partnership-photo-frame">
-        <a href="/static/partnerships/delta-virgin-tails.jpg" target="_blank" rel="noopener noreferrer" aria-label="Virgin Atlantic and Delta airplane tailfins">
-          <img src="/static/partnerships/delta-virgin-tails.jpg" width="1042" height="695" loading="lazy" decoding="async" alt="Virgin Atlantic and Delta airplane tailfins">
-        </a>
+    <div class="partner-rewards-copy">
+      <div class="partner-rewards-content">
+        <span class="partner-eyebrow">RECOGNITION & REWARDS</span>
+        <h2 id="partner-rewards-title">Make more of every journey.</h2>
+        <p>Qualifying Virgin Atlantic community flights can earn SkyMiles within the Delta Roblox rewards program. Eligible Upper Class guests may also receive access to selected Sky Priority Suite and SkyClub experiences.</p>
+        <div class="partner-feature-lines">
+          <div><span aria-hidden="true">✓</span> Community SkyMiles on qualifying flights</div>
+          <div><span aria-hidden="true">✓</span> Recognition for eligible tiers and cabins</div>
+          <div><span aria-hidden="true">✓</span> Selected premium lounge experiences</div>
+        </div>
+        <a href="/skymiles" class="partner-text-link">Explore our SkyMiles program <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
 
-  <section class="core-final" aria-labelledby="core-final-title">
-    <div class="core-final-top">DELTA ROBLOX <span aria-hidden="true">✳</span> VIRGIN ATLANTIC ROBLOX</div>
-    <h2 id="core-final-title">Ready to fly <em>further?</em></h2>
-    <p>Discover our partner community, upcoming experiences, and all the possibilities ahead.</p>
-    <a class="core-button core-button-primary" href="https://discord.gg/RbuYrETXAJ" target="_blank" rel="noopener noreferrer">Visit Virgin Atlantic on Discord <span aria-hidden="true">↗</span></a>
-    <div class="core-signoff">Keep Climbing, Delta Air Lines.</div>
+  <section class="partner-future partner-wrap" aria-labelledby="partner-future-title">
+    <div class="partner-future-heading">
+      <span class="partner-eyebrow">LOOKING AHEAD</span>
+      <h2 id="partner-future-title">A shared journey, with more ahead.</h2>
+      <p>This is just the beginning. Together, our communities aim to introduce more destinations and thoughtful experiences for travelers and crew.</p>
+    </div>
+    <div class="partner-future-grid">
+      <div><span>01</span><h3>Discover</h3><p>Explore upcoming schedules and partner events.</p></div>
+      <div><span>02</span><h3>Connect</h3><p>Meet the teams bringing both communities together.</p></div>
+      <div><span>03</span><h3>Experience</h3><p>Enjoy shared opportunities as new plans are announced.</p></div>
+    </div>
   </section>
+
+  <section class="partner-end" aria-labelledby="partner-end-title">
+    <div class="partner-wrap partner-end-inner">
+      <div><span class="partner-eyebrow partner-eyebrow-light">KEEP CLIMBING</span><h2 id="partner-end-title">Your next adventure starts here.</h2><p>Get to know our first core partner and find out what's coming next.</p></div>
+      <div class="partner-end-actions">
+        <a class="partner-btn partner-btn-red" href="https://discord.gg/RbuYrETXAJ" target="_blank" rel="noopener noreferrer">Explore Virgin Atlantic <span aria-hidden="true">↗</span></a>
+        <a class="partner-btn partner-btn-outline" href="/flights">View upcoming flights <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <div class="partner-disclaimer partner-wrap">Independent partnerships between Roblox aviation communities. Not a real-world airline partnership or an official Delta Air Lines or Virgin Atlantic offering. All priority services and SkyMiles described here are community features.</div>
 </div>
 {% endblock %}

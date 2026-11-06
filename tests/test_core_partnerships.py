@@ -13,14 +13,14 @@ def test_core_partnerships_is_a_public_page():
     with TestClient(app) as client:
         response = client.get("/partnerships")
     assert response.status_code == 200
-    assert "Two airlines." in response.text
+    assert "Airline Partnerships" in response.text
     assert "Virgin Atlantic" in response.text
     assert "September 29, 2026" in response.text
     assert 'href="https://discord.gg/RbuYrETXAJ"' in response.text
     assert 'rel="canonical" href="https://roblox-delta-web.vercel.app/partnerships"' in response.text
     assert 'content="index, follow, max-image-preview:large"' in response.text
-    assert "Not an official announcement by" in response.text
-
+    assert "Not a real-world airline partnership" in response.text
+    assert 'class="partner-hero"' in response.text
 
 def test_partner_benefits_are_complete_and_mobile_styled():
     template = Path("website/templates/core_partnerships.html").read_text()
@@ -32,10 +32,11 @@ def test_partner_benefits_are_complete_and_mobile_styled():
         assert benefit in template
     assert "https://discord.gg/RbuYrETXAJ" in template
     assert 'href="#benefits"' in template
-    css = Path("website/static/core-partnerships.css").read_text()
-    assert "@media(max-width:700px)" in css
+    css = Path("website/static/partnership-editorial.css").read_text()
+    assert "@media(max-width:760px)" in css
+    assert "@media(max-width:500px)" in css
     assert "@media(prefers-reduced-motion:reduce)" in css
-
+    assert ".partner-benefit-grid" in css
 
 def test_partner_link_in_site_navigation_and_homepage():
     base = Path("website/templates/community_base.html").read_text()
@@ -44,7 +45,8 @@ def test_partner_link_in_site_navigation_and_homepage():
     assert '{% include "_unified_site_header.html" %}' in base
     assert 'href="/partnerships"' in shared
     assert 'href="/partnerships"' in home
-    assert "/static/partnerships/virgin-flag.svg" in home
+    assert "/static/partnerships/delta-virgin-tails.jpg" in home
+    assert 'class="air-partner-showcase"' in home
 
 def test_premium_navigation_has_live_signup_and_mobile_access():
     public = Path("website/templates/community_base.html").read_text()
@@ -76,28 +78,24 @@ def test_welcome_sound_replays_when_page_is_revisited():
     assert 'delta-signin.mp3' in html
 
 
-def test_partnership_has_its_own_scroll_cinematic_director():
+def test_partnership_uses_accessible_editorial_layout_instead_of_cinematic_effects():
     template = Path("website/templates/core_partnerships.html").read_text()
-    script = Path("website/static/partnership-cinematic.js").read_text()
-    css = Path("website/static/partnership-cinematic.css").read_text()
-    generic = Path("website/static/community-motion.js").read_text()
+    css = Path("website/static/partnership-editorial.css").read_text()
+    home = Path("website/templates/homepage.html").read_text()
+    base = Path("website/templates/community_base.html").read_text()
 
-    assert "/static/partnership-cinematic.js" in template
-    assert "/static/partnership-cinematic.css" in template
-    assert 'class="core-hero-route"' in template
-    assert 'class="core-scroll-meter"' in template
-    assert 'data-core-progress' not in template or 'core-scroll-meter-fill' in template
-    assert "IntersectionObserver" in script
-    assert "window.addEventListener('scroll', schedule, { passive: true })" in script
-    assert "node.classList.add('core-visible')" in script
-    assert "node.classList.remove('core-visible')" in script
-    assert ".core-benefit" in script and ".core-eligibility" in script
-    assert ".core-sky-visual-overlay > *" in script
-    assert "core-motion-ready" in css
-    assert "coreBrandFloat" in css
-    assert "coreFlightStreak" in css
-    assert "coreTierArrive" in css
-    assert "url('/static/gallery/delta-lounge.webp')" in css
-    assert "url('/static/ads/" not in css
+    assert "/static/partnership-editorial.css" in template
+    assert "/static/partnership-cinematic.js" not in template
+    assert "/static/partnership-cinematic.css" not in template
+    assert 'class="core-hero-route"' not in template
+    assert 'class="core-scroll-meter"' not in template
+    assert 'aria-labelledby="partner-page-title"' in template
+    assert 'class="partner-breadcrumb' in template
+    assert '/static/partnerships/delta-virgin-tails.jpg' in template
+    assert 'id="partner-benefits-title"' in template
+    assert 'class="partner-disclaimer partner-wrap"' in template
+    assert 'delta-partner-page' in base
+    assert 'class="air-partner-showcase"' in home
+    assert 'grid-template-columns:repeat(4,minmax(0,1fr))' in css
     assert "prefers-reduced-motion:reduce" in css
-    assert "if (document.querySelector('.home-cinematic-hero, .core-page')) return;" in generic
+

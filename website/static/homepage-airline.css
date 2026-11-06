@@ -297,3 +297,80 @@ body.delta-airline-home .air-news-editor-link a{color:#a80b2a;text-decoration:un
   body.delta-airline-home .air-news-feature-main{padding:30px 24px}
   body.delta-airline-home .air-news-feature-side{border-left:0;border-top:1px solid #dde4eb;padding:27px 24px}
 }
+
+
+/* Airline-style partner editorial feature: replaces the original navy/purple
+   block with a photo-led layout consistent with the dedicated partner page. */
+body.delta-airline-home .air-partner-editorial{
+  background:#fff;color:#172b45;padding:83px 0 86px;
+}
+.air-partner-editorial .air-partner-topline{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:24px;margin-bottom:30px;
+}
+.air-partner-editorial .air-partner-topline h2{
+  font-size:clamp(32px,3.7vw,49px);line-height:1.15;color:#172b45;
+  margin:13px 0 0;max-width:720px;letter-spacing:-.025em;
+}
+.air-partner-editorial .air-partner-showcase{
+  display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+  min-height:455px;background:#f3f6f9;border:1px solid #dce3ea;
+}
+.air-partner-editorial .air-partner-photograph{
+  display:block;position:relative;min-height:455px;overflow:hidden;
+  background:#d1dbe5;
+}
+.air-partner-editorial .air-partner-photograph img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  object-position:center;display:block;transition:transform .4s ease;
+}
+.air-partner-editorial .air-partner-photograph:hover img{transform:scale(1.025)}
+.air-partner-editorial .air-partner-details{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  padding:clamp(28px,4.8vw,72px);
+}
+.air-partner-editorial .air-partner-details h3{
+  font-size:clamp(37px,4.1vw,55px);font-weight:750;
+  line-height:1.1;color:#172b45;margin:16px 0 18px;letter-spacing:-.035em;
+}
+.air-partner-editorial .air-partner-details>p{
+  font-size:15px;color:#596b7e;line-height:1.76;margin:0 0 20px;max-width:490px;
+}
+.air-partner-editorial .air-partner-meta{
+  display:flex;align-items:center;gap:18px;border-top:1px solid #cfd8e2;
+  width:100%;padding:19px 0 28px;
+}
+.air-partner-editorial .air-partner-meta span{
+  font-size:10px;font-weight:850;color:#758296;letter-spacing:.12em;
+}
+.air-partner-editorial .air-partner-meta strong{
+  font-size:13px;color:#172b45;font-weight:750;
+}
+.air-partner-editorial .air-partner-note{
+  color:#64748a;font-size:11px;line-height:1.65;
+  margin:15px 0 0;
+}
+@media(max-width:900px){
+  body.delta-airline-home .air-partner-editorial{padding:65px 0}
+  .air-partner-editorial .air-partner-showcase{grid-template-columns:1fr 1fr;min-height:390px}
+  .air-partner-editorial .air-partner-photograph{min-height:390px}
+  .air-partner-editorial .air-partner-details{padding:33px}
+  .air-partner-editorial .air-partner-details h3{font-size:37px}
+}
+@media(max-width:700px){
+  body.delta-airline-home .air-partner-editorial{padding:58px 0}
+  .air-partner-editorial .air-partner-topline{align-items:flex-start;flex-direction:column;gap:15px}
+  .air-partner-editorial .air-partner-topline h2{font-size:clamp(31px,7vw,43px)}
+  .air-partner-editorial .air-partner-showcase{grid-template-columns:1fr}
+  .air-partner-editorial .air-partner-photograph{min-height:0;height:310px}
+  .air-partner-editorial .air-partner-details{padding:31px 26px 35px}
+  .air-partner-editorial .air-partner-details h3{font-size:40px}
+  .air-partner-editorial .air-partner-note{font-size:10px}
+}
+@media(max-width:450px){
+  .air-partner-editorial .air-partner-photograph{height:230px}
+  .air-partner-editorial .air-partner-details h3{font-size:36px}
+}
+@media(prefers-reduced-motion:reduce){
+  .air-partner-editorial .air-partner-photograph img{transition:none}
+}
