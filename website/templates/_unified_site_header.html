@@ -24,20 +24,7 @@
       <span class="premium-brand-icon"><img src="/static/delta-emblem.svg" alt="" width="44" height="44"></span>
       <span class="premium-brand-words">DELTA <small>AIR LINES <span>·</span> ROBLOX</small></span>
     </a>
-    {% if request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships'] %}
-    <nav class="community-primary-nav" aria-label="Primary navigation">
-      <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
-      <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
-      <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
-      <a href="/news" {% if request.url.path == '/news' %}class="is-current" aria-current="page"{% endif %}>News</a>
-      <a href="/partnerships" {% if request.url.path in ['/core-partnerships', '/partnerships'] %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
-      <a href="/skymiles" {% if request.url.path in ['/dashboard', '/skymiles', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
-      {% if nav_level in ("OWNER","ADMIN","STAFF") %}
-      <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}"
-         {% if request.url.path in ['/owner','/admin','/staff'] %}class="is-current" aria-current="page"{% endif %}>{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
-      {% endif %}
-    </nav>
-    {% endif %}
+
     <div class="premium-header-actions">
       <button type="button" class="site-theme-toggle" data-site-theme-toggle aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode">
         <svg class="theme-symbol theme-symbol-moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20.3 15.5A8.6 8.6 0 0 1 8.5 3.7 8.7 8.7 0 1 0 20.3 15.5Z"/></svg>
@@ -107,6 +94,22 @@
       </div>
     </div>
   </div>
+  {% if request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships'] %}
+  <div class="standard-nav-row">
+    <nav class="community-primary-nav standard-nav-inner" aria-label="Primary navigation">
+      <a href="/home" {% if request.url.path in ['/', '/home'] %}class="is-current" aria-current="page"{% endif %}>Home</a>
+      <a href="/flights" {% if request.url.path == '/flights' %}class="is-current" aria-current="page"{% endif %}>Flights</a>
+      <a href="/forms" {% if request.url.path.startswith('/forms') %}class="is-current" aria-current="page"{% endif %}>Forms</a>
+      <a href="/news" {% if request.url.path == '/news' %}class="is-current" aria-current="page"{% endif %}>News</a>
+      <a href="/partnerships" {% if request.url.path in ['/core-partnerships', '/partnerships'] %}class="is-current" aria-current="page"{% endif %}>Partnerships</a>
+      <a href="/skymiles" {% if request.url.path in ['/dashboard', '/skymiles', '/miles', '/trips', '/rewards', '/profile', '/settings'] %}class="is-current" aria-current="page"{% endif %}>SkyMiles</a>
+      {% if nav_level in ("OWNER","ADMIN","STAFF") %}
+      <a href="{{ '/owner' if nav_level == 'OWNER' else '/admin' if nav_level == 'ADMIN' else '/staff' }}"
+         {% if request.url.path in ['/owner','/admin','/staff'] %}class="is-current" aria-current="page"{% endif %}>{{ 'Owner Panel' if nav_level == 'OWNER' else 'Admin Panel' if nav_level == 'ADMIN' else 'Staff Panel' }}</a>
+      {% endif %}
+    </nav>
+  </div>
+  {% endif %}
   {% if request.url.path in ['/partnerships', '/core-partnerships'] %}
   <div class="partner-nav-row">
     <nav class="partner-nav-inner" aria-label="Main navigation">
