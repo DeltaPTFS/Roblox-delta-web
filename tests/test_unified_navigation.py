@@ -20,7 +20,7 @@ def test_shared_header_is_reused_on_all_site_layouts():
 
     assert 'id="site-header"' in shared
     assert 'class="community-brand"' in shared
-    assert 'class="community-primary-nav"' in shared
+    assert 'class="community-primary-nav standard-nav-inner"' in shared
     assert 'class="sky-nav-dropdown unified-menu-dropdown"' in shared
     assert 'id="sky-nav-panel"' in shared
     assert 'class="sky-menu-heading"' in shared

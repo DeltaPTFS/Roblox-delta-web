@@ -61,8 +61,9 @@ def test_primary_navigation_separated_from_profile_controls_at_all_page_widths()
     assert 'class="premium-header-actions"' in head
     assert 'class="standard-nav-row"' in head
     assert 'class="community-primary-nav standard-nav-inner"' in head
-    assert 'class="partner-nav-row"' in head
-    assert "request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships']" in head
+    assert 'class="partner-nav-row"' not in head
+    assert head.count('class="standard-nav-row"') == 1
+    assert "request.url.path not in ['/', '/home', '/partnerships', '/core-partnerships']" not in head
     assert 'class="site-theme-toggle"' in head
     assert "body.ops-panel-page .unified-delta-header .premium-announcement" in css
     assert "html[data-site-theme=\"light\"] .unified-delta-header" in css
