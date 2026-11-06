@@ -71,7 +71,10 @@ def test_staff_panel_paginates_and_loads_no_heavy_directories():
     assert "if users:" in main
     assert "User.id.in_(lookup_ids)" in main
     assert 'request.query_params.get("show_roles") == "1"' in main
-    assert 'class="delta-admin-quick-grid"' in template
+    assert 'class="delta-admin-quick-grid ops-quick-grid"' in template
+    assert 'data-ops-workspace' in template
+    assert 'data-ops-group="members"' in template
+    assert 'operations-workspace.js' in template
     assert "directory_pages" in template
     assert "loading=\"lazy\"" in template
     assert "content-visibility:auto" in css
