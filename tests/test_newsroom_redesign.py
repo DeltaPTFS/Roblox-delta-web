@@ -22,7 +22,9 @@ def test_newsroom_has_real_layout_and_no_phantom_headlines():
     assert "article.body" in template
     assert "Nothing published yet." in template
     assert "if manage_url" in template
-    assert "site-theme.js" in template
+    assert '{% extends "community_base.html" %}' in template
+    assert 'class="news-site-header"' not in template
+    assert '{% block footer %}' in template
 
 
 def test_newsroom_css_separates_cards_and_handles_dark_and_mobile():
