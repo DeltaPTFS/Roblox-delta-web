@@ -299,3 +299,30 @@ body.delta-airline-home .delta-home-flight-search:focus-visible{
   body.delta-airline-home .delta-home-notifications{width:33px}
   body.delta-airline-home .delta-home-flight-search{width:36px}
 }
+
+/* One understated slate text palette on white cards. Red belongs on CTA
+   backgrounds and active underlines, not scattered headlines or decorative copy. */
+html[data-site-theme="light"] body.delta-airline-home .air-home :is(
+ .air-kicker:not(.light),.air-reason-index,.air-inline-link,
+ .air-partner-meta span,.air-news-editor-link a,.air-news-author,
+ .air-partner-note,.air-fine-print,.air-arrow
+){
+  color:#475569!important;
+  text-shadow:none!important;
+}
+html[data-site-theme="light"] body.delta-airline-home .delta-booking-options .delta-options-link{
+  color:#334155!important;
+}
+html[data-site-theme="light"] body.delta-airline-home .air-home .air-section-heading>p,
+html[data-site-theme="light"] body.delta-airline-home .air-home .air-story-copy p,
+html[data-site-theme="light"] body.delta-airline-home .air-home .air-reason p,
+html[data-site-theme="light"] body.delta-airline-home .air-home .air-partner-details>p,
+html[data-site-theme="light"] body.delta-airline-home .air-home .air-news-feature-main p{
+  color:#475569!important;
+}
+html[data-site-theme="light"] body.delta-airline-home .delta-booking-form-wrap h2{
+  color:#1e293b!important;
+}
+html[data-site-theme="light"] body.delta-airline-home .air-home .air-feature-copy .air-action.dark{
+  background:#0f172a!important;color:#fff!important;
+}
