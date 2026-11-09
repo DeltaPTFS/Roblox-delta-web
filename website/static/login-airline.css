@@ -1,0 +1,329 @@
+/* Delta Roblox access page — editorial, not a glowing dashboard.
+   Applies only to /login (and /signup when rendered), preserving OAuth links,
+   tabs, accessibility and the shared public navigation. */
+body.delta-auth-page{
+  background:#f5f7fa!important;
+  color:#24354b!important;
+}
+body.delta-auth-page main{background:#f5f7fa!important;min-width:0}
+body.delta-auth-page .delta-auth-v3{
+  --auth-navy:#06182e;
+  --auth-slate:#334155;
+  --auth-secondary:#526276;
+  min-height:min(790px,calc(100svh - 130px));
+  padding:clamp(30px,4vw,66px) 22px clamp(42px,6vw,82px)!important;
+  color:#24354b!important;
+  background:#f5f7fa!important;
+  background-image:none!important;
+  overflow:visible!important;
+  isolation:auto!important;
+}
+body.delta-auth-page .delta-auth-v3 .auth-atmosphere,
+body.delta-auth-page .delta-auth-v3 .auth-kicker-line,
+body.delta-auth-page .delta-auth-v3 .auth-constellation,
+body.delta-auth-page .delta-auth-v3 .auth-online-dot,
+body.delta-auth-page .delta-auth-v3 .auth-card-icon,
+body.delta-auth-page .delta-auth-v3 .auth-panel-sparkle{display:none!important}
+body.delta-auth-page .delta-auth-grid{
+  max-width:1180px!important;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(400px,510px)!important;
+  gap:0!important;
+  align-items:stretch!important;
+  background:#fff!important;
+  border:1px solid #d6dfe8!important;
+  border-radius:8px!important;
+  overflow:hidden!important;
+  box-shadow:0 10px 32px rgba(13,31,49,.085)!important;
+}
+body.delta-auth-page .delta-auth-story{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-end;
+  min-height:600px;
+  overflow:hidden;
+  padding:clamp(36px,5vw,65px)!important;
+  background:#06182e url('/static/gallery/delta-centennial.webp') center center/cover no-repeat!important;
+  color:#fff!important;
+  text-align:left!important;
+}
+body.delta-auth-page .delta-auth-story::before{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(0deg,rgba(3,17,38,.95) 0%,rgba(3,17,38,.67) 45%,rgba(3,17,38,.08) 100%);
+  pointer-events:none;
+}
+body.delta-auth-page .delta-auth-story>*{position:relative;z-index:1}
+body.delta-auth-page .auth-kicker{
+  display:block!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:12px!important;
+  letter-spacing:.13em!important;
+  font-weight:800!important;
+  color:#e2e8f0!important;
+  margin-bottom:20px!important;
+  text-shadow:none!important;
+}
+body.delta-auth-page .delta-auth-story h1{
+  font-family:Arial,Helvetica,sans-serif!important;
+  color:#fff!important;
+  font-size:clamp(40px,4.2vw,65px)!important;
+  font-weight:800!important;
+  line-height:1.08!important;
+  letter-spacing:-.035em!important;
+  margin:0 0 22px!important;
+  text-shadow:none!important;
+}
+body.delta-auth-page .delta-auth-story h1 em{
+  color:#fff!important;
+  font-style:normal!important;
+}
+body.delta-auth-page .auth-lead{
+  color:#e2e8f0!important;
+  font-size:clamp(16px,1.45vw,20px)!important;
+  line-height:1.65!important;
+  max-width:460px!important;
+  margin:0!important;
+  text-shadow:none!important;
+}
+body.delta-auth-page .delta-auth-card{
+  align-self:stretch;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:#fff!important;
+  background-image:none!important;
+  color:#1e293b!important;
+  padding:clamp(30px,3.2vw,52px)!important;
+}
+body.delta-auth-page .delta-auth-card-top{
+  margin-bottom:18px!important;
+}
+body.delta-auth-page .auth-overline{
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-weight:850!important;
+  letter-spacing:.10em!important;
+  font-size:11px!important;
+  color:#475569!important;
+}
+body.delta-auth-page .auth-mode-switch{
+  margin:4px 0 28px!important;
+  display:grid!important;
+  grid-template-columns:1fr 1fr;
+  padding:0!important;
+  gap:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-bottom:1px solid #ccd5df!important;
+  border-radius:0!important;
+}
+body.delta-auth-page .delta-auth-v3 .auth-mode-switch button{
+  display:flex!important;
+  align-items:center;justify-content:center;
+  min-height:53px!important;
+  padding:12px 7px 13px!important;
+  border:0!important;
+  border-bottom:3px solid transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  background-image:none!important;
+  font:800 16px/1.25 Arial,Helvetica,sans-serif!important;
+  color:#64748b!important;
+}
+body.delta-auth-page .delta-auth-v3 .auth-mode-switch button svg{
+  width:18px!important;height:18px!important;
+}
+body.delta-auth-page .delta-auth-v3 .auth-mode-switch button.is-selected{
+  color:#0f172a!important;
+  border-bottom-color:#c8102e!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body.delta-auth-page .auth-panel-heading{margin:0 0 22px!important}
+body.delta-auth-page .auth-panel-heading h2{
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:clamp(28px,2.9vw,37px)!important;
+  line-height:1.18!important;
+  letter-spacing:-.035em!important;
+  margin:0 0 10px!important;
+  color:#0f172a!important;
+}
+body.delta-auth-page .auth-panel-heading p{
+  font:400 15px/1.7 Arial,Helvetica,sans-serif!important;
+  color:#475569!important;
+  margin:0!important;
+}
+body.delta-auth-page .auth-action.auth-action-primary{
+  display:flex;
+  align-items:center;
+  min-height:70px!important;
+  padding:13px 18px!important;
+  gap:13px!important;
+  background:#c8102e!important;
+  background-image:none!important;
+  border:1px solid #c8102e!important;
+  border-radius:5px!important;
+  color:#fff!important;
+  box-shadow:none!important;
+  font:800 16px/1.3 Arial,Helvetica,sans-serif!important;
+  transform:none!important;
+  filter:none!important;
+}
+body.delta-auth-page .auth-action.auth-action-primary:hover{
+  background:#aa0d28!important;
+  border-color:#aa0d28!important;
+}
+body.delta-auth-page .auth-action.auth-action-primary:focus-visible{
+  outline:3px solid #0f172a!important;
+  outline-offset:3px!important;
+}
+body.delta-auth-page .auth-action-icon{
+  display:grid;place-items:center;
+  flex:none;
+  border-radius:4px!important;
+  background:rgba(255,255,255,.14)!important;
+  color:#fff!important;
+  width:38px!important;height:38px!important;
+  font-size:23px!important;
+}
+body.delta-auth-page .auth-action>span:nth-child(2){
+  color:#fff!important;font-size:16px!important;
+}
+body.delta-auth-page .auth-action small{
+  color:#fce7eb!important;
+  font:500 12px/1.4 Arial,Helvetica,sans-serif!important;
+}
+body.delta-auth-page .auth-hint{
+  display:flex;
+  align-items:flex-start;
+  color:#526276!important;
+  font:400 13px/1.6 Arial,Helvetica,sans-serif!important;
+  margin:18px 0!important;
+}
+body.delta-auth-page .auth-hint strong{color:#334155!important}
+body.delta-auth-page .auth-hint svg{color:#475569!important}
+body.delta-auth-page .auth-secondary-route{
+  border-top:1px solid #e2e8f0!important;
+  color:#475569!important;
+  font:500 14px/1.5 Arial,Helvetica,sans-serif!important;
+  padding-top:20px!important;
+  margin-top:8px!important;
+}
+body.delta-auth-page .delta-auth-v3 .auth-secondary-route button{
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  font:800 14px/1.5 Arial,Helvetica,sans-serif!important;
+  color:#a60e2b!important;
+  padding:5px 1px!important;
+  cursor:pointer;
+}
+body.delta-auth-page .delta-auth-v3 .auth-secondary-route button:hover{
+  text-decoration:underline;text-underline-offset:4px;
+}
+body.delta-auth-page .auth-forms-access{
+  display:flex;
+  gap:14px;
+  padding:18px!important;
+  border:1px solid #dbe3ec!important;
+  border-radius:5px!important;
+  margin:26px 0 0!important;
+  background:#f8fafc!important;
+  color:#334155!important;
+}
+body.delta-auth-page .auth-forms-symbol{
+  background:#e2e8f0!important;
+  color:#334155!important;
+  border-radius:4px!important;
+  width:39px;height:39px;
+}
+body.delta-auth-page .auth-forms-access strong{color:#24354b!important}
+body.delta-auth-page .auth-forms-access div>span{color:#526276!important}
+body.delta-auth-page .auth-forms-access a{
+  color:#a6102e!important;
+  font-size:14px!important;
+  font-weight:800!important;
+}
+body.delta-auth-page .auth-card-footer{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:24px 0 0!important;
+  font:400 12px/1.6 Arial,Helvetica,sans-serif!important;
+  color:#64748b!important;
+}
+body.delta-auth-page .auth-card-footer svg{color:#475569!important}
+body.delta-auth-page .auth-card-footer a{
+  color:#334155!important;
+  text-decoration:underline!important;
+}
+body.delta-auth-page .auth-destination,
+body.delta-auth-page .auth-connected{
+  background:#f8fafc!important;
+  border:1px solid #cbd5e1!important;
+  border-left:3px solid #c8102e!important;
+  border-radius:4px!important;
+  color:#334155!important;
+  font:500 13px/1.6 Arial,Helvetica,sans-serif!important;
+  padding:13px!important;
+}
+body.delta-auth-page .auth-destination svg,
+body.delta-auth-page .auth-connected svg{color:#334155!important}
+body.delta-auth-page .auth-destination strong,
+body.delta-auth-page .auth-connected strong{color:#0f172a!important}
+body.delta-auth-page .auth-destination a,
+body.delta-auth-page .auth-connected a{color:#a60e2b!important}
+body.delta-auth-page .delta-auth-v3 .auth-mode-panel[hidden]{display:none!important}
+body.delta-auth-page .auth-advantage-grid[hidden],
+body.delta-auth-page .auth-signup-steps[hidden],
+body.delta-auth-page .auth-bottom-strip[hidden]{display:none!important}
+/* Compact, readable on phones; no floating overlays or clipped cards. */
+@media(max-width:950px){
+  body.delta-auth-page .delta-auth-grid{
+    grid-template-columns:1fr!important;
+    max-width:610px!important;
+  }
+  body.delta-auth-page .delta-auth-story{
+    min-height:240px;
+    padding:38px 32px!important;
+  }
+  body.delta-auth-page .delta-auth-story h1{font-size:clamp(35px,6.3vw,49px)!important}
+  body.delta-auth-page .delta-auth-card{padding:32px!important}
+}
+@media(max-width:600px){
+  body.delta-auth-page .delta-auth-v3{padding:18px 12px 55px!important;min-height:0!important}
+  body.delta-auth-page .delta-auth-grid{border-radius:5px!important}
+  body.delta-auth-page .delta-auth-story{
+    min-height:200px;
+    padding:27px 23px 31px!important;
+    text-align:left!important;
+  }
+  body.delta-auth-page .auth-kicker{font-size:10px!important;margin-bottom:11px!important}
+  body.delta-auth-page .delta-auth-story h1{
+    font-size:clamp(32px,8.5vw,43px)!important;
+    line-height:1.12!important;
+    margin-bottom:11px!important;
+  }
+  body.delta-auth-page .auth-lead{font-size:14px!important;line-height:1.55!important}
+  body.delta-auth-page .delta-auth-card{padding:25px 22px 30px!important}
+  body.delta-auth-page .auth-mode-switch{margin-bottom:22px!important}
+  body.delta-auth-page .auth-panel-heading h2{font-size:29px!important}
+  body.delta-auth-page .auth-panel-heading p{font-size:14px!important}
+  body.delta-auth-page .auth-action.auth-action-primary{min-height:67px!important;padding:12px!important}
+  body.delta-auth-page .auth-action>span:nth-child(2){font-size:14px!important}
+  body.delta-auth-page .auth-action small{font-size:11px!important}
+  body.delta-auth-page .auth-forms-access{padding:13px!important;margin-top:17px!important}
+  body.delta-auth-page .auth-card-footer{margin-top:17px!important}
+  body.delta-auth-page .auth-overline{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.delta-auth-page .auth-action{transition:none!important;transform:none!important}
+}

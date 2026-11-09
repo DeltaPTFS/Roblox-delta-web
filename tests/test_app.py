@@ -142,7 +142,9 @@ def test_login_has_safe_oauth_and_disclaimer():
         assert "Log in with Discord" in response.text
         assert "Sign up with Roblox" in response.text
         assert "Access Forms with Discord" in response.text
-        assert "DELTA DIGITAL EXPERIENCE" in response.text
+        assert "DELTA ROBLOX · MEMBER ACCESS" in response.text
+        assert "login-airline.css" in response.text
+        assert "public-navigation.css" in response.text
         assert 'id="auth-tab-login"' in response.text
         assert 'id="auth-tab-signup"' in response.text
         assert '/static/auth-refresh.css?v=' in response.text
