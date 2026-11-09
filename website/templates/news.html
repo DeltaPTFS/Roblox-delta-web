@@ -1,14 +1,7 @@
-<!doctype html>
-<html lang="en" class="theme-light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Community announcements, flight updates and important news published by the Delta Roblox team.">
-  <title>Newsroom | Delta Roblox</title>
-  <script src="/static/site-theme-init.js?v=20261106"></script>
-  <link rel="icon" href="/static/delta-emblem.svg" type="image/svg+xml">
-  <!-- Keep the newsroom readable even if a cached stylesheet has not refreshed. -->
+{% extends "community_base.html" %}
+{% block title %}Newsroom | Delta Roblox{% endblock %}
+{% block extra_head %}
+<meta name="description" content="Community announcements, flight updates and important news published by the Delta Roblox team.">
   <style>
     .news-page{background:#fff;color:#172b45}
     .news-container{width:min(1180px,calc(100% - 44px));margin:0 auto}
@@ -23,45 +16,10 @@
   </style>
   <link rel="stylesheet" href="/static/site-appearance.css?v=20261106-news">
   <link rel="stylesheet" href="/static/news-editorial.css?v=20261106-refresh"><link rel="stylesheet" href="/static/news-longform.css?v=20261106-longform">
-</head>
-<body class="news-page">
-  <div class="news-utility">
-    <div class="news-container news-utility-inner">
-      <span>DELTA ROBLOX</span>
-      <span>THE COMMUNITY NEWSROOM</span>
-    </div>
-  </div>
+{% endblock %}
+{% block content %}
+<div class="news-page" id="main-content">
 
-  <header class="news-site-header">
-    <div class="news-container news-header-inner">
-      <a class="news-brand" href="/home" aria-label="Delta Roblox home">
-        <img src="/static/delta-emblem.svg" width="44" height="44" alt="">
-        <span>DELTA <small>AIR LINES · ROBLOX</small></span>
-      </a>
-      <nav class="news-main-nav" aria-label="Main navigation">
-        <a href="/home">Home</a>
-        <a href="/flights">Flights</a>
-        <a href="/forms">Forms</a>
-        <a class="is-active" href="/news" aria-current="page">News</a>
-        <a href="/partnerships">Partnerships</a>
-        <a href="/skymiles">SkyMiles</a>
-      </nav>
-      <div class="news-header-actions">
-        <button class="site-theme-toggle news-theme-toggle" type="button" data-site-theme-toggle aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode">
-          <svg class="theme-symbol theme-symbol-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20.3 15.5A8.6 8.6 0 0 1 8.5 3.7 8.7 8.7 0 1 0 20.3 15.5Z"/></svg>
-          <svg class="theme-symbol theme-symbol-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.1-7.1-1.4 1.4M6.3 17.7l-1.4 1.4m14.2 0-1.4-1.4M6.3 6.3 4.9 4.9"/></svg>
-          <span data-site-theme-label>Dark</span>
-        </button>
-        {% if manage_url %}
-        <a class="news-header-link" href="{{ manage_url }}">Manage news <span aria-hidden="true">↗</span></a>
-        {% else %}
-        <a class="news-header-link" href="/login">Sign in <span aria-hidden="true">→</span></a>
-        {% endif %}
-      </div>
-    </div>
-  </header>
-
-  <main id="main-content">
     <section class="news-hero" aria-labelledby="news-page-title">
       <div class="news-hero-image" aria-hidden="true">
         <img src="/static/gallery/delta-centennial.webp" alt="" width="1400" height="800" decoding="async">
@@ -165,8 +123,10 @@
         </div>
       </section>
     </div>
-  </main>
 
+</div>
+{% endblock %}
+{% block footer %}
   <footer class="news-footer">
     <div class="news-container news-footer-inner">
       <div class="news-footer-brand">
@@ -177,7 +137,4 @@
       <a href="/home">Return home <span aria-hidden="true">↑</span></a>
     </div>
   </footer>
-
-  <script src="/static/site-theme.js?v=20261106" defer></script>
-</body>
-</html>
+{% endblock %}

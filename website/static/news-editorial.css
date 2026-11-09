@@ -13,7 +13,7 @@
 }
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body.news-page{
+body.delta-news-page{
   margin:0;
   background:#fff;
   color:var(--news-ink);
@@ -538,8 +538,8 @@ body.news-page{
 
 /* Dark choice changes background cards and text while preserving clear
    photography and a white-on-navy page hierarchy. */
-html[data-site-theme="dark"] body.news-page,
-html[data-site-theme="dark"] body.news-page main{
+html[data-site-theme="dark"] body.delta-news-page,
+html[data-site-theme="dark"] body.delta-news-page main{
   background:#0c1930!important;
   color:#f3f7fc!important;
 }

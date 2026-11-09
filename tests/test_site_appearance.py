@@ -12,13 +12,17 @@ def test_theme_controls_exist_in_both_layouts():
     member = source("templates/base.html")
     newsroom = source("templates/news.html")
     success = source("templates/signin_success.html")
-    for layout in (public, member, newsroom, success):
+    for layout in (public, member, success):
         assert "site-theme-init.js" in layout
         assert "site-theme.js" in layout
         assert "site-appearance.css" in layout
+    assert '{% extends "community_base.html" %}' in newsroom
+    assert 'news-editorial.css' in newsroom
+    assert 'news-longform.css' in newsroom
     assert 'data-site-theme-toggle' in header
     assert 'aria-pressed="false"' in header
-    assert 'data-site-theme-toggle' in newsroom
+    assert 'data-site-theme-toggle' not in newsroom
+    assert 'data-site-theme-toggle' in header
 
 def test_appearance_is_white_by_default_and_blue_is_optional():
     init = source("static/site-theme-init.js")

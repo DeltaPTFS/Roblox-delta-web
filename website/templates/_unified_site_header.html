@@ -24,7 +24,7 @@
       {% if header_viewer %}
       <div class="community-account-slot">{% include "_account_panel.html" %}</div>
       {% else %}
-      {% if request.url.path in ['/', '/home'] %}
+      {% if public_navigation is defined and public_navigation %}
       <div class="delta-home-auth" aria-label="Account access">
         <a class="delta-home-signup" href="/signup">Sign Up</a>
         <a class="delta-home-login" href="/login">Log in</a>
@@ -34,7 +34,7 @@
       {% endif %}
       {% endif %}
 
-      {% if request.url.path in ['/', '/home'] %}
+      {% if public_navigation is defined and public_navigation %}
       <a class="delta-home-notifications" href="/news" aria-label="Community announcements" title="Community announcements">
         <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
       </a>
