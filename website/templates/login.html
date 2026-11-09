@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "community_base.html" %}
 {% block title %}Member Access{% endblock %}
 {% block content %}
 <section class="delta-auth-v3" aria-labelledby="auth-page-title">
@@ -16,10 +16,10 @@
   <div class="auth-atmosphere auth-atmosphere-b" aria-hidden="true"></div>
   <div class="delta-auth-grid">
     <div class="delta-auth-story">
-      <div class="auth-kicker"><span class="auth-kicker-line"></span> DELTA DIGITAL EXPERIENCE <span class="auth-constellation" aria-hidden="true">✧</span></div>
+      <div class="auth-kicker"><span class="auth-kicker-line"></span> DELTA ROBLOX · MEMBER ACCESS</div>
       
-      <h1 id="auth-page-title">Welcome <em>aboard.</em></h1>
-      <p class="auth-lead">{% if login_intent == 'community' %}Join our aviation community, discover virtual flights, and meet our crew.{% else %}Sign in for flights, forms, and SkyMiles.{% endif %}</p>
+      <h1 id="auth-page-title">Your journey<br><em>starts here.</em></h1>
+      <p class="auth-lead">{% if login_intent == 'community' %}Join our aviation community, connect with the team, and discover what's next.{% else %}Sign in for flights, forms, and SkyMiles.{% endif %}</p>
       <div class="auth-advantage-grid" aria-label="Member features" hidden>
         <div class="auth-advantage"><span class="auth-advantage-symbol"><svg><use href="#auth-icon-plane"></use></svg></span><div><b>Flights &amp; trips</b><span>Book and manage your flights</span></div></div>
         <div class="auth-advantage"><span class="auth-advantage-symbol"><svg><use href="#auth-icon-id"></use></svg></span><div><b>Forms &amp; careers</b><span>Apply with your Discord identity</span></div></div>
@@ -29,7 +29,7 @@
     </div>
     <div class="delta-auth-card">
       <div class="delta-auth-card-top">
-        <span class="auth-overline"><span class="auth-online-dot"></span> SECURE MEMBER ACCESS</span>
+        <span class="auth-overline">SECURE ACCOUNT ACCESS</span>
         <span class="auth-card-icon" aria-hidden="true"><svg><use href="#auth-icon-shield"></use></svg></span>
       </div>
       {% if login_intent == "forms" %}
