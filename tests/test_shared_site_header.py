@@ -15,7 +15,7 @@ def test_all_pages_get_one_navigation_bar():
     assert 'class="premium-announcement"' not in head
     assert '{% include "_site_announcement.html" %}' in head
     assert 'class="air-book-tabs air-site-links"' not in home
-    assert 'class="air-book-panel air-book-panel-default"' in home
+    assert 'class="delta-booking-experience"' in home
     for layout in (public, account):
         assert '{% include "_unified_site_header.html" %}' in layout
     for page in ('/home','/flights','/forms','/news','/partnerships','/skymiles'):

@@ -1,0 +1,26 @@
+<footer class="delta-home-footer" aria-label="Delta Roblox site footer">
+  <div class="delta-footer-inner">
+    <form class="delta-footer-search" action="/news" method="get" role="search">
+      <label for="delta-footer-search-input">Looking for something?</label>
+      <div class="delta-footer-search-control"><input id="delta-footer-search-input" type="search" name="q" placeholder="Search announcements" aria-label="Search announcements"><button type="submit" aria-label="Search news">⌕</button></div>
+    </form>
+    <div class="delta-footer-accordion">
+      <details><summary>About Our Community</summary><div><a href="/experience">Our Experience</a><a href="/partnerships">Partnerships</a><a href="/news">News &amp; Announcements</a></div></details>
+      <details><summary>Travel &amp; Flights</summary><div><a href="/flights">Book a Flight</a><a href="/trips">My Trips</a><a href="/flights">Flight Schedule &amp; Status</a></div></details>
+      <details><summary>Member Support</summary><div><a href="/skymiles">SkyMiles</a><a href="/forms">Applications &amp; Forms</a><a href="/join">Join Our Community</a></div></details>
+      <details><summary>Site Information</summary><div><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/news">Community Updates</a></div></details>
+    </div>
+    <p class="delta-footer-disclaimer">Delta Roblox is an independent fan-made community. Not affiliated with, endorsed by, or operated by Delta Air Lines, Inc. No real-world flight booking or airline services are offered.</p>
+    <div class="delta-footer-bottom">
+      <span>© 2026 Delta Roblox Community</span>
+      <a href="/home" aria-label="Return to Delta Roblox homepage"><img src="/static/delta-emblem.svg" width="30" height="30" alt=""> Keep Climbing</a>
+    </div>
+    <div class="delta-footer-preferences">
+      <button type="button" class="delta-footer-appearance" data-site-theme-toggle aria-label="Switch to dark mode" aria-pressed="false"><span data-site-theme-label>Dark</span> mode</button>
+    </div>
+    <div class="delta-footer-language"><span aria-hidden="true">◎</span><span>United States · English</span><span class="delta-footer-language-divider" aria-hidden="true"></span><button type="button" data-home-footer-language="es">Español</button></div>
+  </div>
+</footer>
+<script>
+document.addEventListener('click',function(event){var button=event.target.closest('[data-home-footer-language]');if(button){var select=document.getElementById('delta-language-select');if(select){select.value=button.getAttribute('data-home-footer-language');select.dispatchEvent(new Event('change',{bubbles:true}));window.scrollTo({top:0,behavior:'smooth'});}}});
+</script>

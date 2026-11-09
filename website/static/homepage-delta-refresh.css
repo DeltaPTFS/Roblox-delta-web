@@ -1,0 +1,91 @@
+/* Mobile-first airline editorial layout, scoped to homepage only. */
+body.delta-airline-home .delta-booking-experience{background:#fff;color:#071d38;font-family:Arial,Helvetica,sans-serif}
+body.delta-airline-home .delta-booking-top{background:#06172c;color:#fff}
+.delta-journey-tabs{display:flex;align-items:center;gap:clamp(16px,4vw,45px);min-height:62px;overflow-x:auto;scrollbar-width:thin}
+.delta-journey-tabs a{position:relative;flex:none;display:flex;align-items:center;min-height:62px;font-size:clamp(14px,1.7vw,18px);font-weight:700;color:#f3f5f9;padding:4px 0;text-decoration:none}
+.delta-journey-tabs a.is-current:after{content:"";position:absolute;bottom:7px;left:0;right:0;height:5px;border-radius:4px;background:#d7193f}
+.delta-service-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:end;overflow-x:auto}
+.delta-service-tabs a{min-height:100px;padding:18px 8px 13px;text-align:center;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:#fff;font-weight:700;font-size:clamp(13px,1.6vw,18px);white-space:nowrap;border-radius:8px 8px 0 0}
+.delta-service-tabs a span{font-size:28px;font-weight:400;line-height:1}
+.delta-service-tabs a.is-current{background:#fff;color:#09213d}
+.delta-service-tabs a:hover:not(.is-current){background:#1b304d}
+.delta-booking-form-wrap{background:#fff;color:#071e38;padding:28px 0 24px}
+.delta-booking-form-wrap h2{font-size:clamp(21px,2.7vw,32px);font-weight:750;margin:0 0 19px;letter-spacing:-.02em}
+.delta-route-fields{display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);align-items:center;border:2px solid #dce0e5;border-radius:9px;min-height:130px;position:relative}
+.delta-route-field{padding:20px clamp(13px,3vw,35px);display:flex;flex-direction:column;gap:5px;color:#071e38;min-width:0}
+.delta-route-field span{font-size:12px;color:#657184;letter-spacing:.1em;font-weight:800}
+.delta-route-field strong{font-size:clamp(20px,3vw,37px);letter-spacing:-.03em;line-height:1.1;overflow-wrap:anywhere}
+.delta-route-field small{font-size:clamp(12px,1.3vw,15px);color:#5a6474;line-height:1.3}
+.delta-route-field:hover strong{text-decoration:underline;text-decoration-color:#c8102e;text-underline-offset:5px}
+.delta-route-swap{font-size:33px;color:#c8102e;text-align:center;line-height:1}
+.delta-booking-options{display:flex;justify-content:space-between;align-items:center;gap:18px;padding-top:22px}
+.delta-options-link{color:#1265ac;font-size:clamp(14px,1.5vw,17px);font-weight:700}
+.delta-booking-search{display:inline-flex;align-items:center;justify-content:center;gap:25px;background:#c8102e;color:#fff;font-size:15px;font-weight:800;letter-spacing:.03em;min-height:53px;padding:13px 30px}
+.delta-booking-search:hover,.delta-home-promo-content a:hover{background:#a60c29}
+.delta-booking-disclaimer{color:#586575;font-size:12px;margin:19px 0 0;line-height:1.5}
+.delta-home-promo{position:relative;background:#06172c;color:#fff;min-height:430px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.delta-home-promo-photo{position:absolute;inset:0;background:linear-gradient(90deg,rgba(1,13,32,.85),rgba(1,13,32,.15)),url('/static/gallery/delta-centennial.webp') center 44%/cover no-repeat}
+.delta-home-promo-content{position:relative;z-index:1;width:min(1240px,calc(100% - 64px));margin:0 auto;padding:70px 0 85px;text-align:center}
+.delta-home-promo-content>span{font-size:13px;font-weight:800;letter-spacing:.17em}
+.delta-home-promo-content h2{font-size:clamp(37px,5.4vw,72px);line-height:1.1;max-width:800px;margin:18px auto;letter-spacing:-.035em;color:#fff}
+.delta-home-promo-content p{font-size:clamp(16px,2vw,23px);line-height:1.5;max-width:700px;margin:0 auto 24px;color:#fff}
+.delta-home-promo-content a{display:inline-flex;align-items:center;gap:17px;background:#c8102e;color:#fff;font-weight:800;padding:17px 27px;font-size:14px}
+.delta-home-promo-links{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;background:#06172c;border-top:1px solid #586778}
+.delta-home-promo-links a{padding:21px;text-align:center;color:#fff;font-size:16px;font-weight:650}
+.delta-home-promo-links a+a{border-left:1px solid #53647a}
+body.delta-airline-home .community-footer{display:none!important}
+body.delta-airline-home .delta-home-footer{background:#031429;color:#e6eaf2!important;padding:75px 0 48px;font-family:Arial,Helvetica,sans-serif}
+.delta-footer-inner{width:min(1120px,calc(100% - 64px));margin:auto}
+.delta-footer-search{display:block;margin-bottom:45px}
+.delta-footer-search label{display:block;color:#fff;font-size:clamp(19px,2.6vw,26px);font-weight:750;margin-bottom:16px}
+.delta-footer-search-control{display:flex;gap:12px;align-items:center;max-width:770px}
+.delta-footer-search-control input{width:100%;min-width:0;height:70px;background:#fff;border:2px solid #b8c0ce;border-radius:7px;padding:0 22px;font-size:clamp(17px,2vw,23px);color:#0b2543}
+.delta-footer-search-control input::placeholder{color:#647184}
+.delta-footer-search-control button{border:0;background:transparent;color:#fff;font-size:48px;cursor:pointer;min-width:56px;min-height:60px}
+.delta-footer-accordion{border-top:1px solid #203550}
+.delta-footer-accordion details{border-bottom:1px solid #203550}
+.delta-footer-accordion summary{list-style:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:26px 0;font-size:clamp(17px,2vw,22px);font-weight:650;color:#cbd3df}
+.delta-footer-accordion summary::-webkit-details-marker{display:none}
+.delta-footer-accordion summary:after{content:"⌄";font-size:25px;color:#cbd3df;transition:transform .2s}
+.delta-footer-accordion details[open] summary:after{transform:rotate(180deg)}
+.delta-footer-accordion details>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:0 0 27px}
+.delta-footer-accordion details a{color:#fff;font-size:16px}
+.delta-footer-accordion details a:hover{text-decoration:underline}
+.delta-footer-disclaimer{font-size:13px;color:#aebbc9;line-height:1.7;margin:36px 0}
+.delta-footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:20px;color:#aebbc9;font-size:14px;border-top:1px solid #203550;padding:27px 0}
+.delta-footer-bottom a{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700}
+.delta-footer-language{display:flex;justify-content:center;align-items:center;gap:25px;padding:35px 0 10px;color:#fff;font-size:17px}
+.delta-footer-language>span:first-child{font-size:32px}
+.delta-footer-language-divider{height:34px;width:1px;background:#627087}
+.delta-footer-language button{border:0;background:transparent;color:#fff;font-size:17px;cursor:pointer}
+@media(max-width:700px){
+.delta-journey-tabs{gap:24px;min-height:60px}
+.delta-journey-tabs a{font-size:15px;min-height:60px}
+.delta-service-tabs{gap:0;grid-template-columns:repeat(5,minmax(85px,1fr));margin:0 -16px;overflow-x:auto}
+.delta-service-tabs a{font-size:14px;min-height:95px;padding:13px 5px 11px}
+.delta-service-tabs a span{font-size:25px}
+.delta-booking-form-wrap{padding:24px 0}
+.delta-booking-form-wrap h2{font-size:23px}
+.delta-route-fields{min-height:122px;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)}
+.delta-route-field{padding:15px 10px}
+.delta-route-field strong{font-size:clamp(18px,5vw,27px)}
+.delta-route-field small{font-size:12px}
+.delta-route-swap{font-size:26px}
+.delta-booking-options{flex-direction:column;align-items:stretch}
+.delta-options-link{text-align:center}
+.delta-booking-search{width:100%}
+.delta-booking-disclaimer{font-size:11px}
+.delta-home-promo{min-height:480px}
+.delta-home-promo-content{width:calc(100% - 40px);padding:70px 0 85px}
+.delta-home-promo-content h2{font-size:clamp(35px,8vw,51px)}
+.delta-home-promo-links a{font-size:13px;padding:18px 8px}
+.delta-footer-inner{width:calc(100% - 56px)}
+body.delta-airline-home .delta-home-footer{padding-top:60px}
+.delta-footer-search-control input{height:65px}
+.delta-footer-accordion details>div{grid-template-columns:1fr}
+.delta-footer-bottom{flex-direction:column;text-align:center}
+.delta-footer-language{font-size:14px;gap:13px}
+.delta-footer-language button{font-size:14px}
+}
+@media(max-width:400px){.delta-journey-tabs{gap:19px}.delta-journey-tabs a{font-size:13px}.delta-service-tabs{grid-template-columns:repeat(5,minmax(78px,1fr))}.delta-route-field strong{font-size:17px}.delta-route-field small{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.delta-footer-accordion summary:after{transition:none}}

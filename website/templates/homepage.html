@@ -2,19 +2,54 @@
 {% block title %}Delta Roblox | Flights, SkyMiles & Aviation Community{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="/static/homepage-airline.css?v={{ asset_version }}">
+<link rel="stylesheet" href="/static/homepage-delta-refresh.css?v={{ asset_version }}">
 {% endblock %}
 {% block content %}
 <div class="air-home">
-  <section class="air-book" aria-label="Quick access to community travel" id="plan">
-    <div class="air-container">
-      <div class="air-book-panel air-book-panel-default" id="air-panel-flights">
-        <div class="air-book-field"><small>FROM</small><strong>Our virtual network</strong><span>Depart with Delta Roblox</span></div>
-        <div class="air-book-field"><small>TO</small><strong>Your next adventure</strong><span>See destinations in the schedule</span></div>
-        <div class="air-book-field"><small>WHEN</small><strong>Upcoming departures</strong><span>View posted community flights</span></div>
-        <a href="/flights" class="air-search-button">EXPLORE FLIGHTS <span aria-hidden="true">→</span></a>
+  <section class="delta-booking-experience" id="plan" aria-label="Plan your next journey">
+    <div class="delta-booking-top">
+      <div class="air-container">
+        <nav class="delta-journey-tabs" aria-label="Travel options">
+          <a class="is-current" href="/flights" aria-current="page">Book</a>
+          <a href="/flights">Check-in</a>
+          <a href="/trips">My Trips</a>
+          <a href="/flights">Flight Status</a>
+        </nav>
+        <div class="delta-service-tabs" aria-label="Explore Delta Roblox">
+          <a class="is-current" href="/flights"><span aria-hidden="true">✈</span>Flights</a>
+          <a href="/experience"><span aria-hidden="true">▣</span>Experience</a>
+          <a href="/skymiles"><span aria-hidden="true">★</span>SkyMiles</a>
+          <a href="/forms"><span aria-hidden="true">♧</span>Careers</a>
+          <a href="/news"><span aria-hidden="true">▤</span>News</a>
+        </div>
       </div>
-      <p class="air-book-note">Flights, reservations and SkyMiles on this site are part of a fan-made Roblox experience—not real-world airline services.</p>
     </div>
+    <div class="delta-booking-form-wrap">
+      <div class="air-container">
+        <h2>Where would you like to go?</h2>
+        <div class="delta-route-fields">
+          <a href="/flights" class="delta-route-field"><span>FROM</span><strong>Explore airports</strong><small>See available departure locations</small></a>
+          <span class="delta-route-swap" aria-hidden="true">⇄</span>
+          <a href="/flights" class="delta-route-field"><span>TO</span><strong>Your destination</strong><small>Browse our flight schedule</small></a>
+        </div>
+        <div class="delta-booking-options">
+          <a href="/flights" class="delta-options-link">☷ &nbsp; View flight schedule <span aria-hidden="true">⌄</span></a>
+          <a href="/flights" class="delta-booking-search">FIND FLIGHTS <span aria-hidden="true">→</span></a>
+        </div>
+        <p class="delta-booking-disclaimer">Flight bookings and SkyMiles here are community features, not real-world airline services.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="delta-home-promo" aria-label="Discover the Delta Roblox experience">
+    <div class="delta-home-promo-photo" role="img" aria-label="Aircraft at the airport"></div>
+    <div class="delta-home-promo-content">
+      <span>YOUR NEXT JOURNEY</span>
+      <h2>Discover more with Delta.</h2>
+      <p>Explore upcoming departures, memorable experiences, and what's new across our community.</p>
+      <a href="/flights">EXPLORE FLIGHTS <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="delta-home-promo-links"><a href="/skymiles">✦ &nbsp; SkyMiles Benefits <span aria-hidden="true">↗</span></a><a href="/news">▤ &nbsp; Latest Announcements <span aria-hidden="true">↗</span></a></div>
   </section>
 
   <section class="air-hero" aria-labelledby="air-hero-title">
@@ -147,7 +182,7 @@
   </section>
 
   <section class="air-join" aria-labelledby="air-join-heading">
-    <div class="air-container air-join-inner"><div><span class="air-kicker light">KEEP CLIMBING</span><h2 id="air-join-heading">Your next adventure starts here.</h2><p>Come fly with us in our independent Roblox aviation roleplay community.</p></div><a class="air-action red" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }} <span aria-hidden="true">→</span></a></div>
+    <div class="air-container air-join-inner"><div><span class="air-kicker light">KEEP CLIMBING</span><h2 id="air-join-heading">Your next adventure starts here.</h2><p>Explore our community, discover upcoming departures, and make the journey yours.</p></div><a class="air-action red" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }} <span aria-hidden="true">→</span></a></div>
   </section>
 </div>
 

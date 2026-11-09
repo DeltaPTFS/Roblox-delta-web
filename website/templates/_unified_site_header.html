@@ -24,7 +24,23 @@
       {% if header_viewer %}
       <div class="community-account-slot">{% include "_account_panel.html" %}</div>
       {% else %}
+      {% if request.url.path in ['/', '/home'] %}
+      <div class="delta-home-auth" aria-label="Account access">
+        <a class="delta-home-signup" href="/signup">Sign Up</a>
+        <a class="delta-home-login" href="/login">Log in</a>
+      </div>
+      {% else %}
       <a class="premium-get-started" href="/signup" aria-label="Join Delta Roblox">Join Now <span aria-hidden="true">↗</span></a>
+      {% endif %}
+      {% endif %}
+
+      {% if request.url.path in ['/', '/home'] %}
+      <a class="delta-home-notifications" href="/news" aria-label="Community announcements" title="Community announcements">
+        <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+      </a>
+      <a class="delta-home-flight-search" href="/flights" aria-label="Search available flights" title="Search flights">
+        <svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5.5 5.5"/></svg>
+      </a>
       {% endif %}
 
       <div class="sky-nav unified-menu-shell">
