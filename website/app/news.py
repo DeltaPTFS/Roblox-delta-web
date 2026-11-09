@@ -67,14 +67,28 @@ def published_articles(db: Session, limit: int = 12):
 @router.get("/news", response_class=HTMLResponse)
 async def community_news(request: Request, db: Session = Depends(get_db)):
     articles = published_articles(db)
+    user = None
     try:
         user = linked_user_from_session(request, db)
         level = permission(user, get_settings()) if user else "MEMBER"
     except SQLAlchemyError:
         level = "MEMBER"
+    # The Newsroom is public. Reuse the same cached session identity as Home for
+    # its shared header, without initiating authentication or role refreshes.
+    guest = request.session.get("forms_identity")
+    viewer = ({"id": user.discord_user_id, "name": user.discord_display_name}
+              if user else guest if isinstance(guest, dict) else None)
     manage_url = "/owner#news-article-editor" if level == "OWNER" else (f"/{level.lower()}#site-announcement-editor" if level in ("ADMIN", "STAFF") else None)
+
+    # Imported when handling a request to avoid creating an import cycle while
+    # the main application imports and mounts this router.
+    from .main import context as site_context
+    page = site_context(
+        request, articles=articles, announcement=None, manage_url=manage_url,
+        viewer=viewer, profile_user=user, auth=level,
+    )
     return templates.TemplateResponse(
         "news.html",
-        {"request": request, "articles": articles, "announcement": None, "manage_url": manage_url},
+        page,
         headers={"Cache-Control": "private, no-store", "Vary": "Cookie"},
     )
