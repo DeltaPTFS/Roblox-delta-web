@@ -5,11 +5,12 @@
     {text:'First things first: is this card for personal or business use?', options:[['personal','Personal'],['business','External Affairs Partnership']]},
     {text:'How often do you fly with Delta Roblox?', options:[['low','1–2x per year'],['medium','3–5x per year'],['high','6+ times per year']]},
     {text:'Which cabin do you usually choose?', options:[['main','Delta Main Basic / Delta Main'],['comfort','Delta Comfort'],['first','Delta First']]},
-    {text:'How do you feel about annual Robux fees?', options:[['none','No annual fee'],['1000','Up to 1,000 Robux'],['2000','Up to 2,000 Robux for premium travel']]}
+    {text:'How do you feel about annual Robux fees?', options:[['none','No annual fee'],['500','Up to 500 Robux'],['1000','Up to 1,000 Robux'],['2000','Up to 2,000 Robux for premium travel']]}
   ];
   function match(answers) {
     if (answers[0] === 'business') return 'business';
-    if (answers[3] === 'none') return 'none';
+    if (answers[3] === 'none') return 'blue';
+    if (answers[3] === '500') return 'gold';
     if (answers[3] === '1000') return 'platinum';
     const score = (answers[1]==='high'?2:answers[1]==='medium'?1:0)+(answers[2]==='first'?2:answers[2]==='comfort'?1:0);
     return score >= 2 ? 'reserve' : 'platinum';
@@ -22,9 +23,10 @@
   let step=0, answers=[], mode='personal';
   const result=$('amex-quiz-result');
   const results={
-    reserve:['SkyMiles Reserve','2,000 Robux annually. Includes 15 virtual SkyClub visits and increased SkyMiles earnings. Your travel preferences suggest exploring the highest card offering.','reserve'],
+    reserve:['SkyMiles Reserve','2,000 Robux annually. Includes virtual Sky Club access when flying Delta and 3X miles on Delta purchases. Your travel preferences suggest exploring the highest card offering.','reserve'],
     platinum:['SkyMiles Platinum','1,000 Robux annually. Includes increased SkyMiles earnings and is a middle ground for price-conscious travelers.','platinum'],
-    none:['No confirmed fee-free match','Both confirmed personal cards have annual Robux fees. Ask the Discord team about other available options.',''],
+    blue:['SkyMiles Blue','0 Robux annually. Earn 2X miles on Delta and eligible Delta partners.','blue'],
+    gold:['SkyMiles Gold','500 Robux annually. Includes Zone 5 priority boarding, a first-flight Comfort Plus upgrade and a second-flight First Class upgrade.','gold'],
     business:['External Affairs Partnership','Business Cards are intended for External Affairs partnerships. Contact our team on Discord to discuss partnership arrangements, eligibility and benefits.','']
   };
   function setMode(value) {
@@ -33,7 +35,7 @@
     document.querySelectorAll('.amex-product-tabs [data-card-tab]').forEach(el=>{if(el.dataset.cardTab===mode)el.setAttribute('aria-current','true');else el.removeAttribute('aria-current');});
     document.querySelectorAll('[data-featured-link]').forEach(el=>{el.href=mode==='business'?'#business':'#personal';el.textContent=mode==='business'?'Explore Business Cards':'Explore Featured Cards';});
     document.querySelectorAll('[data-compare-link]').forEach(el=>{el.href=mode==='business'?'#business':'#compare';el.textContent=mode==='business'?'Partnership Inquiries':'Compare Cards';});
-    $('amex-offer-copy').textContent=mode==='business'?'Business Cards are for External Affairs partnerships. Contact our team on Discord for partnership arrangements and any applicable offers.':'Explore our SkyMiles personal cards and ask our Discord team about any current welcome offers. No bonus miles or promotional prices have been announced on this page.';
+    $('amex-offer-copy').textContent=mode==='business'?'Business Cards are for External Affairs partnerships. Contact our team on Discord for partnership arrangements and any applicable offers.':'Explore welcome offers for Blue, Gold and Reserve. Promotional offers may vary; compare current virtual benefits below.';
   }
   document.querySelectorAll('[data-card-tab]').forEach(el=>el.addEventListener('click',()=>setMode(el.dataset.cardTab)));
   function followHash(){const hash=location.hash;if(hash==='#business')setMode('business');else if(['#personal','#compare','#registration'].includes(hash))setMode('personal');}
@@ -66,5 +68,7 @@
   });
   back.addEventListener('click',()=>{if(!result.hidden){render(true);return;}if(step>0){step--;render(true);}});
   $('amex-quiz-restart').addEventListener('click',()=>{step=0;answers=[];render(true);});
+  const compareBack=document.querySelector('.amex-compare-back'), compareScroll=document.querySelector('.amex-comparison-scroll');
+  if(compareBack && compareScroll) compareBack.addEventListener('click',()=>{compareScroll.scrollTop=0;});
   render();
 })();
