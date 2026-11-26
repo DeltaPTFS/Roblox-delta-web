@@ -8,17 +8,21 @@
 /* Approved card artwork: consistent neutral-gray showcase across every tier. */
 .amex-page .amex-card-top,.amex-page .reserve-top,.amex-page .platinum-top{background:#e7e8ea;padding:26px}.amex-page img.amex-art{width:min(100%,440px);aspect-ratio:1583/994;border-radius:5px;box-shadow:none;object-fit:contain}.amex-hero-cards img.amex-art{width:min(82%,340px);box-shadow:0 14px 30px #0003}.amex-offer-art img,.amex-quiz-visual img{border-radius:5px}.amex-design-gallery figure{margin:0;border:1px solid #cfd6dd;border-radius:10px;overflow:hidden;background:#fff;color:#0c263e}.amex-design-gallery figcaption{padding:14px 20px;font-weight:700}.amex-design-gallery .amex-card-top{min-height:200px}#amex-quiz-result img{max-width:340px;border-radius:5px}@media(max-width:700px){.amex-page .amex-card-top{padding:16px}.amex-hero-cards img.amex-art{width:min(74%,285px)}}
 
-/* High-resolution card cutouts served directly by this website. No external card assets. */
-.amex-page .amex-official-face{position:relative;isolation:isolate;width:min(100%,440px);aspect-ratio:1573/1000;display:block;flex:none;background:transparent;overflow:visible;border:0;border-radius:0;box-shadow:none;line-height:0}
-.amex-page .amex-official-face img{display:block;width:100%;height:100%;object-fit:contain;max-width:none;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;filter:drop-shadow(0 5px 7px #0002)}
+/* Local, lightweight card artwork. Natural image height avoids percentage-height clipping in WebKit. */
+.amex-page .amex-official-face{position:relative;isolation:isolate;width:min(100%,440px);display:block;flex:none;background:transparent;overflow:visible;border:0;border-radius:0;box-shadow:none;line-height:0;min-width:0}
+.amex-page .amex-official-face img{display:block;width:100%;height:auto;aspect-ratio:1258/800;object-fit:contain;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;filter:drop-shadow(0 5px 7px #0002);opacity:1;visibility:visible}
 .amex-page .amex-card-top,.amex-page .reserve-top,.amex-page .platinum-top{background:transparent;padding:12px 18px;min-height:0}
 .amex-page .amex-card,.amex-page .amex-design-gallery figure{overflow:visible}
-.amex-hero-cards .amex-official-face{width:min(82%,340px)}.amex-hero-cards .amex-official-face--platinum{position:absolute;transform:translate(-8%,-22%) rotate(-12deg)}.amex-hero-cards .amex-official-face--reserve{transform:translate(12%,28%) rotate(8deg)}
-.amex-offer-art .amex-official-face,.amex-quiz-visual .amex-official-face{width:min(80%,290px)}
-.amex-offer-art .amex-official-face:first-child,.amex-quiz-visual .amex-official-face:first-child{position:absolute;transform:translate(-12%,-19%) rotate(-10deg)}
-.amex-offer-art .amex-official-face:last-child,.amex-quiz-visual .amex-official-face:last-child{transform:translate(10%,20%) rotate(8deg)}
+.amex-page .amex-hero-cards{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto;align-items:center;justify-items:center;min-width:0;min-height:clamp(260px,32vw,390px);overflow:visible}
+.amex-page .amex-hero-cards .amex-official-face{grid-area:1/1;position:relative;width:min(76%,340px);height:auto}
+.amex-page .amex-hero-cards .amex-official-face--platinum{transform:translate(-13%,-23%) rotate(-10deg);z-index:1}
+.amex-page .amex-hero-cards .amex-official-face--reserve{transform:translate(13%,27%) rotate(8deg);z-index:2}
+.amex-page .amex-offer-art,.amex-page .amex-quiz-visual>div{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto;align-items:center;justify-items:center;overflow:visible;min-width:0;min-height:220px}
+.amex-page .amex-offer-art .amex-official-face,.amex-page .amex-quiz-visual .amex-official-face{grid-area:1/1;position:relative;width:min(70%,250px);height:auto}
+.amex-page .amex-offer-art .amex-official-face:first-child,.amex-page .amex-quiz-visual .amex-official-face:first-child{transform:translate(-12%,-20%) rotate(-10deg);z-index:1}
+.amex-page .amex-offer-art .amex-official-face:last-child,.amex-page .amex-quiz-visual .amex-official-face:last-child{transform:translate(12%,25%) rotate(8deg);z-index:2}
 .amex-page .amex-offer-art .amex-official-face img,.amex-page .amex-quiz-visual .amex-official-face img{position:static;transform:none}
 #amex-quiz-card .amex-official-face{margin:0 auto 20px;width:min(85%,340px)}
-#amex-quiz-card .amex-official-face img{width:100%;max-width:none;height:100%;margin:0}
+#amex-quiz-card .amex-official-face img{width:100%;max-width:none;height:auto;margin:0}
 .amex-design-gallery .amex-card-top{min-height:0}
-@media(max-width:700px){.amex-page .amex-card-top{padding:8px 12px}.amex-hero-cards .amex-official-face{width:min(74%,285px)}.amex-quiz-visual .amex-official-face{width:min(70%,220px)}}
+@media(max-width:700px){.amex-page .amex-card-top{padding:8px 12px}.amex-page .amex-hero-cards{min-height:clamp(230px,60vw,350px)}.amex-page .amex-hero-cards .amex-official-face{width:min(74%,285px)}.amex-page .amex-quiz-visual .amex-official-face{width:min(66%,200px)}}

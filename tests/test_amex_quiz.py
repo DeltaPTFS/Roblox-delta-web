@@ -29,15 +29,14 @@ def test_amex_uses_local_transparent_artwork_in_all_card_surfaces():
         html = client.get("/amex").text
         for tier in ("reserve", "platinum", "gold", "purple"):
             assert f'data-card-face="{tier}"' in html
-            url = f"/static/amex-{tier}-transparent.png"
+            url = f"/static/amex-{tier}-fast-v1.webp"
             assert url in html
             asset = client.get(url)
             assert asset.status_code == 200
-            assert asset.headers["content-type"].startswith("image/png")
-            assert asset.content.startswith(b"\x89PNG\r\n\x1a\n")
-            assert int.from_bytes(asset.content[16:20], "big") == 1573
-            assert int.from_bytes(asset.content[20:24], "big") == 1000
-            assert asset.content[25] == 6  # RGBA
+            assert asset.headers["content-type"].startswith("image/webp")
+            assert asset.content[:4] == b"RIFF" and asset.content[8:12] == b"WEBP"
+            assert int.from_bytes(asset.content[4:8], "little") + 8 == len(asset.content)
+            assert len(asset.content) < 250_000
         assert "DELTA ROBLOX MEMBER" not in html
         assert "Cardholder Since" not in html
         assert "Independent Roblox roleplay program only" in html
@@ -51,15 +50,15 @@ def test_amex_priority_and_home_feature():
     with TestClient(app) as client:
         html = client.get("/amex").text
         for tier in ("platinum", "reserve"):
-            assert f'<link rel="preload" as="image" href="/static/amex-{tier}-transparent.png" fetchpriority="high">' in html
+            assert f'<link rel="preload" as="image" href="/static/amex-{tier}-fast-v1.webp" fetchpriority="high">' in html
         assert 'loading="eager" fetchpriority="high" decoding="sync"' in html
         assert 'loading="lazy"' not in html.split('data-card-face="platinum"', 1)[1].split('</div>', 1)[0]
         for path in ("/", "/home"):
             home = client.get(path).text
             assert 'id="amex-cards"' in home
             assert 'href="/amex#card-quiz"' in home
-            assert '/static/amex-platinum-transparent.png' in home
-            assert '/static/amex-reserve-transparent.png' in home
+            assert '/static/amex-platinum-fast-v1.webp' in home
+            assert '/static/amex-reserve-fast-v1.webp' in home
 
 
 def test_amex_business_is_for_external_affairs_partnerships():
