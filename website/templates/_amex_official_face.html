@@ -1,0 +1,9 @@
+{# Official issuer artwork, linked directly rather than downloaded or regenerated.
+   The clipping frame removes the surrounding marketing matte. #}
+{% macro card_face(tier) %}
+<div class="amex-official-face amex-official-face--{{ tier }}" data-card-face="{{ tier }}" role="img" aria-label="SkyMiles {{ 'alternate Reserve' if tier == 'purple' else tier|title }} card artwork, virtual Roblox program example">
+  <div class="amex-official-art" aria-hidden="true"></div>
+  <div class="amex-official-member" aria-hidden="true"><span>DELTA ROBLOX MEMBER</span><span class="amex-official-since">Cardholder Since<b>26</b></span></div>
+  <span class="amex-official-demo" aria-hidden="true">VIRTUAL</span>
+</div>
+{% endmacro %}
