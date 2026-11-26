@@ -170,3 +170,16 @@ async def publish_bot_news(request: Request, db: Session = Depends(get_db)):
                     security_metadata={"source": "deltaptfs-bot"}))
     db.commit()
     return {"id": article.id, "published": published}
+
+
+@router.get("/release-info")
+def release_info():
+    """Public production deployment metadata for the community release notifier."""
+    import os
+    import re
+    from fastapi.responses import JSONResponse
+    sha = os.environ.get("VERCEL_GIT_COMMIT_SHA", "")
+    if os.environ.get("VERCEL_ENV") != "production" or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        return JSONResponse({"status": "unavailable"}, status_code=503, headers={"Cache-Control": "no-store"})
+    lines = os.environ.get("VERCEL_GIT_COMMIT_MESSAGE", "").splitlines()
+    return JSONResponse({"commit": sha, "summary": (lines[0][:280] if lines else "Website update"), "environment": "production"}, headers={"Cache-Control": "no-store"})
