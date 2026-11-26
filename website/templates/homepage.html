@@ -17,12 +17,12 @@
           <a href="/flights">Flight Status</a>
         </nav>
         <div class="delta-service-tabs" aria-label="Explore Delta Roblox">
-          <a class="is-current" href="/flights"><span aria-hidden="true">✈</span>Flights</a>
-          <a href="/experience"><span aria-hidden="true">▣</span>Experience</a>
-          <a href="/skymiles"><span aria-hidden="true">★</span>SkyMiles</a>
-          <a href="/forms"><span aria-hidden="true">♧</span>Careers</a>
-          <a href="/news"><span aria-hidden="true">▤</span>News</a>
-          <a href="/amex"><img class="air-amex-tab-logo" src="/static/amex-mark.svg" alt="" width="20" height="20">AMEX Cards</a>
+          <a class="is-current" href="/flights"><img class="delta-custom-icon " src="/static/delta-icons/plane.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">Flights</a>
+          <a href="/experience"><img class="delta-custom-icon " src="/static/delta-icons/ticket.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">Experience</a>
+          <a href="/skymiles"><img class="delta-custom-icon " src="/static/delta-icons/delta-logo.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">SkyMiles</a>
+          <a href="/forms"><img class="delta-custom-icon " src="/static/delta-icons/bags.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">Careers</a>
+          <a href="/news"><img class="delta-custom-icon " src="/static/delta-icons/notebook.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">News</a>
+          <a href="/amex"><img class="delta-custom-icon " src="/static/delta-icons/credit-card.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">AMEX Cards</a>
         </div>
       </div>
     </div>
@@ -31,12 +31,12 @@
         <h2>Where would you like to go?</h2>
         <div class="delta-route-fields">
           <a href="/flights" class="delta-route-field"><span>FROM</span><strong>Explore airports</strong><small>See available departure locations</small></a>
-          <span class="delta-route-swap" aria-hidden="true">⇄</span>
+          <span class="delta-route-swap" aria-hidden="true"></span>
           <a href="/flights" class="delta-route-field"><span>TO</span><strong>Your destination</strong><small>Browse our flight schedule</small></a>
         </div>
         <div class="delta-booking-options">
-          <a href="/flights" class="delta-options-link">☷ &nbsp; View flight schedule <span aria-hidden="true">⌄</span></a>
-          <a href="/flights" class="delta-booking-search">FIND FLIGHTS <span aria-hidden="true">→</span></a>
+          <a href="/flights" class="delta-options-link"><img class="delta-custom-icon " src="/static/delta-icons/schedule.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">  View flight schedule </a>
+          <a href="/flights" class="delta-booking-search">FIND FLIGHTS </a>
         </div>
         <p class="delta-booking-disclaimer">Flight bookings and SkyMiles here are community features, not real-world airline services.</p>
       </div>
@@ -49,9 +49,9 @@
       <span>YOUR NEXT JOURNEY</span>
       <h2>Discover more with Delta.</h2>
       <p>Explore upcoming departures, memorable experiences, and what's new across our community.</p>
-      <a href="/flights">EXPLORE FLIGHTS <span aria-hidden="true">↗</span></a>
+      <a href="/flights">EXPLORE FLIGHTS </a>
     </div>
-    <div class="delta-home-promo-links"><a href="/skymiles">✦ &nbsp; SkyMiles Benefits <span aria-hidden="true">↗</span></a><a href="/news">▤ &nbsp; Latest Announcements <span aria-hidden="true">↗</span></a></div>
+    <div class="delta-home-promo-links"><a href="/skymiles"><img class="delta-custom-icon " src="/static/delta-icons/delta-logo.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">  SkyMiles Benefits </a><a href="/news"><img class="delta-custom-icon " src="/static/delta-icons/notebook.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async">  Latest Announcements </a></div>
   </section>
 
   <section class="air-hero" aria-labelledby="air-hero-title">
@@ -64,17 +64,17 @@
       <span class="air-kicker light">WELCOME TO DELTA ROBLOX</span>
       <h1 id="air-hero-title">A world of aviation.<br>One community.</h1>
       <p>Discover the excitement of flying with a community built around virtual departures, dedicated crew and unforgettable moments.</p>
-      <div class="air-hero-buttons"><a href="/flights" class="air-action red">VIEW UPCOMING FLIGHTS <span aria-hidden="true">→</span></a><a href="{{ discord_href if main_discord_member else '/join' }}" class="air-action clear" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }}</a></div>
+      <div class="air-hero-buttons"><a href="/flights" class="air-action red">VIEW UPCOMING FLIGHTS </a><a href="{{ discord_href if main_discord_member else '/join' }}" class="air-action clear" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }}</a></div>
     </div>
     <div class="air-hero-rail"><div class="air-container"><span>DELTA ROBLOX</span><span>YOUR NEXT JOURNEY STARTS HERE</span><span>KEEP CLIMBING</span></div></div>
   </section>
 
   <section class="air-essentials" aria-label="Popular options">
     <div class="air-container air-essentials-grid">
-      <a href="/flights" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">✈</span><span><b>Book a Flight</b><small>Browse departures</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
-      <a href="/trips" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">▤</span><span><b>My Trips</b><small>Manage bookings</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
-      <a href="/forms" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">◇</span><span><b>Careers & Forms</b><small>Join the crew</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
-      <a href="/skymiles" class="air-essential"><span class="air-essential-symbol" aria-hidden="true">★</span><span><b>SkyMiles</b><small>Member benefits</small></span><span class="air-arrow" aria-hidden="true">→</span></a>
+      <a href="/flights" class="air-essential"><img class="delta-custom-icon air-essential-symbol" src="/static/delta-icons/plane.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async"><span><b>Book a Flight</b><small>Browse departures</small></span></a>
+      <a href="/trips" class="air-essential"><img class="delta-custom-icon air-essential-symbol" src="/static/delta-icons/ticket.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async"><span><b>My Trips</b><small>Manage bookings</small></span></a>
+      <a href="/forms" class="air-essential"><img class="delta-custom-icon air-essential-symbol" src="/static/delta-icons/bags.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async"><span><b>Careers & Forms</b><small>Join the crew</small></span></a>
+      <a href="/skymiles" class="air-essential"><img class="delta-custom-icon air-essential-symbol" src="/static/delta-icons/delta-logo.webp" width="32" height="32" alt="" aria-hidden="true" decoding="async"><span><b>SkyMiles</b><small>Member benefits</small></span></a>
     </div>
   </section>
 
@@ -87,15 +87,15 @@
       <div class="air-story-grid">
         <article class="air-story">
           <a class="air-story-image" href="/flights"><img src="/static/gallery/delta-centennial.webp" loading="lazy" decoding="async" alt="Delta aircraft seen near a sunlit airport" width="1200" height="760"></a>
-          <div class="air-story-copy"><span class="air-kicker">FLIGHT OPERATIONS</span><h3>See where we're flying.</h3><p>Find upcoming virtual flights, view departure details and reserve your place on board.</p><a href="/flights" class="air-inline-link">EXPLORE FLIGHTS <span aria-hidden="true">→</span></a></div>
+          <div class="air-story-copy"><span class="air-kicker">FLIGHT OPERATIONS</span><h3>See where we're flying.</h3><p>Find upcoming virtual flights, view departure details and reserve your place on board.</p><a href="/flights" class="air-inline-link">EXPLORE FLIGHTS </a></div>
         </article>
         <article class="air-story">
           <a class="air-story-image" href="/experience"><img src="/static/gallery/cabin-blue-original.png" loading="lazy" decoding="async" alt="Delta Roblox cabin with blue lighting and seatback screens" width="1200" height="760"></a>
-          <div class="air-story-copy"><span class="air-kicker">ONBOARD EXPERIENCE</span><h3>Take a look inside.</h3><p>Explore the cabin, inflight atmosphere and the details that make every journey memorable.</p><a href="/experience" class="air-inline-link">DISCOVER THE EXPERIENCE <span aria-hidden="true">→</span></a></div>
+          <div class="air-story-copy"><span class="air-kicker">ONBOARD EXPERIENCE</span><h3>Take a look inside.</h3><p>Explore the cabin, inflight atmosphere and the details that make every journey memorable.</p><a href="/experience" class="air-inline-link">DISCOVER THE EXPERIENCE </a></div>
         </article>
         <article class="air-story">
           <a class="air-story-image" href="/forms"><img src="/static/gallery/delta-terminal.webp" loading="lazy" decoding="async" alt="Airport terminal and guest services environment" width="1200" height="760"></a>
-          <div class="air-story-copy"><span class="air-kicker">CAREERS & OPPORTUNITIES</span><h3>Make your mark.</h3><p>Discover flight operations, ground crew and other opportunities to help shape our community.</p><a href="/forms" class="air-inline-link">EXPLORE OPEN FORMS <span aria-hidden="true">→</span></a></div>
+          <div class="air-story-copy"><span class="air-kicker">CAREERS & OPPORTUNITIES</span><h3>Make your mark.</h3><p>Discover flight operations, ground crew and other opportunities to help shape our community.</p><a href="/forms" class="air-inline-link">EXPLORE OPEN FORMS </a></div>
         </article>
       </div>
     </div>
@@ -103,7 +103,7 @@
 
   <section class="air-feature" aria-labelledby="air-miles-heading">
     <div class="air-feature-photo"><img src="/static/gallery/delta-lounge.webp" loading="lazy" decoding="async" alt="Comfortable Delta-inspired lounge seating and terminal interior" width="1200" height="760"></div>
-    <div class="air-feature-copy"><span class="air-kicker">DELTA ROBLOX SKYMILES</span><h2 id="air-miles-heading">The journey is more rewarding together.</h2><p>Earn community SkyMiles, discover Medallion recognition and keep track of your virtual adventures in one place.</p><p class="air-fine-print">SkyMiles on this website are virtual community rewards and are not associated with the real Delta SkyMiles program.</p><a class="air-action dark" href="/skymiles">EXPLORE SKYMILES <span aria-hidden="true">→</span></a></div>
+    <div class="air-feature-copy"><span class="air-kicker">DELTA ROBLOX SKYMILES</span><h2 id="air-miles-heading">The journey is more rewarding together.</h2><p>Earn community SkyMiles, discover Medallion recognition and keep track of your virtual adventures in one place.</p><p class="air-fine-print">SkyMiles on this website are virtual community rewards and are not associated with the real Delta SkyMiles program.</p><a class="air-action dark" href="/skymiles">EXPLORE SKYMILES </a></div>
   </section>
 
   <section class="air-amex-feature" id="amex-cards" aria-labelledby="air-amex-heading">
@@ -111,8 +111,8 @@
       <div class="air-amex-copy">
         <div class="air-amex-brand"><img src="/static/amex-mark.svg" width="42" height="42" alt="AMEX"><span>DELTA ROBLOX SKYMILES</span></div>
         <h2 id="air-amex-heading">Make every journey more rewarding.</h2>
-        <p>Explore our SkyMiles card collection, compare the Platinum and Reserve benefits, and find the right card for your virtual travels.</p>
-        <div class="air-amex-actions"><a class="air-action red" href="/amex">EXPLORE AMEX CARDS <span aria-hidden="true">→</span></a><a class="air-amex-secondary" href="/amex#card-quiz">Take the card quiz <span aria-hidden="true">→</span></a></div>
+        <p>Explore our SkyMiles card collection, compare Blue, Gold, Platinum and Reserve benefits, and find the right card for your virtual travels.</p>
+        <div class="air-amex-actions"><a class="air-action red" href="/amex">EXPLORE AMEX CARDS </a><a class="air-amex-secondary" href="/amex#card-quiz">Take the card quiz </a></div>
         <small>Independent Roblox roleplay program. Virtual cards only; no real financial products or issuer affiliation.</small>
       </div>
       <a href="/amex" class="air-amex-art" aria-label="Explore the SkyMiles card collection">
@@ -126,9 +126,9 @@
     <div class="air-container">
       <div class="air-section-heading"><div><span class="air-kicker">FLY WITH OUR COMMUNITY</span><h2 id="air-reasons-heading">Everything you need, all in one place.</h2></div></div>
       <div class="air-reasons-grid">
-        <div class="air-reason"><span class="air-reason-index">01</span><h3>Follow every departure</h3><p>Upcoming flights, scheduled events and the latest updates from our operations team.</p><a href="/flights">FLIGHT SCHEDULE <span aria-hidden="true">→</span></a></div>
-        <div class="air-reason"><span class="air-reason-index">02</span><h3>Plan your next trip</h3><p>Reserve your place and manage community flight bookings from your account.</p><a href="/trips">MY TRIPS <span aria-hidden="true">→</span></a></div>
-        <div class="air-reason"><span class="air-reason-index">03</span><h3>Find your place on the team</h3><p>Explore the forms and recruitment opportunities available to Discord members.</p><a href="/forms">CAREERS & FORMS <span aria-hidden="true">→</span></a></div>
+        <div class="air-reason"><span class="air-reason-index">01</span><h3>Follow every departure</h3><p>Upcoming flights, scheduled events and the latest updates from our operations team.</p><a href="/flights">FLIGHT SCHEDULE </a></div>
+        <div class="air-reason"><span class="air-reason-index">02</span><h3>Plan your next trip</h3><p>Reserve your place and manage community flight bookings from your account.</p><a href="/trips">MY TRIPS </a></div>
+        <div class="air-reason"><span class="air-reason-index">03</span><h3>Find your place on the team</h3><p>Explore the forms and recruitment opportunities available to Discord members.</p><a href="/forms">CAREERS & FORMS </a></div>
       </div>
     </div>
   </section>
@@ -137,7 +137,7 @@
     <div class="air-container">
       <div class="air-partner-topline">
         <div><span class="air-kicker">AIRLINE PARTNERSHIPS</span><h2 id="air-partner-heading">More connections. More possibilities.</h2></div>
-        <a href="/partnerships" class="air-inline-link">EXPLORE OUR PARTNERSHIP <span aria-hidden="true">→</span></a>
+        <a href="/partnerships" class="air-inline-link">EXPLORE OUR PARTNERSHIP </a>
       </div>
       <div class="air-partner-showcase">
         <a class="air-partner-photograph" href="/partnerships" aria-label="Discover our Virgin Atlantic partnership">
@@ -148,7 +148,7 @@
           <h3>Virgin Atlantic</h3>
           <p>Discover how our partnership brings new destinations, shared experiences and added opportunities to members of both communities.</p>
           <div class="air-partner-meta"><span>PARTNER SINCE</span><strong>September 2026</strong></div>
-          <a href="/partnerships" class="air-action dark">VIEW PARTNER DETAILS <span aria-hidden="true">→</span></a>
+          <a href="/partnerships" class="air-action dark">VIEW PARTNER DETAILS </a>
         </div>
       </div>
       <p class="air-partner-note">A partnership between independent aviation communities, not an official partnership of the real-world airlines.</p>
@@ -158,7 +158,7 @@
     <div class="air-container">
       <div class="air-section-heading air-news-head">
         <div><span class="air-kicker">DELTA ROBLOX NEWSROOM</span><h2 id="air-news-heading">Announcements from our team.</h2></div>
-        <a href="/news" class="air-inline-link">ALL ANNOUNCEMENTS <span aria-hidden="true">→</span></a>
+        <a href="/news" class="air-inline-link">ALL ANNOUNCEMENTS </a>
       </div>
       {% if featured_news %}
       {% set article = featured_news[0] %}
@@ -168,7 +168,7 @@
           <h3>{{ article.title }}</h3>
           <p>{{ article.body.split()[:58]|join(' ') }}{% if article.body.split()|length > 58 %}…{% endif %}</p>
           <div class="air-news-author">Community Newsroom · {{ article.updated_at.strftime('%B %d, %Y') }}</div>
-          <a class="air-inline-link" href="/news#news-article-{{ article.id }}">READ THE FULL ANNOUNCEMENT <span aria-hidden="true">→</span></a>
+          <a class="air-inline-link" href="/news#news-article-{{ article.id }}">READ THE FULL ANNOUNCEMENT </a>
         </div>
         <div class="air-news-feature-side">
           <strong>From the Delta Roblox Team</strong>
@@ -184,14 +184,14 @@
           <p>{{ site_announcement.message }}</p>
           <div class="air-news-author">Published by {{ site_announcement.author_name }}</div>
           {% if site_announcement.link_label and site_announcement.link_path %}
-          <a class="air-inline-link" href="{{ site_announcement.link_path }}">{{ site_announcement.link_label }} <span aria-hidden="true">→</span></a>
+          <a class="air-inline-link" href="{{ site_announcement.link_path }}">{{ site_announcement.link_label }} </a>
           {% endif %}
         </div>
         <div class="air-news-feature-side"><strong>News from Delta Roblox</strong><p>Official announcements about our flights, events, opportunities, and community.</p><a href="/news" class="air-inline-link">VISIT THE NEWSROOM →</a></div>
       </article>
       {% else %}
       <div class="air-news-feature is-empty">
-        <div class="air-news-feature-main"><span class="air-kicker">COMMUNITY NEWS</span><h3>Watch this space.</h3><p>Our team will post flight announcements, important notices, and upcoming events here.</p><a class="air-inline-link" href="/news">GO TO NEWSROOM <span aria-hidden="true">→</span></a></div>
+        <div class="air-news-feature-main"><span class="air-kicker">COMMUNITY NEWS</span><h3>Watch this space.</h3><p>Our team will post flight announcements, important notices, and upcoming events here.</p><a class="air-inline-link" href="/news">GO TO NEWSROOM </a></div>
         <div class="air-news-feature-side"><strong>Stay connected.</strong><p>Check back for updates directly from Delta Roblox leadership.</p></div>
       </div>
       {% endif %}
@@ -200,7 +200,7 @@
   </section>
 
   <section class="air-join" aria-labelledby="air-join-heading">
-    <div class="air-container air-join-inner"><div><span class="air-kicker light">KEEP CLIMBING</span><h2 id="air-join-heading">Your next adventure starts here.</h2><p>Explore our community, discover upcoming departures, and make the journey yours.</p></div><a class="air-action red" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }} <span aria-hidden="true">→</span></a></div>
+    <div class="air-container air-join-inner"><div><span class="air-kicker light">KEEP CLIMBING</span><h2 id="air-join-heading">Your next adventure starts here.</h2><p>Explore our community, discover upcoming departures, and make the journey yours.</p></div><a class="air-action red" href="{{ discord_href if main_discord_member else '/join' }}" {% if main_discord_member %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ 'GO TO DISCORD' if main_discord_member else 'JOIN OUR COMMUNITY' }} </a></div>
   </section>
 </div>
 
