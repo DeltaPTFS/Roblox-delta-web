@@ -34,6 +34,7 @@ from .security import check_csrf, consume_oauth, csrf_token, current_user, linke
 from .session import DatabaseSessionMiddleware
 from .site_announcements import announcement_for_page
 from .skymiles_messages import SKYMILES_WELCOME_MESSAGE
+from .amex_membership import dashboard_card
 from .sheet_sync import add_transaction, enqueue_member_update, enqueue_registration, process_outbox_once, reconcile_outbox
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -906,7 +907,7 @@ async def member_page(request: Request, template: str, db: Session):
     transactions=db.scalars(select(Transaction).where(Transaction.user_id==user.id).order_by(Transaction.created_at.desc()).limit(20)).all() if template in {"dashboard.html","activity.html"} else []
     rewards=db.scalars(select(Reward).where(Reward.active.is_(True))).all() if template=="rewards.html" else []
     tiers=db.scalars(select(TierConfig).order_by(TierConfig.mqp_threshold)).all() if template=="miles.html" else []
-    return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=auth))
+    return templates.TemplateResponse(template, context(request,user=user,transactions=transactions,rewards=rewards,tiers=tiers,auth=auth,amex_card=dashboard_card(db,user) if template=="dashboard.html" else None))
 
 
 @app.get("/dashboard", response_class=HTMLResponse)

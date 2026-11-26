@@ -57,6 +57,21 @@
     </article>
   </section>
 
+  <section class="card" aria-labelledby="amex-membership-title" style="margin:24px 0;padding:24px">
+    <div class="section-head"><div><span class="eyebrow">YOUR VIRTUAL AMEX MEMBERSHIP</span><h2 id="amex-membership-title">SkyMiles card benefits</h2></div><a href="/amex#compare">Compare cards</a></div>
+    {% if amex_card %}
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px">
+        <img src="/static/amex-{{ amex_card.tier }}-fast-v1.webp" alt="SkyMiles {{ amex_card.name }} sample card" width="240" style="max-width:100%;height:auto;border-radius:6px" loading="eager">
+        <div><h3>SkyMiles {{ amex_card.name }} · Registered</h3><p>{{ "{:,}".format(amex_card.welcome_miles) }} welcome SkyMiles awarded · {{ "{:,}".format(amex_card.fee) }} Robux annual fee</p>
+        {% for category,rate in amex_card.rates.items() %}<p>{{ rate }}X miles on {{ category }} purchases</p>{% endfor %}
+        {% if amex_card.tier == 'platinum' %}<p>Additional Platinum benefits are not yet confirmed.</p>{% endif %}
+        {% if amex_card.tier == 'reserve' %}<p>1 MQP per 10 Robux on recorded purchases; 2,500 MQP headstart last awarded for {{ amex_card.headstart_year }}.</p>{% endif %}</div>
+      </div>
+      {% if amex_card.credits_display %}<h3>Remaining benefits</h3><ul>{% for credit in amex_card.credits_display %}<li>{{ credit.label }} — <strong>{{ credit.remaining }} remaining</strong></li>{% endfor %}</ul>{% endif %}
+      {% if amex_card.perks %}<h3>Membership privileges</h3><ul>{% for perk in amex_card.perks %}<li>{{ perk }}</li>{% endfor %}</ul>{% endif %}
+      <p>All benefits are virtual roleplay only. Contact Delta Leadership for eligible benefit fulfillment; recorded usage updates here.</p>
+    {% else %}<p>No active AMEX card is registered. Contact Delta Leadership after linking your Discord and Roblox accounts.</p><a href="/amex">Explore virtual cards</a>{% endif %}
+  </section>
   <section class="delta-dashboard-lower">
     <article class="card delta-activity-card">
       <div class="section-head">
