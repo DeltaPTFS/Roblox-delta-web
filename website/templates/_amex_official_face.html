@@ -2,6 +2,6 @@
     Preserve their original sample cardholder text and transparent corners. #}
 {% macro card_face(tier, priority='auto') %}
 <div class="amex-official-face amex-official-face--{{ tier }}" data-card-face="{{ tier }}">
-  <img src="/static/amex-{{ tier }}-fast-v1.webp" alt="SkyMiles {{ 'alternate Reserve' if tier == 'purple' else tier|title }} sample card illustration" width="1258" height="800" loading="eager" fetchpriority="{{ priority }}" decoding="{{ 'sync' if priority == 'high' else 'async' }}">
+  <img src="/static/amex-{{ tier }}-fast-v1.webp" alt="SkyMiles {{ 'alternate Reserve' if tier == 'purple' else tier|title }} sample card illustration" width="{{ 360 if tier == 'blue' else 1258 }}" height="{{ 240 if tier == 'blue' else 800 }}" loading="eager" fetchpriority="{{ priority }}" decoding="{{ 'sync' if priority == 'high' else 'async' }}">
 </div>
 {% endmacro %}

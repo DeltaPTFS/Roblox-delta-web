@@ -17,7 +17,8 @@ const assert = require('node:assert/strict');
 const {match,questions} = require('./website/static/amex-quiz.js');
 assert.equal(questions.length,4);
 assert.equal(match(['business','high','first','2000']),'business');
-assert.equal(match(['personal','high','first','none']),'none');
+assert.equal(match(['personal','high','first','none']),'blue');
+assert.equal(match(['personal','high','first','500']),'gold');
 assert.equal(match(['personal','high','first','1000']),'platinum');
 assert.equal(match(['personal','high','first','2000']),'reserve');
 assert.equal(match(['personal','low','main','2000']),'platinum');
@@ -27,7 +28,7 @@ assert.equal(match(['personal','low','main','2000']),'platinum');
 def test_amex_uses_local_transparent_artwork_in_all_card_surfaces():
     with TestClient(app) as client:
         html = client.get("/amex").text
-        for tier in ("reserve", "platinum", "gold", "purple"):
+        for tier in ("blue", "reserve", "platinum", "gold", "purple"):
             assert f'data-card-face="{tier}"' in html
             url = f"/static/amex-{tier}-fast-v1.webp"
             assert url in html
@@ -84,3 +85,15 @@ def test_amex_social_preview_uses_uploaded_photo():
         assert image.headers["content-type"].startswith("image/jpeg")
         assert image.content.startswith(b"\xff\xd8")
         assert "amex-social-preview.jpeg" not in client.get("/").text
+
+
+def test_amex_four_card_benefit_comparison():
+    with TestClient(app) as client:
+        html = client.get("/amex").text
+        compare = html.split('id="compare"', 1)[1].split("</section>", 1)[0]
+        for tier in ("blue", "gold", "platinum", "reserve"):
+            assert f'data-card-face="{tier}"' in compare
+        for marker in ("80,000 SkyMiles", "2,500 MQP", "1 MQP for every 10 Robux", "Not confirmed", "amex-benefit-terms", "500 Robux", "0 Robux"):
+            assert marker in compare
+        assert client.get("/static/delta-icons/check-mark.webp").status_code == 200
+        assert "position:sticky" in client.get("/static/amex.css").text
