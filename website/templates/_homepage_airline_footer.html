@@ -16,6 +16,9 @@
       <a href="/home" aria-label="Return to Delta Roblox homepage"><img src="/static/delta-emblem.svg" width="30" height="30" alt=""> Keep Climbing</a>
     </div>
     <div class="delta-footer-preferences">
+      <a href="{{ discord_href if discord_href else settings.discord_invite_url }}" target="_blank" rel="noopener noreferrer" aria-label="Delta Roblox Discord" title="Delta Roblox Discord" style="display:inline-flex;align-items:center;gap:8px;color:inherit;text-decoration:none">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M20.3 4.7a19.5 19.5 0 0 0-4.9-1.5l-.6 1.2a18 18 0 0 0-5.6 0l-.6-1.2a19.5 19.5 0 0 0-4.9 1.5C.7 9.1-.1 13.4.3 17.6a19.7 19.7 0 0 0 6 3l1.3-2.1-1.9-.9.5-.4a14 14 0 0 0 11.6 0l.5.4-1.9.9 1.3 2.1a19.7 19.7 0 0 0 6-3c.5-4.9-.9-9.2-3.4-12.9ZM8.3 15c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4S9.5 15 8.3 15Zm7.4 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.1 1.1 2.1 2.4-.9 2.4-2.1 2.4Z"/></svg><span>Discord</span>
+      </a>
       <button type="button" class="delta-footer-appearance" data-site-theme-toggle aria-label="Switch to dark mode" aria-pressed="false"><span data-site-theme-label>Dark</span> mode</button>
     </div>
     <div class="delta-footer-language"><span aria-hidden="true">◎</span><span>United States · English</span><span class="delta-footer-language-divider" aria-hidden="true"></span><button type="button" data-home-footer-language="es">Español</button></div>
