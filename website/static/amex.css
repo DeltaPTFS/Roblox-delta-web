@@ -14,7 +14,7 @@
 .amex-official-face--reserve{--art:url("https://www.delta.com/content/dam/delta-com/products/skymiles/credit-cards/delta-skymiles-reserve-american-express-personal-card-v1.webp")}
 .amex-page .amex-official-face--platinum{--art:url("https://www.delta.com/content/dam/delta-com/products/skymiles/credit-cards/delta-skymiles-platinum-american-express-personal-card-v1.webp");--card-ink:#182125;--card-base:#a7adaf;--card-footer:linear-gradient(105deg,#a9aeae,#91999b)}
 .amex-page .amex-official-face--gold{--art:url("https://www.delta.com/content/dam/delta-com/products/skymiles/credit-cards/delta-skymiles-gold-american-express-personal-card-v1.webp");--card-ink:#302719;--card-base:#b49a67;--card-footer:linear-gradient(105deg,#bda577,#a58b5d)}
-.amex-page .amex-official-face--purple{--art:url("https://icm.aexp-static.com/acquisition/card-art/NUS000000383_480x304_straight_withname.png");--card-ink:#f1eaf5;--card-base:#362344;--card-footer:linear-gradient(105deg,#492b5e,#2c1839)}
+.amex-page .amex-official-face--purple{--art:url("https://www.thepointcalculator.com/uploads/creditcards/DELTARES/delta-skymiles-reserve-amex-card.png");--card-ink:#f1eaf5;--card-base:#362344;--card-footer:linear-gradient(105deg,#492b5e,#2c1839)}
 .amex-official-art{position:absolute;inset:0;background-image:var(--art);background-repeat:no-repeat;background-size:148.333% 194.69%;background-position:center center}
 .amex-official-face--purple .amex-official-art{background-size:100% 100%}
 .amex-official-member{position:absolute;left:2.7%;right:2.7%;bottom:1.5%;height:17%;display:flex;align-items:center;justify-content:space-between;gap:3%;padding:0 1.8%;background:var(--card-footer);text-align:left;color:var(--card-ink);font-size:3.7cqw;font-weight:500;letter-spacing:.025em}
