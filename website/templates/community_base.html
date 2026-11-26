@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" class="theme-{{ request.session.get('theme', 'light') }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Delta Air Lines Roblox | Aviation Roleplay{% endblock %}</title>
-<meta name="description" content="Explore Delta Air Lines Roblox aviation roleplay. Join virtual flights, discover SkyMiles-style rewards, crew applications and Discord events.">
+<meta name="description" content="{% if request.url.path == '/amex' %}Explore Delta Roblox SkyMiles Personal Cards, compare virtual card benefits, take the card quiz, and discover External Affairs Business Card partnerships.{% else %}Explore Delta Air Lines Roblox aviation roleplay. Join virtual flights, discover SkyMiles-style rewards, crew applications and Discord events.{% endif %}">
 <meta name="robots" content="{% if request.url.path in ['/', '/home', '/core-partnerships', '/partnerships', '/experience'] %}index, follow, max-image-preview:large{% else %}noindex, follow{% endif %}">
 {% if request.url.path in ['/', '/home'] %}
 <link rel="canonical" href="https://roblox-delta-web.vercel.app/">
@@ -13,6 +13,24 @@
 <meta property="og:image" content="https://roblox-delta-web.vercel.app/static/gallery/delta-centennial.webp">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Delta Air Lines Roblox - Aviation Roleplay Community","url":"https://roblox-delta-web.vercel.app/","description":"Independent Roblox aviation roleplay community. Not affiliated with Delta Air Lines, Inc."}</script>
+{% elif request.url.path == '/amex' %}
+<link rel="canonical" href="https://roblox-delta-web.vercel.app/amex">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Delta Roblox">
+<meta property="og:title" content="AMEX Cards | Delta Roblox SkyMiles">
+<meta property="og:description" content="Explore Delta Roblox SkyMiles Personal Cards, compare virtual card benefits, take the card quiz, and discover External Affairs Business Card partnerships.">
+<meta property="og:url" content="https://roblox-delta-web.vercel.app/amex">
+<meta property="og:image" content="https://roblox-delta-web.vercel.app/static/amex-social-preview.jpeg">
+<meta property="og:image:secure_url" content="https://roblox-delta-web.vercel.app/static/amex-social-preview.jpeg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="597">
+<meta property="og:image:height" content="335">
+<meta property="og:image:alt" content="Four Delta SkyMiles sample cards arranged with travel accessories">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AMEX Cards | Delta Roblox SkyMiles">
+<meta name="twitter:description" content="Explore Delta Roblox SkyMiles Personal Cards, compare virtual card benefits, take the card quiz, and discover External Affairs Business Card partnerships.">
+<meta name="twitter:image" content="https://roblox-delta-web.vercel.app/static/amex-social-preview.jpeg">
+<meta name="twitter:image:alt" content="Four Delta SkyMiles sample cards arranged with travel accessories">
 {% elif request.url.path == '/experience' %}
 <link rel="canonical" href="https://roblox-delta-web.vercel.app/experience">
 <meta property="og:type" content="website">

@@ -71,3 +71,17 @@ def test_amex_business_is_for_external_affairs_partnerships():
         js = client.get("/static/amex-quiz.js").text
         assert "External Affairs Partnership" in js
         assert "Contact External Affairs on Discord" in js
+
+
+def test_amex_social_preview_uses_uploaded_photo():
+    with TestClient(app) as client:
+        html = client.get("/amex", headers={"User-Agent": "Discordbot/2.0"}).text
+        assert 'property="og:title" content="AMEX Cards | Delta Roblox SkyMiles"' in html
+        assert 'property="og:image" content="https://roblox-delta-web.vercel.app/static/amex-social-preview.jpeg"' in html
+        assert 'name="twitter:card" content="summary_large_image"' in html
+        assert "External Affairs Business Card partnerships" in html
+        image = client.get("/static/amex-social-preview.jpeg")
+        assert image.status_code == 200
+        assert image.headers["content-type"].startswith("image/jpeg")
+        assert image.content.startswith(b"\xff\xd8")
+        assert "amex-social-preview.jpeg" not in client.get("/").text
