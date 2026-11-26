@@ -60,3 +60,14 @@ def test_amex_priority_and_home_feature():
             assert 'href="/amex#card-quiz"' in home
             assert '/static/amex-platinum-transparent.png' in home
             assert '/static/amex-reserve-transparent.png' in home
+
+
+def test_amex_business_is_for_external_affairs_partnerships():
+    with TestClient(app) as client:
+        html = client.get("/amex").text
+        assert "Business Cards are intended for External Affairs partnerships" in html
+        assert "Contact External Affairs on Discord" in html
+        assert "1539651325615153233" in html
+        js = client.get("/static/amex-quiz.js").text
+        assert "External Affairs Partnership" in js
+        assert "Contact External Affairs on Discord" in js

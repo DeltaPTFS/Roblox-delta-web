@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const questions = [
-    {text:'First things first: is this card for personal or business use?', options:[['personal','Personal'],['business','Business']]},
+    {text:'First things first: is this card for personal or business use?', options:[['personal','Personal'],['business','External Affairs Partnership']]},
     {text:'How often do you fly with Delta Roblox?', options:[['low','1–2x per year'],['medium','3–5x per year'],['high','6+ times per year']]},
     {text:'Which cabin do you usually choose?', options:[['main','Delta Main Basic / Delta Main'],['comfort','Delta Comfort'],['first','Delta First']]},
     {text:'How do you feel about annual Robux fees?', options:[['none','No annual fee'],['1000','Up to 1,000 Robux'],['2000','Up to 2,000 Robux for premium travel']]}
@@ -25,15 +25,15 @@
     reserve:['SkyMiles Reserve','2,000 Robux annually. Includes 15 virtual SkyClub visits and increased SkyMiles earnings. Your travel preferences suggest exploring the highest card offering.','reserve'],
     platinum:['SkyMiles Platinum','1,000 Robux annually. Includes increased SkyMiles earnings and is a middle ground for price-conscious travelers.','platinum'],
     none:['No confirmed fee-free match','Both confirmed personal cards have annual Robux fees. Ask the Discord team about other available options.',''],
-    business:['Business card inquiries','Your best next step is to contact our Discord team. Business card availability, prices and benefits are handled there.','']
+    business:['External Affairs Partnership','Business Cards are intended for External Affairs partnerships. Contact our team on Discord to discuss partnership arrangements, eligibility and benefits.','']
   };
   function setMode(value) {
     mode=value==='business'?'business':'personal';
     document.querySelectorAll('[data-card-panel]').forEach(el=>el.hidden=el.dataset.cardPanel!==mode);
     document.querySelectorAll('.amex-product-tabs [data-card-tab]').forEach(el=>{if(el.dataset.cardTab===mode)el.setAttribute('aria-current','true');else el.removeAttribute('aria-current');});
     document.querySelectorAll('[data-featured-link]').forEach(el=>{el.href=mode==='business'?'#business':'#personal';el.textContent=mode==='business'?'Explore Business Cards':'Explore Featured Cards';});
-    document.querySelectorAll('[data-compare-link]').forEach(el=>{el.href=mode==='business'?'#business':'#compare';el.textContent=mode==='business'?'Business Card Inquiries':'Compare Cards';});
-    $('amex-offer-copy').textContent=mode==='business'?'Ask our Discord team about any current business card welcome offers. No business promotion or bonus amount has been confirmed on this page.':'Explore our SkyMiles personal cards and ask our Discord team about any current welcome offers. No bonus miles or promotional prices have been announced on this page.';
+    document.querySelectorAll('[data-compare-link]').forEach(el=>{el.href=mode==='business'?'#business':'#compare';el.textContent=mode==='business'?'Partnership Inquiries':'Compare Cards';});
+    $('amex-offer-copy').textContent=mode==='business'?'Business Cards are for External Affairs partnerships. Contact our team on Discord for partnership arrangements and any applicable offers.':'Explore our SkyMiles personal cards and ask our Discord team about any current welcome offers. No bonus miles or promotional prices have been announced on this page.';
   }
   document.querySelectorAll('[data-card-tab]').forEach(el=>el.addEventListener('click',()=>setMode(el.dataset.cardTab)));
   function followHash(){const hash=location.hash;if(hash==='#business')setMode('business');else if(['#personal','#compare','#registration'].includes(hash))setMode('personal');}
@@ -61,7 +61,7 @@
     form.hidden=true;back.hidden=false;shell.classList.add('is-expanded');
     $('amex-quiz-result-title').textContent=r[0];$('amex-quiz-result-copy').textContent=r[1];
     img.hidden=!r[2];img.querySelectorAll('[data-card-face]').forEach(face=>{face.hidden=face.dataset.cardFace!==r[2];});
-    $('amex-quiz-result-link').textContent=key==='business'?'Contact Business Support on Discord':key==='none'?'Ask about options on Discord':'Register on Discord';
+    $('amex-quiz-result-link').textContent=key==='business'?'Contact External Affairs on Discord':key==='none'?'Ask about options on Discord':'Register on Discord';
     result.hidden=false;result.focus();
   });
   back.addEventListener('click',()=>{if(!result.hidden){render(true);return;}if(step>0){step--;render(true);}});
