@@ -26,7 +26,7 @@
     reserve:['SkyMiles Reserve','2,000 Robux annually. Includes virtual Sky Club access when flying Delta and 3X miles on Delta purchases. Your travel preferences suggest exploring the highest card offering.','reserve'],
     platinum:['SkyMiles Platinum','1,000 Robux annually. Includes increased SkyMiles earnings and is a middle ground for price-conscious travelers.','platinum'],
     blue:['SkyMiles Blue','0 Robux annually. Earn 2X miles on Delta and eligible Delta partners.','blue'],
-    gold:['SkyMiles Gold','500 Robux annually. Includes Zone 5 priority boarding and eligible first-flight cabin upgrades.','gold'],
+    gold:['SkyMiles Gold','500 Robux annually. Includes Zone 5 priority boarding, a first-flight Comfort Plus upgrade and a second-flight First Class upgrade.','gold'],
     business:['External Affairs Partnership','Business Cards are intended for External Affairs partnerships. Contact our team on Discord to discuss partnership arrangements, eligibility and benefits.','']
   };
   function setMode(value) {
@@ -68,5 +68,7 @@
   });
   back.addEventListener('click',()=>{if(!result.hidden){render(true);return;}if(step>0){step--;render(true);}});
   $('amex-quiz-restart').addEventListener('click',()=>{step=0;answers=[];render(true);});
+  const compareBack=document.querySelector('.amex-compare-back'), compareScroll=document.querySelector('.amex-comparison-scroll');
+  if(compareBack && compareScroll) compareBack.addEventListener('click',()=>{compareScroll.scrollTop=0;});
   render();
 })();
