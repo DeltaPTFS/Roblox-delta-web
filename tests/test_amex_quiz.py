@@ -23,3 +23,15 @@ assert.equal(match(['personal','high','first','2000']),'reserve');
 assert.equal(match(['personal','low','main','2000']),'platinum');
 """
     subprocess.run(["node", "-e", script], check=True)
+
+def test_amex_uses_clipped_official_artwork_in_all_card_surfaces():
+    with TestClient(app) as client:
+        html = client.get("/amex").text
+        for tier in ("reserve", "platinum", "gold", "purple"):
+            assert f'data-card-face="{tier}"' in html
+            assert f'amex-{tier}-card.png' not in html
+        assert "DELTA ROBLOX MEMBER" in html
+        assert "Cardholder Since" in html
+        css = client.get("/static/amex.css").text
+        assert "delta-skymiles-reserve-american-express-personal-card-v1.webp" in css
+        assert "148.333% 194.69%" in css
