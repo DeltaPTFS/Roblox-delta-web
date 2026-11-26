@@ -1,6 +1,7 @@
 {% extends "community_base.html" %}
 {% block title %}Delta Roblox | Flights, SkyMiles & Aviation Community{% endblock %}
 {% block extra_head %}
+<link rel="stylesheet" href="/static/homepage-amex.css?v={{ asset_version }}">
 <link rel="stylesheet" href="/static/homepage-airline.css?v={{ asset_version }}">
 <link rel="stylesheet" href="/static/homepage-delta-refresh.css?v={{ asset_version }}">
 {% endblock %}
@@ -21,6 +22,7 @@
           <a href="/skymiles"><span aria-hidden="true">★</span>SkyMiles</a>
           <a href="/forms"><span aria-hidden="true">♧</span>Careers</a>
           <a href="/news"><span aria-hidden="true">▤</span>News</a>
+          <a href="/amex"><img class="air-amex-tab-logo" src="/static/amex-mark.svg" alt="" width="20" height="20">AMEX Cards</a>
         </div>
       </div>
     </div>
@@ -102,6 +104,22 @@
   <section class="air-feature" aria-labelledby="air-miles-heading">
     <div class="air-feature-photo"><img src="/static/gallery/delta-lounge.webp" loading="lazy" decoding="async" alt="Comfortable Delta-inspired lounge seating and terminal interior" width="1200" height="760"></div>
     <div class="air-feature-copy"><span class="air-kicker">DELTA ROBLOX SKYMILES</span><h2 id="air-miles-heading">The journey is more rewarding together.</h2><p>Earn community SkyMiles, discover Medallion recognition and keep track of your virtual adventures in one place.</p><p class="air-fine-print">SkyMiles on this website are virtual community rewards and are not associated with the real Delta SkyMiles program.</p><a class="air-action dark" href="/skymiles">EXPLORE SKYMILES <span aria-hidden="true">→</span></a></div>
+  </section>
+
+  <section class="air-amex-feature" id="amex-cards" aria-labelledby="air-amex-heading">
+    <div class="air-container air-amex-inner">
+      <div class="air-amex-copy">
+        <div class="air-amex-brand"><img src="/static/amex-mark.svg" width="42" height="42" alt="AMEX"><span>DELTA ROBLOX SKYMILES</span></div>
+        <h2 id="air-amex-heading">Make every journey more rewarding.</h2>
+        <p>Explore our SkyMiles card collection, compare the Platinum and Reserve benefits, and find the right card for your virtual travels.</p>
+        <div class="air-amex-actions"><a class="air-action red" href="/amex">EXPLORE AMEX CARDS <span aria-hidden="true">→</span></a><a class="air-amex-secondary" href="/amex#card-quiz">Take the card quiz <span aria-hidden="true">→</span></a></div>
+        <small>Independent Roblox roleplay program. Virtual cards only; no real financial products or issuer affiliation.</small>
+      </div>
+      <a href="/amex" class="air-amex-art" aria-label="Explore the SkyMiles card collection">
+        <img class="air-amex-platinum" src="/static/amex-platinum-transparent.png" width="1573" height="1000" loading="eager" decoding="async" alt="SkyMiles Platinum sample card">
+        <img class="air-amex-reserve" src="/static/amex-reserve-transparent.png" width="1573" height="1000" loading="eager" decoding="async" alt="SkyMiles Reserve sample card">
+      </a>
+    </div>
   </section>
 
   <section class="air-section air-reasons" aria-labelledby="air-reasons-heading">

@@ -1,0 +1,17 @@
+/* Homepage AMEX feature uses the same local artwork as the card page. */
+.air-home .air-amex-tab-logo{width:20px;height:20px;object-fit:contain;border-radius:2px;flex:none}
+.air-home .air-amex-feature{background:#e8e3da;color:#0c2841;padding:clamp(38px,6vw,76px) 0}
+.air-home .air-amex-inner{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:center}
+.air-home .air-amex-brand{display:flex;gap:15px;align-items:center;font-size:12px;letter-spacing:.12em;font-weight:750}
+.air-home .air-amex-brand img{display:block;border-radius:3px}
+.air-home .air-amex-copy h2{font-family:Georgia,serif;font-weight:400;font-size:clamp(30px,4vw,53px);line-height:1.12;letter-spacing:-.025em;color:#0c2841;margin:20px 0 14px}
+.air-home .air-amex-copy p{font-size:17px;line-height:1.65;color:#31485d;max-width:540px}
+.air-home .air-amex-copy small{display:block;color:#425568;font-size:12px;line-height:1.5;margin-top:18px}
+.air-home .air-amex-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-top:22px}
+.air-home .air-amex-secondary{font-weight:700;color:#0c2841;text-decoration:underline;text-underline-offset:4px}
+.air-home .air-amex-art{display:block;position:relative;min-height:clamp(200px,28vw,350px);isolation:isolate}
+.air-home .air-amex-art img{position:absolute;display:block;width:72%;height:auto;max-width:360px;object-fit:contain;filter:drop-shadow(0 12px 14px #0c284126);background:transparent;border:0}
+.air-home .air-amex-platinum{left:4%;top:2%;transform:rotate(-9deg)}
+.air-home .air-amex-reserve{right:2%;bottom:0;transform:rotate(7deg)}
+@media(max-width:760px){.air-home .air-amex-inner{grid-template-columns:1fr}.air-home .air-amex-art{min-height:260px;max-width:480px;width:100%;margin:auto}.air-home .air-amex-art img{width:67%}.air-home .air-amex-actions{gap:12px}}
+@media(max-width:400px){.air-home .air-amex-art{min-height:205px}}
