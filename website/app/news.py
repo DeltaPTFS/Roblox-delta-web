@@ -92,3 +92,81 @@ async def community_news(request: Request, db: Session = Depends(get_db)):
         page,
         headers={"Cache-Control": "private, no-store", "Vary": "Cookie"},
     )
+
+
+@router.get("/amex", response_class=HTMLResponse)
+async def amex_cards(request: Request, db: Session = Depends(get_db)):
+    """Public information only; all roleplay card registration happens in Discord."""
+    settings = get_settings()
+    try:
+        user = linked_user_from_session(request, db)
+    except SQLAlchemyError:
+        db.rollback()
+        user = None
+    guest = request.session.get("forms_identity")
+    viewer = {"id": user.discord_user_id, "name": user.discord_display_name} if user else guest
+    member = bool((user and user.discord_verified_at and user.discord_role_ids)
+                  or (isinstance(guest, dict) and guest.get("main_member"))
+                  or request.session.get("discord_join_status") in ("joined", "already_member"))
+    from .main import context
+    return templates.TemplateResponse("amex.html", context(
+        request, viewer=viewer, profile_user=user, main_discord_member=member,
+        discord_href="https://discord.com/channels/" + settings.discord_guild_id if member and settings.discord_guild_id else settings.discord_invite_url,
+        auth=permission(user, settings) if user else "MEMBER",
+    ), headers={"Cache-Control": "private, no-store", "Vary": "Cookie"})
+
+
+@router.post("/internal/news/publish")
+async def publish_bot_news(request: Request, db: Session = Depends(get_db)):
+    """Use the same owner-only newsroom and audit log as the website editor."""
+    import re
+    import httpx
+    from datetime import datetime, timezone
+    from fastapi import HTTPException
+    from .community import internal_secret
+    from .models import AuditLog, Status
+
+    internal_secret(request)
+    settings = get_settings()
+    data = await request.json()
+    if not isinstance(data, dict):
+        raise HTTPException(422, "Invalid news payload")
+    actor_id = str(data.get("actor_id", ""))
+    if not re.fullmatch(r"\d{15,22}", actor_id):
+        raise HTTPException(422, "Invalid author")
+    actor = db.scalar(select(User).where(User.discord_user_id == actor_id))
+    if not actor or actor.account_status != Status.ACTIVE:
+        raise HTTPException(403, "An active Ownership website account is required")
+    if not settings.discord_guild_id or not settings.discord_bot_token:
+        raise HTTPException(503, "Live Discord role verification unavailable")
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(
+                f"https://discord.com/api/v10/guilds/{settings.discord_guild_id}/members/{actor_id}",
+                headers={"Authorization": "Bot " + settings.discord_bot_token})
+    except httpx.HTTPError:
+        raise HTTPException(503, "Live Discord role verification unavailable")
+    if response.status_code == 404:
+        raise HTTPException(403, "Not a member of Delta Discord")
+    if response.status_code != 200:
+        raise HTTPException(503, "Live Discord role verification unavailable")
+    if not set(map(str, response.json().get("roles", []))) & settings.ids(settings.owner_discord_role_ids):
+        raise HTTPException(403, "Only Ownership may publish news")
+    title, body = data.get("title"), data.get("body")
+    if not isinstance(title, str) or not isinstance(body, str):
+        raise HTTPException(422, "Title and article are required")
+    title = " ".join(title.split())
+    body = body.replace("\r\n", "\n").strip()
+    if not 1 <= len(title) <= 180 or not 1 <= len(body.split()) <= 10000 or len(body.encode("utf-8")) > 500000:
+        raise HTTPException(422, "Invalid article length")
+    published = data.get("published") is True
+    article = CommunityNewsArticle(title=title, body=body, published=published, author_id=actor.id,
+                                   created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    db.add(article)
+    db.flush()
+    db.add(AuditLog(staff_user_id=actor.id, target_user_id=None, action="COMMUNITY_NEWS_CREATED",
+                    old_value=None, new_value={"id": article.id, "title": title, "published": published, "words": len(body.split())},
+                    reason="Ownership saved article using /web-news",
+                    security_metadata={"source": "deltaptfs-bot"}))
+    db.commit()
+    return {"id": article.id, "published": published}
