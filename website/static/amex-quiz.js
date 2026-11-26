@@ -60,7 +60,7 @@
     const key=match(answers),r=results[key],img=$('amex-quiz-card');
     form.hidden=true;back.hidden=false;shell.classList.add('is-expanded');
     $('amex-quiz-result-title').textContent=r[0];$('amex-quiz-result-copy').textContent=r[1];
-    img.hidden=!r[2];if(r[2]){img.src='/static/amex-'+r[2]+'-card.svg';img.alt=r[0]+' virtual card';}else{img.removeAttribute('src');img.alt='';}
+    img.hidden=!r[2];if(r[2]){img.src='/static/amex-'+r[2]+'-card.png';img.alt=r[0]+' virtual card';}else{img.removeAttribute('src');img.alt='';}
     $('amex-quiz-result-link').textContent=key==='business'?'Contact Business Support on Discord':key==='none'?'Ask about options on Discord':'Register on Discord';
     result.hidden=false;result.focus();
   });
