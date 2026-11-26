@@ -29,6 +29,7 @@ from .models import CommunityForm, CommunityFormResponse, Flight, FlightStatus, 
 from .security import check_csrf, csrf_token, current_user
 from .sheet_sync import enqueue_event, add_transaction
 from .crew_bridge import queue_event
+from .amex_membership import apply_card_action
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).resolve().parents[1] / "templates")
@@ -546,38 +547,17 @@ def internal_secret(request: Request):
 async def internal_skymiles(request: Request, action: str, db: Session = Depends(get_db)):
     """Shared website/bot ledger. Every mutation requires LIVE admin-level roles."""
     internal_secret(request)
-    if action not in {"balance", "leaderboard", "award", "set", "history"}:
+    if action not in {"balance", "leaderboard", "award", "set", "history", "amex-register", "amex-status", "amex-revoke", "amex-use", "amex-purchase", "amex-renew"}:
         raise HTTPException(404, "Unknown SkyMiles action")
     data = await request.json()
     if not isinstance(data, dict):
         raise HTTPException(422, "Invalid SkyMiles payload")
-    if action == "leaderboard":
-        users = db.scalars(select(User).where(User.account_status == Status.ACTIVE)
-                           .order_by(User.miles_balance.desc()).limit(10)).all()
-        return {"leaders": [{"userId": u.discord_user_id, "displayName": u.discord_display_name,
-                             "balance": u.miles_balance} for u in users]}
-    discord_id = str(data.get("user_id") or "")
-    if not re.fullmatch(r"\d{15,22}", discord_id):
-        raise HTTPException(422, "Invalid Discord ID")
-    user = db.scalar(select(User).where(User.discord_user_id == discord_id).with_for_update())
-    if not user or user.account_status != Status.ACTIVE:
-        raise HTTPException(404, "This member must have an active SkyMiles account")
-    if action == "balance":
-        return {"userId": discord_id, "balance": user.miles_balance}
-    if action == "history":
-        history = db.scalars(select(Transaction).where(Transaction.user_id == user.id)
-                             .order_by(Transaction.created_at.desc()).limit(12)).all()
-        return {"userId": discord_id, "balance": user.miles_balance,
-                "transactions": [{"change": t.miles_change, "reason": t.description,
-                                   "reference": t.reference or "", "when": t.created_at.isoformat()}
-                                  for t in history]}
-
     actor_id = str(data.get("awarded_by_id") or "")
     if not re.fullmatch(r"\d{15,22}", actor_id):
         raise HTTPException(422, "Invalid staff author")
     actor = db.scalar(select(User).where(User.discord_user_id == actor_id))
-    if not actor or actor.account_status != Status.ACTIVE:
-        raise HTTPException(403, "An active website Admin account is required")
+    if not actor or actor.account_status != Status.ACTIVE or actor.permanent_ban:
+        raise HTTPException(403, "An active website Leadership account is required")
     # The bot's cached roles or Manage Server permission are never sufficient.
     # Verify the staff member's current main-server roles from Discord itself.
     if not settings.discord_guild_id or not settings.discord_bot_token:
@@ -595,9 +575,41 @@ async def internal_skymiles(request: Request, action: str, db: Session = Depends
     if response.status_code != 200:
         raise HTTPException(503, "Discord staff verification is temporarily unavailable")
     live_main = set(map(str, response.json().get("roles", [])))
-    staff_admin_roles = settings.ids(settings.owner_discord_role_ids) | settings.ids(settings.admin_discord_role_ids)
+    staff_admin_roles = settings.ids(settings.skymiles_leadership_role_ids)
     if not (live_main & staff_admin_roles):
-        raise HTTPException(403, "Only Ownership and Staff Admin may modify SkyMiles")
+        raise HTTPException(403, "Only Delta Leadership or Founders may manage SkyMiles and AMEX")
+    if action == "leaderboard":
+        users = db.scalars(select(User).where(User.account_status == Status.ACTIVE)
+                           .order_by(User.miles_balance.desc()).limit(10)).all()
+        return {"leaders": [{"userId": u.discord_user_id, "displayName": u.discord_display_name,
+                             "balance": u.miles_balance} for u in users]}
+    discord_id = str(data.get("user_id") or "")
+    if not re.fullmatch(r"\d{15,22}", discord_id):
+        raise HTTPException(422, "Invalid Discord ID")
+    user = db.scalar(select(User).where(User.discord_user_id == discord_id).with_for_update())
+    if not user or user.account_status != Status.ACTIVE or user.permanent_ban:
+        raise HTTPException(404, "This member must have an active SkyMiles account")
+    if action == "balance":
+        return {"userId": discord_id, "balance": user.miles_balance}
+    if action == "history":
+        history = db.scalars(select(Transaction).where(Transaction.user_id == user.id)
+                             .order_by(Transaction.created_at.desc()).limit(12)).all()
+        return {"userId": discord_id, "balance": user.miles_balance,
+                "transactions": [{"change": t.miles_change, "reason": t.description,
+                                   "reference": t.reference or "", "when": t.created_at.isoformat()}
+                                  for t in history]}
+
+    if action.startswith("amex-"):
+        interaction_id=str(data.get("interaction_id") or "")
+        if not re.fullmatch(r"\d{15,22}",interaction_id):
+            raise HTTPException(422,"A unique Discord command ID is required")
+        reason=str(data.get("reason") or "").strip()[:220]
+        if action!="amex-status" and not reason:
+            raise HTTPException(422,"An audit reason is required")
+        result=apply_card_action(db,user,actor,action,data,interaction_id,reason)
+        db.commit()
+        return result
+
     if action == "set":
         final_balance = data.get("balance")
         if isinstance(final_balance, bool) or not isinstance(final_balance, int) or not 0 <= final_balance <= 100000000:

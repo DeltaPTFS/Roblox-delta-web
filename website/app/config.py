@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     owner_discord_role_ids: str = "1539005297417519205"
     staff_discord_role_ids: str = "1539968936681148456"
     admin_discord_role_ids: str = "1539005030189891684,1539005033020919828"
+    skymiles_leadership_role_ids: str = "1539005297417519205,1539005030189891684"
     welcome_bonus_miles: int = 0
     local_password_login_enabled: bool = False
     cookie_secure: bool = True
