@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 856 540" role="img" aria-label="SkyMiles RESERVE virtual membership card"><defs>
+<linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#142536"/><stop offset=".26" stop-color="#4c5b66"/><stop offset=".51" stop-color="#1b2b39"/><stop offset=".75" stop-color="#53636e"/><stop offset="1" stop-color="#253847"/></linearGradient>
+<linearGradient id="facet1" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#8997a2"/><stop offset="1" stop-color="#293c4c"/></linearGradient>
+<linearGradient id="facet2" x1="1" x2="0" y1="0" y2="1"><stop stop-color="#0c1b28"/><stop offset="1" stop-color="#71818e"/></linearGradient>
+<linearGradient id="facet3" x1="0" x2="1" y1="1" y2="0"><stop stop-color="#192937"/><stop offset="1" stop-color="#91a1ab"/></linearGradient>
+<linearGradient id="chip" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f8fa"/><stop offset=".48" stop-color="#b0bac4"/><stop offset="1" stop-color="#e5e8ec"/></linearGradient>
+<pattern id="brush" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 .5H3" stroke="#a4b2bd" stroke-opacity=".16" stroke-width=".55"/></pattern>
+<clipPath id="clip"><rect x="1" y="1" width="854" height="538" rx="29"/></clipPath></defs>
+<g clip-path="url(#clip)"><rect width="856" height="540" fill="url(#metal)"/><rect width="856" height="540" fill="url(#brush)"/>
+<g transform="translate(230 125)"><path d="M0 64 438 0 246 166Z" fill="url(#facet1)"/><path d="M438 0 246 166 313 326Z" fill="url(#facet2)"/><path d="M0 64 246 166 313 326Z" fill="url(#facet3)"/><path d="M0 64 246 166 438 0" fill="none" stroke="#fff" stroke-opacity=".26" stroke-width="1.5"/></g>
+<g fill="#e6edf2" font-family="Arial,Helvetica,sans-serif"><text x="48" y="57" font-size="24" font-weight="800" letter-spacing="1">AMERICAN EXPRESS</text><text x="48" y="83" font-size="15" font-weight="700" letter-spacing="3">INSPIRED • ROLEPLAY</text>
+<g transform="translate(540 37)"><path d="M0 19 15 0 30 19 15 13Z" fill="#ec435b"/><text x="40" y="20" font-size="24" font-weight="700" letter-spacing="5">DELTA</text><text x="0" y="62" font-size="34" letter-spacing="4">SKYMILES</text></g>
+<text x="48" y="443" font-size="23" font-weight="700" letter-spacing="2">RESERVE</text><text x="48" y="477" font-size="18" letter-spacing="2.4">DELTA ROBLOX MEMBER</text><text x="808" y="463" font-size="15" font-weight="700" text-anchor="end" letter-spacing="1.4">VIRTUAL ONLY</text><text x="808" y="486" font-size="12" text-anchor="end" letter-spacing="1">NOT A PAYMENT CARD</text></g>
+<g transform="translate(48 210)"><rect width="117" height="95" rx="14" fill="url(#chip)" stroke="#67717b" stroke-width="1.6"/><g fill="none" stroke="#64717c" stroke-width="2.2"><path d="M0 30h34l11 10h28l11-10h33M0 65h34l11-10h28l11 10h33M42 0v18l10 12v35l-10 12v18M75 0v18L65 30v35l10 12v18"/><rect x="44" y="30" width="30" height="35" rx="5"/></g></g>
+<rect x="1.5" y="1.5" width="853" height="537" rx="29" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="3"/></g></svg>
