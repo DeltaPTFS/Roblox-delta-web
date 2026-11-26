@@ -45,3 +45,18 @@ def test_amex_uses_local_transparent_artwork_in_all_card_surfaces():
         assert "www.delta.com/content/dam" not in css
         assert "thepointcalculator.com" not in css
         assert "background:transparent" in css
+
+
+def test_amex_priority_and_home_feature():
+    with TestClient(app) as client:
+        html = client.get("/amex").text
+        for tier in ("platinum", "reserve"):
+            assert f'<link rel="preload" as="image" href="/static/amex-{tier}-transparent.png" fetchpriority="high">' in html
+        assert 'loading="eager" fetchpriority="high" decoding="sync"' in html
+        assert 'loading="lazy"' not in html.split('data-card-face="platinum"', 1)[1].split('</div>', 1)[0]
+        for path in ("/", "/home"):
+            home = client.get(path).text
+            assert 'id="amex-cards"' in home
+            assert 'href="/amex#card-quiz"' in home
+            assert '/static/amex-platinum-transparent.png' in home
+            assert '/static/amex-reserve-transparent.png' in home
